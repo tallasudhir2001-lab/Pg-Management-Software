@@ -1,0 +1,88 @@
+<div class="page-header">
+  <h2>Rooms</h2>
+  <div class="header-filters">
+    <input
+      type="text"
+      placeholder="Search room number"
+      [(ngModel)]="searchRoomNumber"
+      class="search-input"
+    />
+
+    <select
+      [(ngModel)]="selectedStatus"
+      class="status-select"
+    >
+      <option value="">All Status</option>
+      <option value="available">Available</option>
+      <option value="partial">Partial</option>
+      <option value="full">Full</option>
+    </select>
+    <select
+    [(ngModel)]="selectedAcType"
+    class="status-select"
+  >
+    <option value="">AC & Non-AC</option>
+    <option value="ac">AC</option>
+    <option value="non-ac">Non-AC</option>
+  </select>
+  </div>
+  <button
+    class="btn-primary add-room-btn"
+    type="button"
+    (click)="openAddRoom()"
+  >
+    + Add Room
+  </button>
+</div>
+
+
+<!-- 🔹 Rooms Grid -->
+<div *ngIf="rooms$ | async as rooms">
+  <div class="room-grid">
+    <div
+      class="room-card"
+      *ngFor="let room of applyFilters(rooms)"
+      [ngClass]="getStatusClass(room)"
+      (click)="openRoom(room.roomId)"
+    >
+      <div class="card-header-bg"></div>
+
+      <div class="room-avatar-container">
+        <div class="room-avatar">
+          {{ room.roomNumber }}
+        </div>
+      </div>
+      <div class="room-type-badge" [class.ac]="room.isAc">
+        {{ room.isAc ? 'AC' : 'Non-AC' }}
+      </div>
+
+      <div class="room-content">
+        <h3 class="rent-amount">₹ {{ room.rentAmount }}</h3>
+        <p class="rent-label">Monthly Rent</p>
+
+        <div class="room-metrics">
+          <div class="metric">
+            <span class="value">{{ room.capacity }}</span>
+            <span class="label">Capacity</span>
+          </div>
+
+          <div class="metric">
+            <span class="value">{{ room.occupied }}</span>
+            <span class="label">Occupied</span>
+          </div>
+
+          <div class="metric">
+            <span class="value">{{ room.vacancies }}</span>
+            <span class="label">Vacant</span>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn-primary" type="button">
+            View Details
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

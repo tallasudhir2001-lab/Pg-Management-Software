@@ -1,0 +1,171 @@
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 20px;
+}
+
+.room-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+  aspect-ratio: 1 / 1.1; /* Maintains a square-ish shape */
+  border: 1px solid #e5e7eb;
+}
+
+.room-card:hover {
+  transform: translateY(-8px);
+}
+
+/* Header Background Color */
+.card-header-bg {
+  height: 80px;
+  background-color: #0F1041; /* Your standard color */
+}
+
+/* Room Number Circle (Avatar) */
+.room-avatar-container {
+  margin-top: -45px; /* Pulls the circle up into the header */
+  display: flex;
+  justify-content: center;
+}
+
+.room-avatar {
+  width: 90px;
+  height: 90px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0F1041;
+  border: 4px solid white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Body Content */
+.room-content {
+  padding: 15px 20px 20px;
+}
+
+.rent-amount {
+  font-size: 22px;
+  margin: 0;
+  color: #0F1041;
+}
+
+.rent-label {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Metrics - Side by side */
+.room-metrics {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px 0;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 15px;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric .value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F1041;
+}
+
+.metric .label {
+  font-size: 12px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Action Button */
+.btn-primary {
+  background-color: #0F1041;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-weight: 500;
+  width: 80%;
+}
+
+/* Dynamic Status Indicators (Subtle bottom border) */
+.room-card.available { border-bottom: 5px solid #16a34a; }
+.room-card.partial { border-bottom: 5px solid #2563eb; }
+.room-card.full { border-bottom: 5px solid #dc2626; }
+
+.filter-bar {
+  display: flex;
+  gap: 16px;
+  padding: 0 20px 10px;
+  align-items: center;
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+}
+
+.status-select {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+}
+.page-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px 10px;
+}
+
+.add-room-btn {
+  width: auto;
+  padding: 10px 20px;
+}
+
+.header-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.add-room-btn {
+  width: auto;
+  white-space: nowrap;
+}
+.room-type-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.room-type-badge.ac {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}

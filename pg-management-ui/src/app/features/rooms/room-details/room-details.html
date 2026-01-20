@@ -1,0 +1,61 @@
+<div class="form-page-container">
+    <div class="back-nav" (click)="cancel()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="back-icon">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+    </svg>
+    <span>Back to Rooms</span>
+  </div>
+  <h2 class="page-title">Room Details</h2>
+
+  <div class="details-card" *ngIf="room$ | async">
+    
+    <div class="form-group">
+      <label>Room Number</label>
+      <input 
+        [(ngModel)]="model.roomNumber" 
+        placeholder="Room Number" 
+        class="form-input" 
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Capacity (Beds)</label>
+      <input 
+        type="number" 
+        [(ngModel)]="model.capacity" 
+        class="form-input" 
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Monthly Rent (₹)</label>
+      <input 
+        type="number" 
+        [(ngModel)]="model.rentAmount" 
+        class="form-input" 
+      />
+    </div>
+
+    <div class="form-group checkbox-group">
+        <label class="checkbox-container">
+        <input type="checkbox" [(ngModel)]="model.isAc" />
+        AC Room
+        </label>
+    </div>
+
+    <div class="actions">
+      <button class="btn-delete" (click)="delete()">
+        Delete Room
+      </button>
+      <button 
+        class="btn-save" 
+        (click)="save()" 
+        [disabled]="isSaving"
+      >
+        {{ isSaving ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </div>
+
+    <p class="error-msg" *ngIf="error">{{ error }}</p>
+  </div>
+</div>

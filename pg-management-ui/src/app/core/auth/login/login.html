@@ -1,0 +1,25 @@
+<div class="page">
+  <h2>PG Management Login</h2>
+
+  <form (ngSubmit)="login()">
+    <label>Username or Email</label>
+    <input
+      type="text"
+      [(ngModel)]="userNameOrEmail"
+      name="userNameOrEmail"
+      required
+    />
+
+    <label>Password</label>
+    <input
+      type="password"
+      [(ngModel)]="password"
+      name="password"
+      required
+    />
+
+    <button type="submit">Login</button>
+
+    <div class="error" *ngIf="error">{{ error }}</div>
+  </form>
+</div>

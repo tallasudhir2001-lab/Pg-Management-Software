@@ -1,0 +1,25 @@
+<div class="app-shell">
+  <!-- ADMIN SIDEBAR -->
+  <aside class="sidebar">
+    <h2 class="logo">Admin Panel</h2>
+
+    <nav>
+      <a routerLink="/admin/dashboard" routerLinkActive="active">
+        Dashboard
+      </a>
+      <a routerLink="/admin/register-pg" routerLinkActive="active">
+        Register PG
+      </a>
+      <a routerLink="/admin/pgs" routerLinkActive="active">
+        All PGs
+      </a>
+    </nav>
+
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </aside>
+
+  <!-- ADMIN CONTENT -->
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

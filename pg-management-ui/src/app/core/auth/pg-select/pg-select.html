@@ -1,0 +1,27 @@
+<div class="page">
+  <h2>Select PG</h2>
+
+  <div *ngFor="let pg of pgs" style="margin-bottom: 12px;">
+    <div
+      style="
+        padding: 14px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      "
+    >
+      <div>
+        <strong>{{ pg.pgName }}</strong>
+        <div style="font-size: 13px; color: #666">
+          Role: {{ pg.role }}
+        </div>
+      </div>
+
+      <button style="width: auto;" (click)="selectPg(pg.pgId)">
+        Enter
+      </button>
+    </div>
+  </div>
+</div>

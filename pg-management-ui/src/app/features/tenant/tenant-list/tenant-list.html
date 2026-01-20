@@ -1,0 +1,21 @@
+<h2>Tenants</h2>
+
+<div style="margin-bottom:16px">
+  <a routerLink="/tenants/add">
+    <button>Add Tenant</button>
+  </a>
+</div>
+
+<table width="100%" cellpadding="10">
+  <tr style="background:#e5e7eb">
+    <th>Name</th>
+    <th>Room</th>
+    <th>Phone</th>
+  </tr>
+
+  <tr *ngFor="let t of tenants">
+    <td>{{ t.name }}</td>
+    <td>{{ t.room }}</td>
+    <td>{{ t.phone }}</td>
+  </tr>
+</table>

@@ -1,0 +1,20 @@
+<div class="app-shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2 class="logo">PG Manager</h2>
+
+    <nav>
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/room-list" routerLinkActive="active">Rooms</a>
+      <a routerLink="/tenant-list" routerLinkActive="active">Tenants</a>
+      <a routerLink="/payments" routerLinkActive="active">Payments</a>
+    </nav>
+
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

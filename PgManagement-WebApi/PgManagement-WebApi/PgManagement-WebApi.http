@@ -1,0 +1,6 @@
+@PgManagement_WebApi_HostAddress = http://localhost:5243
+
+GET {{PgManagement_WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

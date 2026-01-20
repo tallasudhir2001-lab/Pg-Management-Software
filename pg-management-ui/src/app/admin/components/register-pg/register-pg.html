@@ -1,0 +1,30 @@
+<div class="page">
+  <h2>Register New PG</h2>
+
+  <label>PG Name</label>
+  <input [(ngModel)]="pgName" />
+
+  <label>Address</label>
+  <input [(ngModel)]="address" />
+
+  <label>Contact Number</label>
+  <input [(ngModel)]="contactNumber" />
+
+  <hr style="margin: 20px 0" />
+
+  <label>Owner Name</label>
+  <input [(ngModel)]="ownerName" />
+
+  <label>Owner Email</label>
+  <input type="email" [(ngModel)]="ownerEmail" />
+
+  <label>Owner Password</label>
+  <input type="password" [(ngModel)]="password" />
+
+  <button (click)="registerPg()">Create PG</button>
+
+  <p class="error" *ngIf="error">{{ error }}</p>
+  <p style="color:green;text-align:center" *ngIf="success">
+    {{ success }}
+  </p>
+</div>

@@ -1,0 +1,54 @@
+<div class="form-page-container">
+  <h2 class="page-title">Add New Room</h2>
+
+  <div class="add-room-card">
+    <div class="form-group">
+      <label>Room Number</label>
+      <input
+        type="text"
+        placeholder="e.g. 101"
+        [(ngModel)]="model.roomNumber"
+        class="form-input"
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Capacity (Beds)</label>
+      <input
+        type="number"
+        placeholder="Enter capacity"
+        min="1"
+        [(ngModel)]="model.capacity"
+        class="form-input"
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Monthly Rent (₹)</label>
+      <input
+        type="number"
+        placeholder="Enter amount"
+        min="0"
+        [(ngModel)]="model.rentAmount"
+        class="form-input"
+      />
+    </div>
+
+    <div class="actions">
+      <button class="btn-cancel" (click)="cancel()">
+        Cancel
+      </button>
+      <button
+        class="btn-save"
+        (click)="save()"
+        [disabled]="isSaving"
+      >
+        {{ isSaving ? 'Saving...' : 'Save Room' }}
+      </button>
+    </div>
+
+    <p *ngIf="errorMessage" class="error-msg">
+      {{ errorMessage }}
+    </p>
+  </div>
+</div>
