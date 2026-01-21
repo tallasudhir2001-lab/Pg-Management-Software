@@ -169,3 +169,67 @@
   background-color: #dbeafe;
   color: #1d4ed8;
 }
+/* Full-width container, centers the group */
+.pagination {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 32px 0;
+}
+
+/* The actual pagination row (content width only) */
+.pagination-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+}
+
+/* Base button */
+.page-btn {
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #0F1041;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Prev / Next → size = 2 */
+.page-btn.prev,
+.page-btn.next {
+  width: 96px;
+  height: 40px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Page numbers → size = 1 (half of prev/next) */
+.page-btn.page-number {
+  width: 48px;
+  height: 40px;
+  font-size: 14px;
+}
+
+/* Active */
+.page-btn.active {
+  background-color: #0F1041;
+  color: white;
+  border-color: #0F1041;
+}
+
+/* Hover */
+.page-btn:hover:not(:disabled) {
+  background-color: #0F1041;
+  color: white;
+}
+
+/* Disabled */
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
