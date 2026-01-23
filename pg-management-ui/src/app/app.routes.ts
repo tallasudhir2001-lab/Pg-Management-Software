@@ -27,7 +27,7 @@ export const routes: Routes = [
             { path :'add-room', component:AddRoom},
             { path : 'room/:id',component:RoomDetails},
             { path :'tenant-list',component:TenantList},
-            { path:'add-tenant',component:AddTenant}
+            { path:'tenants/add',component:AddTenant}
         ]
     },
     {

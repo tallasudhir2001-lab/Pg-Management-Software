@@ -18,10 +18,6 @@ namespace PgManagement_WebApi.Models
 
         public decimal RentAmount { get; set; }
 
-        [NotMapped]
-        public int Vacancies =>
-                    Capacity - Tenants.Count(t => t.isActive);
-
         public bool isAc {  get; set; }
         // Navigation property
         [ForeignKey("PgId")]

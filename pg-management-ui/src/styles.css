@@ -160,11 +160,14 @@ button:hover {
   transform: scale(1.02);
 }
 .sidebar nav a.active {
-  color: white;
-  background: var(--accent); /* Uses the blue accent color from your :root */
-  font-weight: 600;
-  border-left: 4px solid white;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  color: white; /* Keeps text white */
+  background: rgba(255, 255, 255, 0.12); /* Matching the hover background */
+  transform: scale(1.02); /* Matching the hover scale effect */
+  font-weight: 600; /* Keeps it slightly bolder to distinguish it */
+  
+  /* Optional: Remove the blue accent and border if you want it exactly like hover */
+  border-left: none; 
+  box-shadow: none;
 }
 
 .logout-btn {

@@ -38,84 +38,86 @@ namespace PgManagement_WebApi.Controllers
             if (string.IsNullOrEmpty(pgId))
                 return Unauthorized();
 
-            // Base query (tenant-safe)
             IQueryable<Room> query = context.Rooms
                 .Where(r => r.PgId == pgId);
 
-            // 🔍 Search by Room Number
+            //  Search by Room Number
             if (!string.IsNullOrWhiteSpace(search))
             {
                 query = query.Where(r => r.RoomNumber.Contains(search));
             }
 
-            // ❄️ AC / Non-AC filter
+            //  AC / Non-AC filter
             if (!string.IsNullOrWhiteSpace(ac))
             {
                 if (ac.Equals("ac", StringComparison.OrdinalIgnoreCase))
-                {
                     query = query.Where(r => r.isAc);
-                }
                 else if (ac.Equals("non-ac", StringComparison.OrdinalIgnoreCase))
-                {
                     query = query.Where(r => !r.isAc);
-                }
             }
 
-            // 📊 Status filter
+            //  Project once with OccupiedBeds (FROM TenantRoom)
+            var projectedQuery = query.Select(r => new
+            {
+                Room = r,
+                OccupiedBeds = context.TenantRooms.Count(tr =>
+                    tr.RoomId == r.RoomId &&
+                    tr.PgId == pgId &&
+                    tr.ToDate == null
+                )
+            });
+
+            //  Status filter
             if (!string.IsNullOrWhiteSpace(status))
             {
                 status = status.ToLower();
 
-                query = status switch
+                projectedQuery = status switch
                 {
-                    "available" => query.Where(r =>
-                        !r.Tenants.Any(t => t.isActive)
+                    "available" => projectedQuery.Where(x => x.OccupiedBeds == 0),
+
+                    "full" => projectedQuery.Where(x => x.OccupiedBeds >= x.Room.Capacity),
+
+                    "partial" => projectedQuery.Where(x =>
+                        x.OccupiedBeds > 0 &&
+                        x.OccupiedBeds < x.Room.Capacity
                     ),
 
-                    "full" => query.Where(r =>
-                        r.Tenants.Count(t => t.isActive) >= r.Capacity
-                    ),
-
-                    "partial" => query.Where(r =>
-                        r.Tenants.Any(t => t.isActive) &&
-                        r.Tenants.Count(t => t.isActive) < r.Capacity
-                    ),
-
-                    _ => query
+                    _ => projectedQuery
                 };
             }
 
-            // 🔢 Total count (AFTER filters, BEFORE pagination)
-            var totalCount = await query.CountAsync();
+            // 🔢 Total count (after filters)
+            var totalCount = await projectedQuery.CountAsync();
 
-            // 📄 Apply pagination + projection
-            var rooms = await query
-                .OrderBy(r => r.RoomNumber)
+            // 📄 Pagination + final projection
+            var rooms = await projectedQuery
+                .OrderBy(x => x.Room.RoomNumber)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(r => new RoomDto
+                .Select(x => new RoomDto
                 {
-                    RoomId = r.RoomId,
-                    RoomNumber = r.RoomNumber,
-                    Capacity = r.Capacity,
-                    Occupied = r.Tenants.Count(t => t.isActive),
-                    Vacancies = r.Capacity - r.Tenants.Count(t => t.isActive),
-                    RentAmount = r.RentAmount,
-                    isAc = r.isAc,
+                    RoomId = x.Room.RoomId,
+                    RoomNumber = x.Room.RoomNumber,
+                    Capacity = x.Room.Capacity,
+                    Occupied = x.OccupiedBeds,
+                    Vacancies = x.Room.Capacity - x.OccupiedBeds,
+                    RentAmount = x.Room.RentAmount,
+                    isAc = x.Room.isAc,
                     Status =
-                        r.Tenants.Count(t => t.isActive) == 0 ? "Available" :
-                        r.Tenants.Count(t => t.isActive) >= r.Capacity ? "Full" :
+                        x.OccupiedBeds == 0 ? "Available" :
+                        x.OccupiedBeds >= x.Room.Capacity ? "Full" :
                         "Partial"
                 })
                 .ToListAsync();
 
-            // 📦 Final response
             return Ok(new PageResultsDto<RoomDto>
             {
                 Items = rooms,
                 TotalCount = totalCount
             });
         }
+
 
 
         [HttpGet("{roomId}")]
@@ -127,17 +129,31 @@ namespace PgManagement_WebApi.Controllers
 
             var room = await context.Rooms
                 .Where(r => r.RoomId == roomId && r.PgId == pgId)
+                .Select(r => new
+                {
+                    r.RoomId,
+                    r.RoomNumber,
+                    r.Capacity,
+                    r.RentAmount,
+                    r.isAc,
+
+                    OccupiedBeds = context.TenantRooms.Count(tr =>
+                        tr.RoomId == r.RoomId &&
+                        tr.PgId == pgId &&
+                        tr.ToDate == null
+                    )
+                })
                 .Select(r => new RoomDto
                 {
                     RoomId = r.RoomId,
                     RoomNumber = r.RoomNumber,
                     Capacity = r.Capacity,
-                    Occupied = r.Tenants.Count(t => t.isActive),
-                    Vacancies = r.Capacity - r.Tenants.Count(t => t.isActive),
+                    Occupied = r.OccupiedBeds,
+                    Vacancies = r.Capacity - r.OccupiedBeds,
                     RentAmount = r.RentAmount,
                     Status =
-                        r.Tenants.Count(t => t.isActive) == 0 ? "Available" :
-                        r.Tenants.Count(t => t.isActive) >= r.Capacity ? "Full" :
+                        r.OccupiedBeds == 0 ? "Available" :
+                        r.OccupiedBeds >= r.Capacity ? "Full" :
                         "Partial",
                     isAc = r.isAc
                 })
@@ -148,6 +164,7 @@ namespace PgManagement_WebApi.Controllers
 
             return Ok(room);
         }
+
         [HttpPost("add-room")]
         public async Task<IActionResult> CreateRoom([FromBody] CreateRoomDto dto)
         {
@@ -167,7 +184,8 @@ namespace PgManagement_WebApi.Controllers
                 PgId = pgId,
                 RoomNumber = dto.RoomNumber,
                 Capacity = dto.Capacity,
-                RentAmount = dto.RentAmount
+                RentAmount = dto.RentAmount,
+                isAc=dto.IsAc
             };
             context.Rooms.Add(room);
             await context.SaveChangesAsync();
@@ -221,7 +239,13 @@ namespace PgManagement_WebApi.Controllers
             if (room == null)
                 return NotFound();
 
-            if (room.Tenants.Any(t => t.isActive))
+            var hasActiveAssignments = await context.TenantRooms.AnyAsync(tr =>
+                tr.RoomId == roomId &&
+                tr.PgId == pgId &&
+                tr.ToDate == null
+            );
+
+            if (hasActiveAssignments)
                 return BadRequest("Cannot delete room with active tenants.");
 
             context.Rooms.Remove(room);

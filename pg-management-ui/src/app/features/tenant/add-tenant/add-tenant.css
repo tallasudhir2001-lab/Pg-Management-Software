@@ -1,0 +1,130 @@
+/* Container & Title */
+.form-page-container {
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f9fafb;
+  min-height: calc(100vh - 60px);
+  font-family: 'Inter', sans-serif;
+}
+
+.page-title {
+  color: #0F1041;
+  margin-bottom: 24px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+/* Card Styling - Sized to content */
+.add-tenant-card {
+  background: white;
+  width: 100%;
+  max-width: 750px; /* Fits two columns comfortably */
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+/* Grid System */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 40px; /* Vertical gap 0 to control manually, Horizontal gap 40px */
+}
+
+.section-bottom {
+  grid-column: 1 / span 2;
+  margin-top: 8px; /* Reduced gap as requested */
+}
+
+.financial-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Form Elements */
+.section-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 15px;
+  color: #0F1041;
+  box-sizing: border-box;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #0F1041;
+  box-shadow: 0 0 0 3px rgba(15, 16, 65, 0.1);
+}
+
+/* Calendar Theming */
+.form-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  /* Filters the icon to match the Navy Blue theme #0F1041 */
+  filter: invert(8%) sepia(45%) saturate(4644%) hue-rotate(231deg) brightness(91%) contrast(106%);
+}
+
+/* Action Buttons */
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  justify-content: flex-end;
+}
+
+.btn-save, .btn-cancel {
+  padding: 12px 32px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-save {
+  background-color: #0F1041;
+  color: white;
+  border: none;
+}
+
+.btn-save:hover {
+  background-color: #1a1b5c;
+}
+
+.btn-cancel {
+  background-color: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+.btn-cancel:hover {
+  background-color: #f3f4f6;
+}

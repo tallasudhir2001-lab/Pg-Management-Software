@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { Router, RouterOutlet,RouterLink } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { Auth } from '../../core/services/auth';
 import { jwtDecode } from 'jwt-decode';
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet,RouterLink],
+  imports: [RouterOutlet,RouterLink,RouterModule],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })

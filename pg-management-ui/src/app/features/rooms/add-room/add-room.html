@@ -33,6 +33,12 @@
         class="form-input"
       />
     </div>
+     <div class="form-group checkbox-group">
+        <label class="checkbox-container">
+        <input type="checkbox" [(ngModel)]="model.isAc" />
+        AC Room
+        </label>
+    </div>
 
     <div class="actions">
       <button class="btn-cancel" (click)="cancel()">

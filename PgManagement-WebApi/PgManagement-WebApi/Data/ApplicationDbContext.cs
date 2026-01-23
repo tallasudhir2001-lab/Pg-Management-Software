@@ -19,6 +19,7 @@ namespace PgManagement_WebApi.Data
         public DbSet<PaymentMode> PaymentModes { get; set; }
         public DbSet<UserPg> UserPgs { get; set; }
         public DbSet<PgRole> PgRoles { get; set; }
+        public DbSet<TenantRoom> TenantRooms { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

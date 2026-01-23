@@ -103,3 +103,30 @@
   margin-top: 16px;
   text-align: center;
 }
+
+/* Custom Checkbox Alignment */
+.checkbox-group {
+  margin: 15px 0;
+  display: flex;
+  align-items: center; /* This vertically centers the box with the text */
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center; 
+  gap: 10px; /* Space between the box and the text */
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F1041; /* Matches your brand theme */
+  user-select: none;
+}
+
+/* Style the actual checkbox to be slightly larger */
+.checkbox-container input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #0F1041; /* Colors the checkbox to match your theme in modern browsers */
+  margin: 0; /* Removes default browser margins that cause misalignment */
+}

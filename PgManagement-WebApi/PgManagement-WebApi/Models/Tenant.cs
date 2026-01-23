@@ -16,12 +16,21 @@ namespace PgManagement_WebApi.Models
 
         public string RoomId { get; set; }    // Optional: assigned room
 
-        public DateTime CheckInDate { get; set; } = DateTime.UtcNow;
-        public DateTime? CheckOutDate { get; set; }
-
-        [MaxLength(15)]
+        [Required]
+        [RegularExpression(@"^[6-9]\d{9}$",
+            ErrorMessage = "Enter a valid 10-digit Indian mobile number")]
+        [MaxLength(10)]
         public string ContactNumber { get; set; }
-        public bool isActive { get; set; } 
+        [RegularExpression(@"^\d{12}$",
+            ErrorMessage = "Aadhaar must be 12 digits")]
+        public string AadharNumber { get; set; }
+        public decimal? AdvanceAmount { get; set; }
+        public DateTime? RentPaidUpto { get; set; }
+        public string Notes { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+
 
         [ForeignKey("PgId")]
         public PG PG { get; set; }

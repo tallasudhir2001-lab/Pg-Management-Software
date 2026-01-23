@@ -1,21 +1,50 @@
-<h2>Tenants</h2>
+<div class="tenant-list-page">
 
-<div style="margin-bottom:16px">
-  <a routerLink="/tenants/add">
-    <button>Add Tenant</button>
-  </a>
+  <!-- Page Title -->
+  <div class="page-header">
+    <h2 class="page-title">Tenants</h2>
+  </div>
+
+  <!-- Search + Actions Row -->
+  <div class="tenant-actions">
+    
+    <!-- Search -->
+    <input
+      type="text"
+      class="search-input"
+      placeholder=" 🔍 Search by name or mobile number"
+    />
+
+    <div class="action-buttons">
+      <button class="btn btn-secondary">
+        Filters
+      </button>
+
+      <button class="btn btn-primary" routerLink="/tenants/add">
+        + Add Tenant
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Data Table -->
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Tenant Name</th>
+          <th>Room</th>
+          <th>Contact</th>
+          <th>Status</th>
+          <th>Checked In</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- rows will come here -->
+      </tbody>
+    </table>
+  </div>
+
 </div>
-
-<table width="100%" cellpadding="10">
-  <tr style="background:#e5e7eb">
-    <th>Name</th>
-    <th>Room</th>
-    <th>Phone</th>
-  </tr>
-
-  <tr *ngFor="let t of tenants">
-    <td>{{ t.name }}</td>
-    <td>{{ t.room }}</td>
-    <td>{{ t.phone }}</td>
-  </tr>
-</table>

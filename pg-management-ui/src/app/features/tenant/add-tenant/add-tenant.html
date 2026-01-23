@@ -1,13 +1,125 @@
-<h2>Add Tenant</h2>
+<div class="form-page-container">
+  <div class="add-tenant-card">
 
-<label>Name</label>
-<input />
+    <!-- 🔗 Reactive Form -->
+    <form [formGroup]="form">
 
-<label>Room</label>
-<input />
+      <div class="form-grid">
 
-<label>Phone</label>
-<input />
+        <!-- LEFT SECTION -->
+        <div class="form-section section-left">
+          <h3 class="section-subtitle">Tenant Details</h3>
+          
+          <div class="form-group">
+            <label>Tenant Name</label>
+            <input
+              type="text"
+              class="form-input"
+              placeholder="Enter tenant name"
+              formControlName="name" />
+          </div>
 
-<br /><br />
-<button>Save</button>
+          <div class="form-group">
+            <label>Mobile Number</label>
+            <input
+              type="text"
+              class="form-input"
+              placeholder="Enter mobile number"
+              formControlName="contactNumber" />
+          </div>
+
+          <div class="form-group">
+            <label>Aadhaar Number</label>
+            <input
+              type="text"
+              class="form-input"
+              placeholder="Enter Aadhaar number"
+              formControlName="aadharNumber" />
+          </div>
+        </div>
+
+        <!-- RIGHT SECTION -->
+        <div class="form-section section-right">
+          <h3 class="section-subtitle">Room Details</h3>
+
+          <div class="form-group">
+            <label>Room</label>
+            <select
+              class="form-input"
+              formControlName="roomId">
+              
+              <option value="">Select room</option>
+
+              <option
+                *ngFor="let room of rooms$ | async"
+                [value]="room.roomId">
+                Room {{ room.roomNumber }} - available beds -> ({{ room.vacancies }})
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Checked In Date</label>
+            <input
+              type="date"
+              class="form-input"
+              formControlName="fromDate" />
+          </div>
+        </div>
+
+        <!-- BOTTOM SECTION -->
+        <div class="form-section section-bottom">
+          <h3 class="section-subtitle">Financial Details</h3>
+
+          <div class="financial-row">
+            <div class="form-group">
+              <label>Advance Amount (₹)</label>
+              <input
+                type="number"
+                class="form-input"
+                placeholder="Enter amount"
+                formControlName="advanceAmount" />
+            </div>
+
+            <div class="form-group">
+              <label>Rent Paid Upto</label>
+              <input
+                type="date"
+                class="form-input"
+                formControlName="rentPaidUpto" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea
+                rows="3"
+                class="form-input"
+                placeholder="Additional notes (optional)"
+                formControlName="notes">
+            </textarea>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="actions">
+        <button
+          type="button"
+          class="btn-cancel"
+          (click)="cancel()">
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          class="btn-save"
+          (click)="save()"
+          [disabled]="form.invalid">
+          Save Tenant
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

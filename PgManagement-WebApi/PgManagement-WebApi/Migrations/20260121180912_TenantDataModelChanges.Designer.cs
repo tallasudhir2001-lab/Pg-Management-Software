@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PgManagement_WebApi.Data;
 
@@ -11,9 +12,11 @@ using PgManagement_WebApi.Data;
 namespace PgManagement_WebApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260121180912_TenantDataModelChanges")]
+    partial class TenantDataModelChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -366,6 +369,12 @@ namespace PgManagement_WebApi.Migrations
                     b.Property<decimal?>("AdvanceAmount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<DateTime>("CheckInDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CheckOutDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("ContactNumber")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -403,39 +412,6 @@ namespace PgManagement_WebApi.Migrations
                     b.HasIndex("RoomId");
 
                     b.ToTable("Tenants");
-                });
-
-            modelBuilder.Entity("PgManagement_WebApi.Models.TenantRoom", b =>
-                {
-                    b.Property<Guid>("TenantRoomId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("FromDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PgId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RoomId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("ToDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("TenantRoomId");
-
-                    b.HasIndex("RoomId");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("TenantRooms");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.UserPg", b =>
@@ -571,25 +547,6 @@ namespace PgManagement_WebApi.Migrations
                     b.Navigation("PG");
 
                     b.Navigation("Room");
-                });
-
-            modelBuilder.Entity("PgManagement_WebApi.Models.TenantRoom", b =>
-                {
-                    b.HasOne("PgManagement_WebApi.Models.Room", "Room")
-                        .WithMany()
-                        .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PgManagement_WebApi.Models.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Room");
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.UserPg", b =>

@@ -4,10 +4,10 @@
     <h2 class="logo">PG Manager</h2>
 
     <nav>
-      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-      <a routerLink="/room-list" routerLinkActive="active">Rooms</a>
-      <a routerLink="/tenant-list" routerLinkActive="active">Tenants</a>
-      <a routerLink="/payments" routerLinkActive="active">Payments</a>
+      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
+      <a routerLink="/room-list" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Rooms</a>
+      <a routerLink="/tenant-list" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Tenants</a>
+      <a routerLink="/payments" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Payments</a>
     </nav>
 
     <button class="logout-btn" (click)="logout()">Logout</button>

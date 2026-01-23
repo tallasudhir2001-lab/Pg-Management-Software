@@ -12,5 +12,6 @@ namespace PgManagement_WebApi.DTOs.Room
 
         [Range(0, double.MaxValue)]
         public decimal RentAmount { get; set; }
+        public bool IsAc {  get; set; }
     }
 }
