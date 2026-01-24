@@ -38,7 +38,7 @@ namespace PgManagement_WebApi.Controllers
             if (string.IsNullOrEmpty(pgId))
                 return Unauthorized();
 
-            var query=context.Tenants.Where(t=>t.PgId== pgId);
+            var query=context.Tenants.Where(t=>t.PgId== pgId && !t.isDeleted);
 
             //search (Name / Contact)
             if (!string.IsNullOrEmpty(search))
@@ -270,6 +270,26 @@ namespace PgManagement_WebApi.Controllers
 
             await context.SaveChangesAsync();
 
+            return NoContent();
+        }
+        [HttpDelete("{tenantId}")]
+        public async Task<IActionResult> DeleteTenant(string tenantId)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (pgId == null) return Unauthorized();
+
+            var tenant = await context.Tenants.FirstOrDefaultAsync(t=>t.TenantId== tenantId && t.PgId==pgId && !t.isDeleted);
+            if(tenant == null) return NotFound();
+
+            var hasActiveRoom = await context.TenantRooms.AnyAsync(tr =>
+                tr.TenantId == tenantId && tr.PgId == pgId && tr.ToDate == null);
+
+            if (hasActiveRoom)
+                return Conflict("Active Tenant Cannot be Deleted. Move Out First");
+
+            tenant.isDeleted = true;
+            tenant.DeletedAt=DateTime.Now;
+            await context.SaveChangesAsync();
             return NoContent();
         }
     }

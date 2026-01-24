@@ -3,7 +3,8 @@ import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { TenantListDto } from '../models/tenant-list-dto';
 import { PagedResults } from '../../../shared/models/page-results.model';
-import { TenantListQuery } from '../models/tenant-list-query';
+import { Observable } from 'rxjs';
+//import { TenantListQuery } from '../models/tenant-list-query';
 
 @Injectable({
   providedIn: 'root',
@@ -17,29 +18,47 @@ export class Tenantservice {
       return this.http.post(`${this.baseUrl}/create-tenant`, payload);
     }
 
-    getTenants(query: TenantListQuery) {
-    let params = new HttpParams()
-      .set('page', query.page)
-      .set('pageSize', query.pageSize);
+    getTenants(params: {
+  page: number;
+  pageSize: number;
+  search?: string;
+  status?: string;
+  roomId?: string;
+  sortBy?: string;
+  sortDir?: string;
+}) {
 
-    if (query.search)
-      params = params.set('search', query.search);
+    //using below if conditions to make sure we are not sending undefined as parameter which will give 0 results
+    let httpParams = new HttpParams()
+    .set('page', params.page)
+    .set('pageSize', params.pageSize);
 
-    if (query.status)
-      params = params.set('status', query.status);
-
-    if (query.roomId)
-      params = params.set('roomId', query.roomId);
-
-    if (query.sortBy)
-      params = params.set('sortBy', query.sortBy);
-
-    if (query.sortDir)
-      params = params.set('sortDir', query.sortDir);
-
-    return this.http.get<PagedResults<TenantListDto>>(
-      this.baseUrl,
-      { params }
-    );
+  if (params.search) {
+    httpParams = httpParams.set('search', params.search);
   }
+
+  if (params.status) {
+    httpParams = httpParams.set('status', params.status);
+  }
+
+  if (params.roomId) {
+    httpParams = httpParams.set('roomId', params.roomId);
+  }
+
+  if (params.sortBy) {
+    httpParams = httpParams.set('sortBy', params.sortBy);
+  }
+
+  if (params.sortDir) {
+    httpParams = httpParams.set('sortDir', params.sortDir);
+  }
+
+  return this.http.get<PagedResults<TenantListDto>>(
+    this.baseUrl,
+    { params: httpParams as any }
+  );
+}
+deleteTenant(tenantId: string): Observable<void> {
+  return this.http.delete<void>(`${this.baseUrl}/${tenantId}`);
+}
 }

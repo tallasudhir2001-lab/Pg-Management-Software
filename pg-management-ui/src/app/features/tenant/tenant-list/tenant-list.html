@@ -7,16 +7,13 @@
 
   <!-- Search + Actions Row -->
   <div class="tenant-actions">
-    
+
     <!-- Search -->
-    <input
-      type="text"
-      class="search-input"
-      placeholder=" 🔍 Search by name or mobile number"
-    />
+    <input type="text" class="search-input" placeholder=" 🔍 Search by name or mobile number" [ngModel]="searchText"
+      (ngModelChange)="onSearchChange($event)" />
 
     <div class="action-buttons">
-      <button class="btn btn-secondary">
+      <button class="btn btn-secondary" (click)="showFilters = true">
         Filters
       </button>
 
@@ -32,19 +29,140 @@
     <table class="data-table">
       <thead>
         <tr>
-          <th>Tenant Name</th>
-          <th>Room</th>
+          <th class="sortable" [class.active-sort]="isSortedBy('name')" (click)="onSort('name')">
+            Tenant Name
+            <span class="sort-arrow" [class.visible]="isSortedBy('name')" [class.asc]="isSortAsc('name')">
+              ▲
+            </span>
+          </th>
+
+
+          <th class="sortable" [class.active-sort]="isSortedBy('room')" (click)="onSort('room')">
+            Room
+            <span class="sort-arrow" [class.visible]="isSortedBy('room')" [class.asc]="isSortAsc('room')">
+              ▲
+            </span>
+          </th>
+
           <th>Contact</th>
           <th>Status</th>
-          <th>Checked In</th>
+          <th class="sortable" [class.active-sort]="isSortedBy('checkedin')" (click)="onSort('checkedin')">
+            Checked In
+            <span class="sort-arrow" [class.visible]="isSortedBy('checkedin')" [class.asc]="isSortAsc('checkedin')">
+              ▲
+            </span>
+          </th>
+
           <th>Actions</th>
         </tr>
       </thead>
 
       <tbody>
-        <!-- rows will come here -->
+        <tr *ngFor="let t of (tenants$ | async)?.items">
+          <td>{{ t.name }}</td>
+          <td>{{ t.roomNumber ?? '—' }}</td>
+          <td>{{ t.contactNumber }}</td>
+
+          <td>
+            <span class="status-pill" [class.active]="t.status === 'Active'" [class.inactive]="t.status === 'MovedOut'">
+              {{ t.status }}
+            </span>
+          </td>
+
+          <td>{{ t.checkedInAt | date }}</td>
+
+          <td>
+            <div class="action-buttons-wrapper">
+              <button class="action-btn" title="View" (click)="onAction('view', t)">
+                <img src="assets/icons/info.svg" alt="Info" />
+              </button>
+
+              <button class="action-btn" title="Edit" (click)="onAction('edit', t)">
+                <img src="assets/icons/edit.svg" alt="Edit" />
+              </button>
+
+              <button class="action-btn danger" title="Delete" (click)="onAction('delete', t)">
+                <img src="assets/icons/delete.svg" alt="Delete" />
+              </button>
+            </div>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
+  <div class="pagination">
+    <div class="pagination-inner">
+      <button class="page-btn prev" (click)="prevPage()" [disabled]="currentPage === 1">
+        Prev
+      </button>
 
+      <button *ngFor="let page of pages" class="page-btn page-number" [class.active]="page === currentPage"
+        (click)="goToPage(page)">
+        {{ page }}
+      </button>
+
+      <button class="page-btn next" (click)="nextPage()" [disabled]="currentPage === totalPages">
+        Next
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= FILTER DRAWER (UI ONLY) ================= -->
+<div class="filter-backdrop" *ngIf="showFilters" (click)="showFilters = false"></div>
+
+<div class="filter-drawer" *ngIf="showFilters">
+  <div class="filter-header">
+    <h3 class="filter-title">Filters</h3>
+    <button class="filter-close-btn" (click)="showFilters = false">&times;</button>
+  </div>
+
+  <div class="filter-body">
+
+    <div class="filter-card">
+      <p class="filter-section-title">Occupancy Status</p>
+      <div class="filter-radio-group">
+        <label class="filter-option">
+          <input type="radio" name="status" value="" [(ngModel)]="filterStatus" />
+          <span class="filter-radio-label">All Tenants</span>
+        </label>
+
+        <label class="filter-option">
+          <input type="radio" name="status" value="active" [(ngModel)]="filterStatus" />
+          <span class="filter-radio-label">Active</span>
+        </label>
+
+        <label class="filter-option">
+          <input type="radio" name="status" value="movedout" [(ngModel)]="filterStatus" />
+          <span class="filter-radio-label">Moved Out</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="filter-card">
+      <p class="filter-section-title">Room Assignment</p>
+      <div class="searchable-dropdown">
+        <input type="text" class="form-input" placeholder="Search room number..."
+          [value]="selectedRoomLabel || roomSearchText" (focus)="isRoomDropdownOpen = true"
+          (input)="onRoomInput($event.target.value)" />
+
+        <!-- Dropdown List -->
+        <div class="dropdown-list" *ngIf=" isRoomDropdownOpen && filteredRooms.length > 0">
+          <div class="dropdown-item" *ngFor="let room of filteredRooms" (click)="selectRoom(room)">
+            Room {{ room.roomNumber }}
+          </div>
+        </div>
+
+        <div class="dropdown-empty" *ngIf="filteredRooms.length === 0">
+          No rooms found
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="filter-footer">
+    <button class="filter-btn filter-btn-secondary" (click)="showFilters = false">Cancel</button>
+    <button class="filter-btn filter-btn-primary" (click)="applyFilters()">Apply Filters</button>
+  </div>
 </div>

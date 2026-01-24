@@ -152,7 +152,7 @@
   display: inline-block;
   padding: 4px 10px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 700;
   border-radius: 999px;
   text-align: center;
 }
@@ -206,5 +206,344 @@
 
 .btn-primary:hover {
   background-color: var(--primary-light);
+}
+/* Drawer Container & Curve */
+.filter-drawer {
+  position: fixed;
+  top: 15px; /* Small gap from top */
+  right: 15px; /* Small gap from right */
+  width: 340px;
+  height: calc(100vh - 30px); /* Height minus gaps */
+  background: #f8f9fa; /* Slightly off-white body */
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px; /* Curved edges for the whole drawer */
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+/* Header Styling */
+.filter-header {
+  padding: 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filter-title {
+  color: #0F1041;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.filter-close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #9ca3af;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Body & Cards */
+.filter-body {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.filter-card {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 15px; /* Curved edges for cards */
+  margin-bottom: 16px;
+  border: 1px solid #edf2f7;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.filter-section-title {
+  color: #0F1041;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Radio Option Styling */
+.filter-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  cursor: pointer;
+  gap: 10px;
+}
+
+.filter-option input[type="radio"] {
+  accent-color: #0F1041;
+  width: 18px;
+  height: 18px;
+}
+
+.filter-radio-label {
+  font-size: 15px;
+  color: #4b5563;
+}
+
+/* Search Dropdown / Input */
+.filter-form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
+.filter-searchable-dropdown {
+  position: relative;
+}
+
+.filter-search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #9ca3af;
+}
+
+.filter-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* Footer & Buttons */
+.filter-footer {
+  padding: 20px;
+  background: #ffffff;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 12px;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  border: none;
+}
+
+.filter-btn-primary {
+  background: #0F1041;
+  color: white;
+}
+
+.filter-btn-primary:hover {
+  background: #1a1b5c;
+}
+
+.filter-btn-secondary {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.filter-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 16, 65, 0.2); /* Tinted backdrop with brand color */
+  backdrop-filter: blur(2px); /* Modern blur effect */
+  z-index: 1000;
+}
+.searchable-dropdown {
+  position: relative;
+}
+
+.dropdown-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+}
+
+.dropdown-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+}
+
+.dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+.dropdown-empty {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Arrow base */
+.sort-arrow {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--primary);
+  opacity: 0;
+  transform: rotate(180deg);
+  transition:
+    transform 0.25s ease,
+    opacity 0.2s ease;
+}
+
+/* Show arrow only on active column */
+.sort-arrow.visible {
+  opacity: 1;
+}
+
+/* Ascending = arrow up */
+.sort-arrow.asc {
+  transform: rotate(0deg);
+}
+/* Full-width container, centers the group */
+.pagination {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 32px 0;
+}
+
+/* The actual pagination row (content width only) */
+.pagination-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+}
+
+/* Base button */
+.page-btn {
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #0F1041;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Prev / Next → size = 2 */
+.page-btn.prev,
+.page-btn.next {
+  width: 96px;
+  height: 40px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Page numbers → size = 1 (half of prev/next) */
+.page-btn.page-number {
+  width: 48px;
+  height: 40px;
+  font-size: 14px;
+}
+
+/* Active */
+.page-btn.active {
+  background-color: #0F1041;
+  color: white;
+  border-color: #0F1041;
+}
+
+/* Hover */
+.page-btn:hover:not(:disabled) {
+  background-color: #0F1041;
+  color: white;
+}
+
+/* Disabled */
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+/* ==============================
+   Action Buttons Cell Fix
+================================ */
+
+/* Ensure the cell doesn't stretch */
+/* ==============================
+   Action Buttons Cell Fix
+================================ */
+
+/* This forces the buttons to stay in a single horizontal line */
+.data-table td:last-child {
+  display: flex !important;
+  flex-direction: row !important; /* Forces side-by-side */
+  justify-content: flex-start;    /* Aligns them to the left of the cell */
+  gap: 8px;                       /* Space between icons */
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Base style for the small square buttons */
+.action-btn {
+  background: transparent; 
+  border: none;
+  border-radius: 8px;
+  width: 32px;  /* Fixed width */
+  height: 32px; /* Fixed height */
+  display: inline-flex; /* Ensures they don't take full width */
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0; /* Prevents icons from squishing */
+}
+
+/* Icon size constraint */
+.action-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Hover effects */
+.action-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.action-btn.danger:hover {
+  background-color: #fee2e2;
+}
+
+/* Info/View Button Hover */
+.action-btn[title="View"]:hover {
+  background-color: rgba(15, 16, 65, 0.1);
+}
+
+/* Edit Button Hover */
+.action-btn[title="Edit"]:hover {
+  background-color: rgba(37, 99, 235, 0.1);
 }
 
