@@ -124,6 +124,61 @@ namespace PgManagement_WebApi.Controllers
                 TotalCount = totalCount
             });
         }
+        [HttpGet("{tenantId}")]
+        public async Task<IActionResult> GetTenantById(string tenantId)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId))
+                return Unauthorized();
+
+            var tenant = await context.Tenants
+                .Where(t =>
+                    t.TenantId == tenantId &&
+                    t.PgId == pgId &&
+                    !t.isDeleted)
+                .Select(t => new
+                {
+                    t.TenantId,
+                    t.Name,
+                    t.ContactNumber,
+                    t.AadharNumber,
+                    t.AdvanceAmount,
+                    t.RentPaidUpto,
+                    t.Notes,
+
+                    ActiveAssignment = context.TenantRooms
+                        .Where(tr =>
+                            tr.TenantId == tenantId &&
+                            tr.PgId == pgId &&
+                            tr.ToDate == null)
+                        .Select(tr => new
+                        {
+                            tr.Room.RoomNumber,
+                            tr.FromDate
+                        })
+                        .FirstOrDefault()
+                })
+                .FirstOrDefaultAsync();
+
+            if (tenant == null)
+                return NotFound();
+
+            return Ok(new
+            {
+                tenant.TenantId,
+                tenant.Name,
+                tenant.ContactNumber,
+                tenant.AadharNumber,
+                tenant.AdvanceAmount,
+                tenant.RentPaidUpto,
+                tenant.Notes,
+
+                RoomNumber = tenant.ActiveAssignment?.RoomNumber,
+                CheckedInAt = tenant.ActiveAssignment?.FromDate,
+                Status = tenant.ActiveAssignment == null ? "MovedOut" : "Active"
+            });
+        }
+
         [HttpPost("{tenantId}/change-room")]
         public async Task<IActionResult> ChangeRoom(string tenantId, ChangeRoomDto dto)
         {
@@ -180,7 +235,7 @@ namespace PgManagement_WebApi.Controllers
 
             return NoContent();
         }
-        [HttpPost("${tenantId}/move-out")]
+        [HttpPost("{tenantId}/move-out")]
         public async Task<IActionResult> MoveOutTenant(string tenantId)
         {
             var pgId = User.FindFirst("pgId")?.Value;

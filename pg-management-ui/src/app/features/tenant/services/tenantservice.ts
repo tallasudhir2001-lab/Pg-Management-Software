@@ -4,6 +4,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { TenantListDto } from '../models/tenant-list-dto';
 import { PagedResults } from '../../../shared/models/page-results.model';
 import { Observable } from 'rxjs';
+import { TenantDetailsModel } from '../models/tenant-details.model';
+import { UpdateTenantDto } from '../models/update-tenant-dto';
 //import { TenantListQuery } from '../models/tenant-list-query';
 
 @Injectable({
@@ -61,4 +63,17 @@ export class Tenantservice {
 deleteTenant(tenantId: string): Observable<void> {
   return this.http.delete<void>(`${this.baseUrl}/${tenantId}`);
 }
+
+getTenantById(tenantId: string) {
+  return this.http.get<TenantDetailsModel>(`${this.baseUrl}/${tenantId}`);
+}
+
+updateTenant(tenantId: string,dto: UpdateTenantDto) {
+  return this.http.put<void>(`${this.baseUrl}/${tenantId}`, dto);
+}
+moveOutTenant(tenantId: string) {
+  return this.http.post<void>(
+    `${this.baseUrl}/${tenantId}/move-out`,{});
+}
+
 }

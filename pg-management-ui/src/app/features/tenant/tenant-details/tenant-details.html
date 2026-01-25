@@ -1,0 +1,142 @@
+<div class="form-page-container" *ngIf="tenant$ | async as tenant">
+    <div class="back-nav" (click)="cancel()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+            class="back-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        <span>Back to Tenants</span>
+    </div>
+
+    <h2 class="page-title">Tenant Details</h2>
+
+    <div class="add-tenant-card">
+
+        <div class="card-header">
+            <button type="button" class="icon-btn" (click)="toggleMode()"
+                [title]="mode === 'view' ? 'Edit Tenant' : 'View Mode'">
+
+                <img *ngIf="mode === 'view'" src="assets/icons/edit-tenant.svg" alt="Edit Tenant" />
+
+                <img *ngIf="mode === 'edit'" src="assets/icons/view-tenant.svg" alt="View Tenant" />
+            </button>
+
+            <div class="header-actions" *ngIf="mode === 'view' && tenant.status ==='Active'">
+
+                <!-- Change Room -->
+                <button type="button" class="icon-btn change-room-btn" title="Change Room" (click)="openChangeRoom()">
+                    <img src="assets/icons/change-room.svg" alt="Change Room" />
+                </button>
+
+                <!-- Move Out -->
+                <button type="button" class="icon-btn move-out-btn" title="Move Out Tenant" (click)="confirmMoveOut()">
+                    <img src="assets/icons/move-out.svg" alt="Move Out" />
+                </button>
+
+            </div>
+        </div>
+
+        <div class="form-grid">
+
+            <!-- ================= LEFT SECTION ================= -->
+            <div class="form-section section-left">
+                <h3 class="section-subtitle">Tenant Details</h3>
+
+                <div class="form-group">
+                    <label>Tenant Name</label>
+                    <div class="form-input readonly" *ngIf="mode === 'view'">
+                        {{ tenant.name }}
+                    </div>
+                    <input *ngIf="mode === 'edit'" type="text" class="form-input" [(ngModel)]="editableTenant.name" />
+                </div>
+
+                <div class="form-group">
+                    <label>Mobile Number</label>
+                    <div class="form-input readonly" *ngIf="mode === 'view'">
+                        {{ tenant.contactNumber }}
+                    </div>
+                    <input *ngIf="mode === 'edit'" type="text" class="form-input"
+                        [(ngModel)]="editableTenant.contactNumber" />
+                </div>
+
+                <div class="form-group">
+                    <label>Aadhaar Number</label>
+                    <div class="form-input readonly" *ngIf="mode === 'view'">
+                        {{ tenant.aadharNumber }}
+                    </div>
+                    <input *ngIf="mode === 'edit'" type="text" class="form-input"
+                        [(ngModel)]="editableTenant.aadharNumber" />
+                </div>
+            </div>
+
+            <!-- ================= RIGHT SECTION ================= -->
+            <div class="form-section section-right">
+                <h3 class="section-subtitle">Room Details</h3>
+
+                <div class="form-group">
+                    <label>Status</label>
+                    <div class="form-input readonly">
+                        {{ tenant.status }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Room</label>
+                    <div class="form-input readonly">
+                        {{ tenant.roomNumber ?? '—' }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Checked In Date</label>
+                    <div class="form-input readonly">
+                        {{ tenant.checkedInAt | date }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= BOTTOM SECTION ================= -->
+            <div class="form-section section-bottom">
+                <h3 class="section-subtitle">Financial Details</h3>
+
+                <div class="financial-row">
+                    <div class="form-group">
+                        <label>Advance Amount (₹)</label>
+                        <div class="form-input readonly">
+                            ₹ {{ tenant.advanceAmount }}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Rent Paid Upto</label>
+                        <div class="form-input readonly">
+                            {{ tenant.rentPaidUpto | date }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Notes</label>
+                    <div class="form-input readonly notes" *ngIf="mode === 'view'">
+                        {{ tenant.notes }}
+                    </div>
+                    <textarea *ngIf="mode === 'edit'" rows="3" class="form-input" [(ngModel)]="editableTenant.notes">
+  </textarea>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= ACTIONS ================= -->
+        <div class="actions" *ngIf="mode === 'edit'">
+            <button type="button" class="btn-cancel" (click)="cancel()">
+                Cancel
+            </button>
+
+            <button type="button" class="btn-save" (click)="save()">
+                Save
+            </button>
+        </div>
+
+
+    </div>
+</div>

@@ -12,6 +12,7 @@ import { AddRoom } from './features/rooms/add-room/add-room';
 import { TenantList } from './features/tenant/tenant-list/tenant-list';
 import { AddTenant } from './features/tenant/add-tenant/add-tenant';
 import { RoomDetails } from './features/rooms/room-details/room-details';
+import { TenantDetails } from './features/tenant/tenant-details/tenant-details';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -27,7 +28,9 @@ export const routes: Routes = [
             { path :'add-room', component:AddRoom},
             { path : 'room/:id',component:RoomDetails},
             { path :'tenant-list',component:TenantList},
-            { path:'tenants/add',component:AddTenant}
+            { path :'tenants/add',component:AddTenant},
+            { path :'tenants/:id', component:TenantDetails, data : { mode : 'view'}},
+            { path :'tenants/:id/edit', component:TenantDetails, data : {mode : 'edit'}}
         ]
     },
     {

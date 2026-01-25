@@ -12,7 +12,7 @@ import { Tenantservice } from '../services/tenantservice';
   standalone :true,
   imports: [ReactiveFormsModule,CommonModule],
   templateUrl: './add-tenant.html',
-  styleUrl: './add-tenant.css',
+  styleUrl: '../styles/tenant-form.css',
 })
 export class AddTenant implements OnInit {
   form!: FormGroup;
