@@ -5,8 +5,10 @@ import { TenantListDto } from '../models/tenant-list-dto';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Tenantservice } from '../services/tenantservice';
 import { TenantDetailsModel } from '../models/tenant-details.model';
-import { Observable, startWith, Subject, switchMap, tap } from 'rxjs';
+import { map, Observable, startWith, Subject, switchMap, tap } from 'rxjs';
 import { UpdateTenantDto } from '../models/update-tenant-dto';
+import { Room } from '../../rooms/models/room.model';
+import { Roomservice } from '../../rooms/services/roomservice';
 
 @Component({
   selector: 'app-tenant-details',
@@ -26,10 +28,19 @@ export class TenantDetails implements OnInit{
   isLoading = true;
   isSaving = false;
 
+  //for change room
+  isChangeRoomOpen = false;
+  rooms$!: Observable<Room[]>;
+  selectedRoomId: string | null = null;
+  //loading state
+  isChangingRoom = false;
+
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private tenantService: Tenantservice
+    private tenantService: Tenantservice,
+    private roomService: Roomservice
   ) {}
 ngOnInit(): void {
   this.tenantId = this.route.snapshot.paramMap.get('id')!;
@@ -80,8 +91,41 @@ ngOnInit(): void {
   }
 
   openChangeRoom(): void {
+  this.isChangeRoomOpen = true;
+  this.selectedRoomId = null;
 
-  }
+  // load available rooms
+  this.rooms$ = this.roomService.getRooms({
+    page: 1,
+    pageSize: 100
+  }).pipe(
+    map(res => res.items)
+  );
+}
+  closeChangeRoom(): void {
+  this.isChangeRoomOpen = false;
+}
+confirmChangeRoom(): void {
+  if (!this.selectedRoomId) return;
+
+  this.isChangingRoom = true;
+
+  this.tenantService
+    .changeRoom(this.tenantId, this.selectedRoomId)
+    .subscribe({
+      next: () => {
+        this.isChangingRoom = false;
+        this.isChangeRoomOpen = false;
+
+        // reload tenant details (same mechanism)
+        this.reload$.next();
+      },
+      error: err => {
+        this.isChangingRoom = false;
+        alert(err?.error || 'Failed to change room');
+      }
+    });
+}
 
   confirmMoveOut(): void {
   const confirmed = confirm(
@@ -142,6 +186,5 @@ private mapToUpdateDto(
     notes: tenant.notes
   };
 }
-
 
 }

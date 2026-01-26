@@ -139,4 +139,59 @@
 
 
     </div>
+    <!-- ================= CHANGE ROOM MODAL ================= -->
+<div class="modal-backdrop" *ngIf="isChangeRoomOpen"></div>
+
+<div class="modal" *ngIf="isChangeRoomOpen">
+  <div class="modal-header">
+  <h3 class="modal-title">Change Room</h3>
+
+  <button
+    type="button"
+    class="icon-btn modal-close"
+    (click)="closeChangeRoom()">
+    ✕
+  </button>
+</div>
+
+  <div class="modal-body">
+
+    <div class="floating-select">
+
+  <select
+    class="form-input"
+    [(ngModel)]="selectedRoomId">
+    <option value="" disabled hidden></option>
+
+    <option
+      *ngFor="let room of rooms$ | async"
+      [value]="room.roomId">
+      Room {{ room.roomNumber }} ({{ room.vacancies }} beds available)
+    </option>
+  </select>
+
+  <label
+    class="floating-label"
+    [class.filled]="!!selectedRoomId">
+    Select New Room
+  </label>
+
+</div>
+
+  </div>
+
+  <div class="modal-actions">
+    <button class="btn-cancel" (click)="closeChangeRoom()">
+      Cancel
+    </button>
+
+    <button
+      class="btn-save"
+      [disabled]="!selectedRoomId || isChangingRoom"
+      (click)="confirmChangeRoom()">
+      Change Room
+    </button>
+  </div>
+</div>
+
 </div>

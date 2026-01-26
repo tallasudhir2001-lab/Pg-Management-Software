@@ -16,7 +16,9 @@
       <button class="btn btn-secondary" (click)="showFilters = true">
         Filters
       </button>
-
+      <button class="icon-btn clear-filters-btn" title="Clear Filters" (click)="clearFilters()">
+        <img src="assets/icons/clear-filters.svg" alt="Clear Filters" />
+      </button>
       <button class="btn btn-primary" routerLink="/tenants/add">
         + Add Tenant
       </button>
@@ -106,6 +108,20 @@
       </button>
     </div>
   </div>
+  <div class="pagination-info" *ngIf="totalCount > 0">
+    Showing
+    <span class="count-strong">{{ startItem }}</span>–
+    <span class="count-strong">{{ endItem }}</span>
+    of
+    <span class="count-strong">{{ totalCount }}</span>
+    tenants
+  </div>
+
+
+  <div class="pagination-info empty" *ngIf="totalCount === 0">
+    No tenants found
+  </div>
+
 </div>
 
 <!-- ================= FILTER DRAWER (UI ONLY) ================= -->

@@ -41,6 +41,9 @@ export class TenantList implements OnInit{
   sortBy = 'updated';
   sortDir: 'asc' | 'desc' = 'desc';
 
+  //pagination count
+  totalCount = 0;
+
 
 
 
@@ -97,6 +100,7 @@ export class TenantList implements OnInit{
         })
       ),
       tap(result => {
+          this.totalCount = result.totalCount;
         this.totalPages = Math.ceil(result.totalCount / this.pageSize);
         this.buildPages();
       })
@@ -141,7 +145,7 @@ prevPage(): void {
   this.selectedRoomLabel = '';
   this.roomSearchText = '';
 
-  this.updateUrl({ page: 1 });
+  this.updateUrl({ page: 1,status:null,roomId:null });
   this.showFilters = false;
 }
 
@@ -315,4 +319,19 @@ private deleteTenant(tenantId: string): void {
 }
 
 //tenant action helpers end
+
+//pagination helpers start
+get startItem(): number {
+  return this.totalCount === 0
+    ? 0
+    : (this.currentPage - 1) * this.pageSize + 1;
+}
+
+get endItem(): number {
+  return Math.min(
+    this.currentPage * this.pageSize,
+    this.totalCount
+  );
+}
+//pagination helpers end
 }

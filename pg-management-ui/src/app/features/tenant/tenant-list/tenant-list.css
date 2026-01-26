@@ -547,3 +547,47 @@
   background-color: rgba(37, 99, 235, 0.1);
 }
 
+/* ===== Clear Filters Icon Button (Ghost Style) ===== */
+
+.clear-filters-btn {
+  background: transparent;     /* 🔑 remove background */
+  border: none;                /* 🔑 remove border */
+  padding: 8px;                /* clickable area */
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.clear-filters-btn img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;                /* subtle by default */
+}
+
+.clear-filters-btn:hover {
+  background-color: #f1f5f9;   /* very light hover */
+}
+
+.clear-filters-btn:hover img {
+  opacity: 1;
+}
+.pagination-info {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937; /* gray-800 */
+}
+
+
+.pagination-info.empty {
+  color: #9ca3af;
+}
+
+.count-strong {
+  font-weight: 700;
+  color: #0f1041; /* same as active page button */
+}
+

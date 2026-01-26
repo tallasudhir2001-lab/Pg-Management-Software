@@ -75,5 +75,8 @@ moveOutTenant(tenantId: string) {
   return this.http.post<void>(
     `${this.baseUrl}/${tenantId}/move-out`,{});
 }
-
+changeRoom(tenantId: string, newRoomId: string) {
+  return this.http.post<void>(
+    `${this.baseUrl}/${tenantId}/change-room`,{ newRoomId });
+}
 }

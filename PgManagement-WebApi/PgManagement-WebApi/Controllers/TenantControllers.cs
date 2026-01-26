@@ -230,6 +230,10 @@ namespace PgManagement_WebApi.Controllers
                 FromDate = DateTime.Now
             });
 
+            //update the timestamp for tenant
+            var tenant = await context.Tenants.FirstOrDefaultAsync(t=>t.TenantId==tenantId);
+            tenant.UpdatedAt=DateTime.Now;
+
             await context.SaveChangesAsync();
             await tx.CommitAsync();
 
