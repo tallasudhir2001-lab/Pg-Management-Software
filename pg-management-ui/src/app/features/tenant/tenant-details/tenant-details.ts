@@ -10,6 +10,7 @@ import { UpdateTenantDto } from '../models/update-tenant-dto';
 import { Room } from '../../rooms/models/room.model';
 import { Roomservice } from '../../rooms/services/roomservice';
 import { PendingRent } from '../models/pending-rent.model';
+import { ToastService } from '../../../shared/toast/toast-service';
 
 @Component({
   selector: 'app-tenant-details',
@@ -47,7 +48,8 @@ export class TenantDetails implements OnInit{
     private route: ActivatedRoute,
     private router: Router,
     private tenantService: Tenantservice,
-    private roomService: Roomservice
+    private roomService: Roomservice,
+    private toastService: ToastService
   ) {}
 ngOnInit(): void {
   this.tenantId = this.route.snapshot.paramMap.get('id')!;
@@ -132,7 +134,8 @@ confirmChangeRoom(): void {
       },
       error: err => {
         this.isChangingRoom = false;
-        alert(err?.error || 'Failed to change room');
+        this.toastService.showError(err?.error || 'Failed to change room');
+        alert();
       }
     });
 }
@@ -168,6 +171,7 @@ confirmChangeRoom(): void {
   this.tenantService.updateTenant(this.tenantId, dto).subscribe({
     next: () => {
       // reload fresh data from backend
+      this.toastService.showSuccess('Tenant updated Successfully.');
       this.tenant$ = this.tenantService.getTenantById(this.tenantId).pipe(
         tap(t => (this.editableTenant = { ...t }))
       );
@@ -177,8 +181,8 @@ confirmChangeRoom(): void {
       //for now lets go back to tenant list
       this.router.navigate(['/tenant-list']);
     },
-    error: () => {
-      alert('Failed to save tenant details');
+    error: (err) => {
+      this.toastService.showError(err?.error || 'Failed to Update Tenant');
     }
   });
 }

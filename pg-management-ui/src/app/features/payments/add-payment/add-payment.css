@@ -20,17 +20,20 @@
 
 /* Summary Sidebar */
 .summary-card {
-  background: #0F1041;
+  /* A lighter, more vibrant version of #0F1041 */
+  background: #252766; 
   color: white;
   padding: 24px;
   border-radius: 20px;
-  box-shadow: 0 10px 20px rgba(15, 16, 65, 0.15);
+  /* Updated shadow to match the lighter hue */
+  box-shadow: 0 10px 25px rgba(37, 39, 102, 0.2); 
 }
 
 .summary-card .section-title {
   color: white;
   margin-top: 0;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  /* Softened the border to blend with the new background */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   padding-bottom: 12px;
 }
 
@@ -58,7 +61,8 @@
 }
 
 .coverage-box {
-  background: rgba(255, 255, 255, 0.1);
+  /* Slightly more opaque to stand out against the lighter blue */
+  background: rgba(255, 255, 255, 0.12);
   padding: 15px;
   border-radius: 12px;
   margin-top: 20px;

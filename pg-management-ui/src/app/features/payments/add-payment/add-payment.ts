@@ -9,6 +9,7 @@ import { DecimalPipe } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink,RouterModule } from '@angular/router';
+import { ToastService } from '../../../shared/toast/toast-service';
 
 const PAYMENT_FREQUENCIES = [
   { key: 'MONTHLY', label: 'Monthly' },
@@ -40,7 +41,8 @@ export class AddPayment implements OnInit {
     private fb: FormBuilder,
     private paymentService: PaymentService,
     private route: ActivatedRoute,
-    private router:Router
+    private router:Router,
+    private toastService:ToastService
   ) {}
 
   ngOnInit(): void {
@@ -110,6 +112,7 @@ export class AddPayment implements OnInit {
       next: () => {
         this.saving = false;
         // close modal / navigate / emit event
+        this.toastService.showSuccess('Payment recorded successfully');
         this.router.navigate(['/tenants', ctx.tenantId]);
       },
       error: (err: { error: string; }) => {

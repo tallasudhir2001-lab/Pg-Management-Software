@@ -1,0 +1,54 @@
+.toast {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  
+  /* Dimensions & Shape */
+  min-height: 1.5cm;
+  width: auto;
+  min-width: 300px;    /* Wider base */
+  max-width: 85vw;     /* Prevents edge-to-edge on mobile */
+  padding: 0 30px;
+  border-radius: 10px; /* Clean, slightly curved edges */
+  
+  /* Centering the text inside */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  
+  /* Typography - Light & Clean */
+  font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+  font-weight: 400;    /* Changed from 600 to 400 for a lighter look */
+  letter-spacing: 0.3px;
+  line-height: 1.4;
+  
+  /* Colors */
+  background: #1e293b; /* Slightly softer dark slate for better readability */
+  color: #ffffff;
+  z-index: 9999;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  
+  /* Animation */
+  animation: floatUpFade 2.8s ease-in-out forwards;
+}
+
+@keyframes floatUpFade {
+  0% {
+    transform: translate(-50%, -30%);
+    opacity: 0;
+  }
+  12% {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+  75% {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -280%);
+    opacity: 0;
+  }
+}

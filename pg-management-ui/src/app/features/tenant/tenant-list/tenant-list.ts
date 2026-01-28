@@ -7,6 +7,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PagedResults } from '../../../shared/models/page-results.model';
 import { distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
 import { Roomservice } from '../../rooms/services/roomservice';
+import { ToastService } from '../../../shared/toast/toast-service';
 
 @Component({
   selector: 'app-tenant-list',
@@ -51,7 +52,8 @@ export class TenantList implements OnInit{
     private route: ActivatedRoute,
     private router: Router,
     private tenantService: Tenantservice,
-    private roomService :Roomservice
+    private roomService :Roomservice,
+    private toastService : ToastService
   ) {}
 
   ngOnInit(): void {
@@ -307,13 +309,14 @@ private deleteTenant(tenantId: string): void {
   this.tenantService.deleteTenant(tenantId).subscribe({
     next: () => {
       // URL-driven refresh 
+      this.toastService.showSuccess('Tenant Deleted Successfully.');
       this.router.navigate([], {
         relativeTo: this.route,
         queryParamsHandling: 'preserve'
       });
     },
-    error: () => {
-      alert('Failed to delete tenant. Please try again.');
+    error: (err) => {
+      this.toastService.showError(err?.error || 'Failed to delete tenant. Please try again.');
     }
   });
 }

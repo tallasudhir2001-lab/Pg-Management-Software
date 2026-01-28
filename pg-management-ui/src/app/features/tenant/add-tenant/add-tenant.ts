@@ -6,6 +6,7 @@ import { Roomservice } from '../../rooms/services/roomservice';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Tenantservice } from '../services/tenantservice';
+import { ToastService } from '../../../shared/toast/toast-service';
 
 @Component({
   selector: 'app-add-tenant',
@@ -20,13 +21,15 @@ export class AddTenant implements OnInit {
     private fb: FormBuilder,
     private roomService: Roomservice,
     private router: Router,
-    private tenantService: Tenantservice
+    private tenantService: Tenantservice,
+    private toastService:ToastService
   ) {}
 
   
 
   // 🔹 Rooms for dropdown
   rooms$!: Observable<Room[]>;
+  error= '';
   
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -59,11 +62,13 @@ export class AddTenant implements OnInit {
 
     this.tenantService.createTenant(payload).subscribe({
     next: () => {
+      this.toastService.showSuccess('Created Tenant Successfully.');
       // Navigate back to tenant list
       this.router.navigate(['/tenant-list']);
     },
     error: err => {
-      alert(err.error || 'Failed to save tenant');
+      this.error = err.error || 'Failed to save tenant';
+      this.toastService.showError(this.error);
     }
   });
   }

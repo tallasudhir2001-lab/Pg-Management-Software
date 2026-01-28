@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { Roomservice } from '../services/roomservice';
 import { Room } from '../models/room.model';
+import { ToastService } from '../../../shared/toast/toast-service';
 
 @Component({
   selector: 'app-room-details',
@@ -24,7 +25,8 @@ export class RoomDetails implements OnInit{
     private route: ActivatedRoute,
     private router: Router,
     private roomService: Roomservice,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toastService:ToastService
   ) {}
 
   ngOnInit(): void {
@@ -44,10 +46,14 @@ export class RoomDetails implements OnInit{
       rentAmount: this.model.rentAmount,
       isAc: this.model.isAc
     }).subscribe({
-      next: () => this.router.navigate(['/room-list']),
+      next: () => {
+        this.toastService.showSuccess('Changes Saved Successfully.');
+        this.router.navigate(['/room-list']);
+      },
       error: (err: { error: string; }) => {
         this.isSaving = false;
         this.error = err.error || 'Update failed';
+        this.toastService.showError(this.error);
       }
     });
   }
@@ -58,6 +64,7 @@ export class RoomDetails implements OnInit{
       next: () => this.router.navigate(['/room-list']),
       error: (err: { error: string; }) => {
         this.error = err.error || 'Delete failed';
+        this.toastService.showError(this.error);
         this.cdr.detectChanges(); // 3. Force the UI to update immediately
       }
     });
