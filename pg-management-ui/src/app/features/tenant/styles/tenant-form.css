@@ -519,3 +519,12 @@
   color: #dc2626; /* red-600 */
   font-weight: 700;
 }
+.full-width-row {
+  width: 100%;
+  align-self: stretch; /* important in a flex-column with align-items:center */
+}
+
+.full-width-row app-payment-history {
+  display: block;
+  width: 100%;
+}

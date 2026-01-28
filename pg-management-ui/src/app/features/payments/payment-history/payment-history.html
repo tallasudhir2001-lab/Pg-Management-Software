@@ -1,0 +1,49 @@
+<div class="history-container" *ngIf="payments$ | async as history; else loading">
+  <div class="header-row">
+    <h3 class="section-title">Payment History</h3>
+    <span class="count-badge">{{ history.length }} Records</span>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Period</th>
+          <th>Mode</th>
+          <th>Recorded By</th>
+          <th class="text-right">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of history">
+          <td class="date-cell">{{ p.paymentDate | date:'dd MMM yyyy' }}</td>
+          <td>
+            <div class="period-range">
+              {{ p.paidFrom | date:'dd MMM' }} <span>→</span> {{ p.paidUpto | date:'dd MMM yyyy' }}
+            </div>
+          </td>
+          <td>
+            <span class="mode-tag" [ngClass]="{
+              'mode-bank': p.paymentMode.toLowerCase() === 'bank',
+              'mode-cash': p.paymentMode.toLowerCase() === 'cash',
+              'mode-upi': p.paymentMode.toLowerCase() === 'upi'
+            }">
+              {{ p.paymentMode }}
+            </span>
+          </td>
+          <td class="user-cell">{{ p.collectedBy }}</td>
+          <td class="text-right amount-cell">₹{{ p.amount | number:'1.2-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="history.length === 0" class="empty-state">
+    No payments recorded for this tenant.
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading-shimmer">Loading history...</div>
+</ng-template>

@@ -11,11 +11,12 @@ import { Room } from '../../rooms/models/room.model';
 import { Roomservice } from '../../rooms/services/roomservice';
 import { PendingRent } from '../models/pending-rent.model';
 import { ToastService } from '../../../shared/toast/toast-service';
+import { PaymentHistory } from '../../payments/payment-history/payment-history';
 
 @Component({
   selector: 'app-tenant-details',
   standalone : true,
-  imports: [CommonModule,FormsModule],
+  imports: [CommonModule,FormsModule,PaymentHistory],
   templateUrl: './tenant-details.html',
   styleUrl: '../styles/tenant-form.css',
 })

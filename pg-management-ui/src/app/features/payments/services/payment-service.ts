@@ -5,6 +5,7 @@ import { PaymentContext } from '../models/payment-context.model';
 import { CreatePaymentRequest } from '../models/create-payment.model';
 import { HttpClient } from '@angular/common/http';
 import { Observable, shareReplay } from 'rxjs';
+import { TenantPaymentHistory } from '../models/tenant-payment-history.model';
 
 @Injectable({
   providedIn: 'root',
@@ -33,5 +34,10 @@ export class PaymentService {
         );
     }
     return this.paymentModes$;
+  }
+  getTenantPaymentHistory(tenantId: string) {
+    return this.http.get<TenantPaymentHistory[]>(
+      `${this.baseUrl}/tenant/${tenantId}`
+    );
   }
 }

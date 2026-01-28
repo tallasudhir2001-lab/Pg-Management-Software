@@ -72,7 +72,7 @@
 
             <div class="form-actions">
                 <button type="button" class="btn-secondary" [routerLink]="['/tenants',ctx.tenantId]">Cancel</button>
-                <button type="button" class="btn-primary" (click)="save(ctx)" [disabled]="form.invalid || saving">
+                <button type="button" class="btn-primary" (click)="save(ctx)">
                     {{ saving ? 'Processing...' : 'Confirm Payment' }}
                 </button>
             </div>

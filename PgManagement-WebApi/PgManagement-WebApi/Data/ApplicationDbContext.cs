@@ -133,6 +133,13 @@ namespace PgManagement_WebApi.Data
                 .HasPrincipalKey(pm => pm.Code)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(p => p.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             /* ============================================================
                Tenant Financial Fields
                ============================================================ */

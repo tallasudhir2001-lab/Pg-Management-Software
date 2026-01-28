@@ -19,7 +19,7 @@ namespace PgManagement_WebApi.Controllers
         private readonly ApplicationDbContext context;
         private readonly UserManager<ApplicationUser> userManager;
         private readonly IConfiguration configuration;
-        public PaymentsController(ApplicationDbContext context,UserManager<ApplicationUser> userManager, IConfiguration configuration)
+        public PaymentsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IConfiguration configuration)
         {
             this.context = context;
             this.userManager = userManager;
@@ -355,6 +355,49 @@ namespace PgManagement_WebApi.Controllers
                 AsOfDate = today,
                 HasActiveStay = stay.ToDate == null
             });
+        }
+        [HttpGet("tenant/{tenantId}")]
+        public async Task<IActionResult> GetPaymentHistoryForTenant(string tenantId)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId))
+                return Unauthorized();
+
+            // validate tenant belongs to this PG
+            var tenantExists = await context.Tenants.AnyAsync(t =>
+                t.TenantId == tenantId &&
+                t.PgId == pgId &&
+                !t.isDeleted
+            );
+
+            if (!tenantExists)
+                return NotFound("Tenant not found");
+
+            var payments = await context.Payments
+                .Where(p =>
+                    p.TenantId == tenantId &&
+                    p.PgId == pgId
+                )
+                .OrderByDescending(p => p.PaymentDate)
+                .Select(p => new TenantPaymentHistoryDto
+                {
+                    PaymentId = p.PaymentId,
+
+                    PaymentDate = p.PaymentDate,
+
+                    PaidFrom = p.PaidFrom,
+                    PaidUpto = p.PaidUpto,
+
+                    Amount = p.Amount,
+
+                    PaymentMode = p.PaymentModeCode,
+                    Frequency = p.PaymentFrequencyCode.ToString(),
+
+                    CollectedBy = p.CreatedByUser.UserName
+                })
+                .ToListAsync();
+
+            return Ok(payments);
         }
 
     }

@@ -93,7 +93,12 @@ export class AddPayment implements OnInit {
   }
 
   save(ctx: PaymentContext) {
-    if (this.form.invalid || this.saving) return;
+    if (this.form.invalid) {
+    this.toastService.showError('Please fill in all required fields correctly.');
+    this.form.markAllAsTouched(); 
+    return; 
+  }
+    if (this.saving) return;
 
     this.saving = true;
     this.error = '';
