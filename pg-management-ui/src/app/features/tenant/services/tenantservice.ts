@@ -6,6 +6,7 @@ import { PagedResults } from '../../../shared/models/page-results.model';
 import { Observable } from 'rxjs';
 import { TenantDetailsModel } from '../models/tenant-details.model';
 import { UpdateTenantDto } from '../models/update-tenant-dto';
+import { PendingRent } from '../models/pending-rent.model';
 //import { TenantListQuery } from '../models/tenant-list-query';
 
 @Injectable({
@@ -13,6 +14,7 @@ import { UpdateTenantDto } from '../models/update-tenant-dto';
 })
 export class Tenantservice {
     private readonly baseUrl = `${environment.apiBaseUrl}/tenants`;
+    private readonly paymentsurl = `${environment.apiBaseUrl}/payments`
     
     constructor(private http: HttpClient) {}
 
@@ -66,6 +68,11 @@ deleteTenant(tenantId: string): Observable<void> {
 
 getTenantById(tenantId: string) {
   return this.http.get<TenantDetailsModel>(`${this.baseUrl}/${tenantId}`);
+}
+getPendingRent(tenantId: string) {
+  return this.http.get<PendingRent>(
+    `${this.paymentsurl}/pending/${tenantId}`
+  );
 }
 
 updateTenant(tenantId: string,dto: UpdateTenantDto) {

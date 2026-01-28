@@ -16,7 +16,7 @@ export class AddRoom {
     roomNumber: '',
     capacity: 1,
     rentAmount: 0,
-    isAc :0
+    isAc :false
   };
   isSaving = false;
   errorMessage = '';

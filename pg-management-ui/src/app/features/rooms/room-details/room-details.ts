@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -23,7 +23,8 @@ export class RoomDetails implements OnInit{
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private roomService: Roomservice
+    private roomService: Roomservice,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -55,7 +56,10 @@ export class RoomDetails implements OnInit{
 
     this.roomService.deleteRoom(this.model.roomId).subscribe({
       next: () => this.router.navigate(['/room-list']),
-      error: (err: { error: string; }) => this.error = err.error || 'Delete failed'
+      error: (err: { error: string; }) => {
+        this.error = err.error || 'Delete failed';
+        this.cdr.detectChanges(); // 3. Force the UI to update immediately
+      }
     });
   }
   cancel():void{

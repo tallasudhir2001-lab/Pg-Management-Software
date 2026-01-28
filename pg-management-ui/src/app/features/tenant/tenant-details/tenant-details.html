@@ -139,59 +139,110 @@
 
 
     </div>
+    <div class="pending-rent-card" *ngIf="pendingRent$ | async as pending">
+
+        <div class="pending-header-row">
+            <div class="pending-left">
+                <div class="pending-title-block">
+                    <h3>Pending Rent</h3>
+                    <p class="as-of">
+                        As of {{ pending.asOfDate | date:'dd MMM yyyy' }}
+                    </p>
+                </div>
+                <div class="pending-amount-display">
+                    ₹{{ pending.totalPendingAmount | number:'1.2-2' }}
+                </div>
+            </div>
+
+            <button class="btn-add-payment-pill" [disabled]="pending.totalPendingAmount === 0" (click)="addPayment()">
+                Add Payment
+            </button>
+        </div>
+
+
+        <hr class="pending-divider" />
+
+        <div class="pending-breakdown" *ngIf="pending.breakdown.length > 0">
+            <h4 class="breakdown-label">Breakdown</h4>
+
+            <table class="pending-table">
+                <thead>
+                    <tr>
+                        <th class="text-left">Room</th>
+                        <th class="text-left">Period</th>
+                        <th class="text-right">Rate / Day</th>
+                        <th class="text-right">Amount</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let b of pending.breakdown">
+                        <td class="text-left">{{ b.roomNumber }}</td>
+                        <td class="text-left period-cell">
+                            {{ b.fromDate | date:'dd MMM' }}
+                            <span class="arrow">→</span>
+                            {{ b.toDate | date:'dd MMM yyyy' }}
+                        </td>
+                        <td class="text-right">₹{{ b.rentPerDay | number:'1.2-2' }}</td>
+                        <td class="text-right amount-cell">₹{{ b.amount | number:'1.2-2' }}</td>
+                    </tr>
+                </tbody>
+
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="total-label text-left">Total Outstanding</td>
+                        <td class="text-right total-amount" [ngClass]="{
+    'amount-clear': pending.totalPendingAmount === 0,
+    'amount-due': pending.totalPendingAmount > 0
+  }">
+                            ₹{{ pending.totalPendingAmount | number:'1.2-2' }}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
     <!-- ================= CHANGE ROOM MODAL ================= -->
-<div class="modal-backdrop" *ngIf="isChangeRoomOpen"></div>
+    <div class="modal-backdrop" *ngIf="isChangeRoomOpen"></div>
 
-<div class="modal" *ngIf="isChangeRoomOpen">
-  <div class="modal-header">
-  <h3 class="modal-title">Change Room</h3>
+    <div class="modal" *ngIf="isChangeRoomOpen">
+        <div class="modal-header">
+            <h3 class="modal-title">Change Room</h3>
 
-  <button
-    type="button"
-    class="icon-btn modal-close"
-    (click)="closeChangeRoom()">
-    ✕
-  </button>
-</div>
+            <button type="button" class="icon-btn modal-close" (click)="closeChangeRoom()">
+                ✕
+            </button>
+        </div>
 
-  <div class="modal-body">
+        <div class="modal-body">
 
-    <div class="floating-select">
+            <div class="floating-select">
 
-  <select
-    class="form-input"
-    [(ngModel)]="selectedRoomId">
-    <option value="" disabled hidden></option>
+                <select class="form-input" [(ngModel)]="selectedRoomId">
+                    <option value="" disabled hidden></option>
 
-    <option
-      *ngFor="let room of rooms$ | async"
-      [value]="room.roomId">
-      Room {{ room.roomNumber }} ({{ room.vacancies }} beds available)
-    </option>
-  </select>
+                    <option *ngFor="let room of rooms$ | async" [value]="room.roomId">
+                        Room {{ room.roomNumber }} ({{ room.vacancies }} beds available)
+                    </option>
+                </select>
 
-  <label
-    class="floating-label"
-    [class.filled]="!!selectedRoomId">
-    Select New Room
-  </label>
+                <label class="floating-label" [class.filled]="!!selectedRoomId">
+                    Select New Room
+                </label>
 
-</div>
+            </div>
 
-  </div>
+        </div>
 
-  <div class="modal-actions">
-    <button class="btn-cancel" (click)="closeChangeRoom()">
-      Cancel
-    </button>
+        <div class="modal-actions">
+            <button class="btn-cancel" (click)="closeChangeRoom()">
+                Cancel
+            </button>
 
-    <button
-      class="btn-save"
-      [disabled]="!selectedRoomId || isChangingRoom"
-      (click)="confirmChangeRoom()">
-      Change Room
-    </button>
-  </div>
-</div>
+            <button class="btn-save" [disabled]="!selectedRoomId || isChangingRoom" (click)="confirmChangeRoom()">
+                Change Room
+            </button>
+        </div>
+    </div>
 
 </div>

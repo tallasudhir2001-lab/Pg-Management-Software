@@ -259,12 +259,33 @@ namespace PgManagement_WebApi.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("Month")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedByUserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("MonthLabel")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTime>("PaidFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("PaidUpto")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentFrequencyCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("PaymentModeCode")
                         .IsRequired()
@@ -281,6 +302,10 @@ namespace PgManagement_WebApi.Migrations
 
                     b.HasKey("PaymentId");
 
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("PaymentFrequencyCode");
+
                     b.HasIndex("PaymentModeCode");
 
                     b.HasIndex("PgId");
@@ -288,6 +313,25 @@ namespace PgManagement_WebApi.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("PgManagement_WebApi.Models.PaymentFrequency", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("RequiresUnitCount")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("PaymentFrequencies");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.PaymentMode", b =>
@@ -336,10 +380,6 @@ namespace PgManagement_WebApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<decimal>("RentAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("RoomNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -354,6 +394,36 @@ namespace PgManagement_WebApi.Migrations
                     b.ToTable("Rooms");
                 });
 
+            modelBuilder.Entity("PgManagement_WebApi.Models.RoomRentHistory", b =>
+                {
+                    b.Property<Guid>("RoomRentHistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("EffectiveFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EffectiveTo")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsAc")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("RentAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("RoomId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("RoomRentHistoryId");
+
+                    b.HasIndex("RoomId");
+
+                    b.ToTable("RoomRentHistories");
+                });
+
             modelBuilder.Entity("PgManagement_WebApi.Models.Tenant", b =>
                 {
                     b.Property<string>("TenantId")
@@ -364,6 +434,7 @@ namespace PgManagement_WebApi.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("AdvanceAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ContactNumber")
@@ -393,7 +464,6 @@ namespace PgManagement_WebApi.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("RoomId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -409,6 +479,34 @@ namespace PgManagement_WebApi.Migrations
                     b.HasIndex("RoomId");
 
                     b.ToTable("Tenants");
+                });
+
+            modelBuilder.Entity("PgManagement_WebApi.Models.TenantRentHistory", b =>
+                {
+                    b.Property<Guid>("TenantRentHistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("FromDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("RoomRentHistoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("ToDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("TenantRentHistoryId");
+
+                    b.HasIndex("RoomRentHistoryId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("TenantRentHistories");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.TenantRoom", b =>
@@ -524,6 +622,18 @@ namespace PgManagement_WebApi.Migrations
 
             modelBuilder.Entity("PgManagement_WebApi.Models.Payment", b =>
                 {
+                    b.HasOne("PgManagement_WebApi.Identity.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PgManagement_WebApi.Models.PaymentFrequency", "PaymentFrequency")
+                        .WithMany("Payments")
+                        .HasForeignKey("PaymentFrequencyCode")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("PgManagement_WebApi.Models.PaymentMode", "PaymentMode")
                         .WithMany("Payments")
                         .HasForeignKey("PaymentModeCode")
@@ -539,10 +649,14 @@ namespace PgManagement_WebApi.Migrations
                     b.HasOne("PgManagement_WebApi.Models.Tenant", "Tenant")
                         .WithMany("Payments")
                         .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("PG");
+
+                    b.Navigation("PaymentFrequency");
 
                     b.Navigation("PaymentMode");
 
@@ -560,6 +674,17 @@ namespace PgManagement_WebApi.Migrations
                     b.Navigation("PG");
                 });
 
+            modelBuilder.Entity("PgManagement_WebApi.Models.RoomRentHistory", b =>
+                {
+                    b.HasOne("PgManagement_WebApi.Models.Room", "Room")
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Room");
+                });
+
             modelBuilder.Entity("PgManagement_WebApi.Models.Tenant", b =>
                 {
                     b.HasOne("PgManagement_WebApi.Models.PG", "PG")
@@ -568,15 +693,30 @@ namespace PgManagement_WebApi.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("PgManagement_WebApi.Models.Room", "Room")
+                    b.HasOne("PgManagement_WebApi.Models.Room", null)
                         .WithMany("Tenants")
-                        .HasForeignKey("RoomId")
+                        .HasForeignKey("RoomId");
+
+                    b.Navigation("PG");
+                });
+
+            modelBuilder.Entity("PgManagement_WebApi.Models.TenantRentHistory", b =>
+                {
+                    b.HasOne("PgManagement_WebApi.Models.RoomRentHistory", "RoomRentHistory")
+                        .WithMany()
+                        .HasForeignKey("RoomRentHistoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("PG");
+                    b.HasOne("PgManagement_WebApi.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("Room");
+                    b.Navigation("RoomRentHistory");
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.TenantRoom", b =>
@@ -584,13 +724,13 @@ namespace PgManagement_WebApi.Migrations
                     b.HasOne("PgManagement_WebApi.Models.Room", "Room")
                         .WithMany()
                         .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("PgManagement_WebApi.Models.Tenant", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Room");
@@ -632,6 +772,11 @@ namespace PgManagement_WebApi.Migrations
                     b.Navigation("Tenants");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("PgManagement_WebApi.Models.PaymentFrequency", b =>
+                {
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.PaymentMode", b =>

@@ -1,39 +1,22 @@
 <div class="page-header">
   <h2>Rooms</h2>
   <div class="header-filters">
-    <input
-      type="text"
-  placeholder="Search room number"
-  [(ngModel)]="searchText"
-  (ngModelChange)="onSearchChange($event)"
-      class="search-input"
-    />
+    <input type="text" placeholder="Search room number" [(ngModel)]="searchText"
+      (ngModelChange)="onSearchChange($event)" class="search-input" />
 
-    <select
-      [(ngModel)]="selectedStatus"
-  (ngModelChange)="onStatusChange($event)"
-  class="status-select"
->
-  <option value="">All Status</option>
-  <option value="available">Available</option>
-  <option value="partial">Partial</option>
-  <option value="full">Full</option>
+    <select [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange($event)" class="status-select">
+      <option value="">All Status</option>
+      <option value="available">Available</option>
+      <option value="partial">Partial</option>
+      <option value="full">Full</option>
     </select>
-    <select
-    [(ngModel)]="selectedAc"
-  (ngModelChange)="onAcChange($event)"
-  class="status-select"
->
-  <option value="">All Types</option>
-  <option value="ac">AC</option>
-  <option value="non-ac">Non-AC</option>
-  </select>
+    <select [(ngModel)]="selectedAc" (ngModelChange)="onAcChange($event)" class="status-select">
+      <option value="">All Types</option>
+      <option value="ac">AC</option>
+      <option value="non-ac">Non-AC</option>
+    </select>
   </div>
-  <button
-    class="btn-primary add-room-btn"
-    type="button"
-    (click)="openAddRoom()"
-  >
+  <button class="btn-primary add-room-btn" type="button" (click)="openAddRoom()">
     + Add Room
   </button>
 </div>
@@ -42,12 +25,8 @@
 <!--  Rooms Grid -->
 <div *ngIf="rooms$ | async as result">
   <div class="room-grid">
-    <div
-      class="room-card"
-      *ngFor="let room of result.items"
-      [ngClass]="getStatusClass(room)"
-      (click)="openRoom(room.roomId)"
-    >
+    <div class="room-card" *ngFor="let room of result.items" [ngClass]="getStatusClass(room)"
+      (click)="openRoom(room.roomId)">
       <div class="card-header-bg"></div>
 
       <div class="room-avatar-container">
@@ -89,28 +68,19 @@
     </div>
   </div>
   <div class="pagination">
-  <div class="pagination-inner">
-    <button
-      class="page-btn prev"
-      (click)="prevPage()"
-      [disabled]="currentPage === 1">
-      Prev
-    </button>
+    <div class="pagination-inner">
+      <button class="page-btn prev" (click)="prevPage()" [disabled]="currentPage === 1">
+        Prev
+      </button>
 
-    <button
-      *ngFor="let page of pages"
-      class="page-btn page-number"
-      [class.active]="page === currentPage"
-      (click)="goToPage(page)">
-      {{ page }}
-    </button>
+      <button *ngFor="let page of pages" class="page-btn page-number" [class.active]="page === currentPage"
+        (click)="goToPage(page)">
+        {{ page }}
+      </button>
 
-    <button
-      class="page-btn next"
-      (click)="nextPage()"
-      [disabled]="currentPage === totalPages">
-      Next
-    </button>
+      <button class="page-btn next" (click)="nextPage()" [disabled]="currentPage === totalPages">
+        Next
+      </button>
+    </div>
   </div>
-</div>
 </div>

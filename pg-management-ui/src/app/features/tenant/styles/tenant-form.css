@@ -322,3 +322,200 @@
   font-size: 12px;
   color: #0F1041;
 }
+/* ================= PENDING RENT CARD REFINED ================= */
+
+.pending-rent-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    margin: 32px 0;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb; /* Matching the main card style */
+    max-width: 750px; /* Aligns with your main card width */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Three-column horizontal header */
+.pending-header-row {
+    display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pending-title-group {
+    flex: 0 1 auto; /* Only take as much space as needed */
+}
+
+.pending-title-group h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #0F1041;
+}
+
+.as-of {
+   margin-top: 2px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Center Amount Display */
+.pending-amount-display {
+    flex: 1;
+    text-align: center;
+    font-size: 28px; /* Slightly larger for emphasis */
+    font-weight: 700;
+    color: #c0392b;
+    /* Optional: add margin-left to push it slightly away from the title if they get too close */
+    margin: 0 20px;
+}
+
+/* Right Aligned Action */
+.pending-action-group {
+    flex: 0 1 auto;
+    /* display: flex;
+    justify-content: flex-end; */
+}
+
+.btn-primary-sm {
+    background-color: #0F1041;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary-sm:hover:not(:disabled) {
+    background-color: #1a1b5c;
+    transform: translateY(-1px);
+}
+
+.btn-primary-sm:disabled {
+    background-color: #d1d5db;
+    cursor: not-allowed;
+}
+
+.pending-divider {
+    margin: 20px 0;
+    border: none;
+    border-top: 1px solid #f3f4f6;
+}
+
+/* Breakdown Table Styling */
+.breakdown-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+}
+
+.pending-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.pending-table th {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+.pending-table td {
+   padding: 16px 0;
+    border-bottom: 1px solid #f9fafb;
+}
+
+.period-cell {
+    color: #4b5563;
+}
+
+.arrow {
+    color: #d1d5db;
+    margin: 0 4px;
+}
+
+.amount-cell {
+    font-weight: 500;
+}
+.pending-table th:nth-child(1), .pending-table td:nth-child(1) { width: 15%; } /* Room */
+.pending-table th:nth-child(2), .pending-table td:nth-child(2) { width: 45%; } /* Period */
+.pending-table th:nth-child(3), .pending-table td:nth-child(3) { width: 20%; } /* Rate */
+.pending-table th:nth-child(4), .pending-table td:nth-child(4) { width: 20%; } /* Amount */
+.total-label {
+    padding-top: 20px;
+    font-weight: 700;
+    color: #0F1041;
+    font-size: 15px;
+}
+
+.total-amount {
+    padding-top: 20px;
+}
+
+.text-right {
+    text-align: right;
+}
+.pending-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  white-space: nowrap;
+}
+
+.pending-left h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #0F1041;
+}
+
+.pending-amount-display {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0F1041; /* same as text */
+}
+.btn-add-payment-pill {
+  flex: 1; /* 👈 occupies remaining space */
+  height: 44px;
+  border-radius: 999px; /* 👈 pill */
+  border: none;
+  background-color: #0F1041;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add-payment-pill:hover:not(:disabled) {
+  background-color: #1a1b5c;
+}
+
+.btn-add-payment-pill:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+.pending-title-block {
+  display: flex;
+  flex-direction: column;
+}
+.pending-title-block h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #0F1041;
+}
+.amount-clear {
+  color: #16a34a; /* green-600 */
+  font-weight: 700;
+}
+
+.amount-due {
+  color: #dc2626; /* red-600 */
+  font-weight: 700;
+}

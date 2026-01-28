@@ -41,33 +41,59 @@ namespace PgManagement_WebApi.Controllers
             IQueryable<Room> query = context.Rooms
                 .Where(r => r.PgId == pgId);
 
-            //  Search by Room Number
+            // 🔍 Search by Room Number
             if (!string.IsNullOrWhiteSpace(search))
             {
                 query = query.Where(r => r.RoomNumber.Contains(search));
             }
 
-            //  AC / Non-AC filter
+            // ❄️ AC / Non-AC filter (via RoomRentHistory)
             if (!string.IsNullOrWhiteSpace(ac))
             {
                 if (ac.Equals("ac", StringComparison.OrdinalIgnoreCase))
-                    query = query.Where(r => r.isAc);
+                {
+                    query = query.Where(r =>
+                        context.RoomRentHistories.Any(rrh =>
+                            rrh.RoomId == r.RoomId &&
+                            rrh.EffectiveTo == null &&
+                            rrh.IsAc
+                        ));
+                }
                 else if (ac.Equals("non-ac", StringComparison.OrdinalIgnoreCase))
-                    query = query.Where(r => !r.isAc);
+                {
+                    query = query.Where(r =>
+                        context.RoomRentHistories.Any(rrh =>
+                            rrh.RoomId == r.RoomId &&
+                            rrh.EffectiveTo == null &&
+                            !rrh.IsAc
+                        ));
+                }
             }
 
-            //  Project once with OccupiedBeds (FROM TenantRoom)
+            // 🧮 Project with OccupiedBeds + Current Rent
             var projectedQuery = query.Select(r => new
             {
                 Room = r,
+
                 OccupiedBeds = context.TenantRooms.Count(tr =>
                     tr.RoomId == r.RoomId &&
                     tr.PgId == pgId &&
                     tr.ToDate == null
-                )
+                ),
+
+                CurrentRent = context.RoomRentHistories
+                    .Where(rrh =>
+                        rrh.RoomId == r.RoomId &&
+                        rrh.EffectiveTo == null)
+                    .Select(rrh => new
+                    {
+                        rrh.RentAmount,
+                        rrh.IsAc
+                    })
+                    .FirstOrDefault()
             });
 
-            //  Status filter
+            // 📌 Status filter
             if (!string.IsNullOrWhiteSpace(status))
             {
                 status = status.ToLower();
@@ -76,18 +102,18 @@ namespace PgManagement_WebApi.Controllers
                 {
                     "available" => projectedQuery.Where(x => x.OccupiedBeds == 0),
 
-                    "full" => projectedQuery.Where(x => x.OccupiedBeds >= x.Room.Capacity),
+                    "full" => projectedQuery.Where(x =>
+                        x.OccupiedBeds >= x.Room.Capacity),
 
                     "partial" => projectedQuery.Where(x =>
                         x.OccupiedBeds > 0 &&
-                        x.OccupiedBeds < x.Room.Capacity
-                    ),
+                        x.OccupiedBeds < x.Room.Capacity),
 
                     _ => projectedQuery
                 };
             }
 
-            // 🔢 Total count (after filters)
+            // 🔢 Total count
             var totalCount = await projectedQuery.CountAsync();
 
             // 📄 Pagination + final projection
@@ -102,8 +128,10 @@ namespace PgManagement_WebApi.Controllers
                     Capacity = x.Room.Capacity,
                     Occupied = x.OccupiedBeds,
                     Vacancies = x.Room.Capacity - x.OccupiedBeds,
-                    RentAmount = x.Room.RentAmount,
-                    isAc = x.Room.isAc,
+
+                    RentAmount = x.CurrentRent != null ? x.CurrentRent.RentAmount : 0,
+                    isAc = x.CurrentRent != null && x.CurrentRent.IsAc,
+
                     Status =
                         x.OccupiedBeds == 0 ? "Available" :
                         x.OccupiedBeds >= x.Room.Capacity ? "Full" :
@@ -117,6 +145,7 @@ namespace PgManagement_WebApi.Controllers
                 TotalCount = totalCount
             });
         }
+
 
 
 
@@ -134,8 +163,18 @@ namespace PgManagement_WebApi.Controllers
                     r.RoomId,
                     r.RoomNumber,
                     r.Capacity,
-                    r.RentAmount,
-                    r.isAc,
+
+                    // current active rent
+                    CurrentRent = context.RoomRentHistories
+                        .Where(rrh =>
+                            rrh.RoomId == r.RoomId &&
+                            rrh.EffectiveTo == null)
+                        .Select(rrh => new
+                        {
+                            rrh.RentAmount,
+                            rrh.IsAc
+                        })
+                        .FirstOrDefault(),
 
                     OccupiedBeds = context.TenantRooms.Count(tr =>
                         tr.RoomId == r.RoomId &&
@@ -150,12 +189,14 @@ namespace PgManagement_WebApi.Controllers
                     Capacity = r.Capacity,
                     Occupied = r.OccupiedBeds,
                     Vacancies = r.Capacity - r.OccupiedBeds,
-                    RentAmount = r.RentAmount,
+
+                    RentAmount = r.CurrentRent != null ? r.CurrentRent.RentAmount : 0,
+                    isAc = r.CurrentRent != null && r.CurrentRent.IsAc,
+
                     Status =
                         r.OccupiedBeds == 0 ? "Available" :
                         r.OccupiedBeds >= r.Capacity ? "Full" :
-                        "Partial",
-                    isAc = r.isAc
+                        "Partial"
                 })
                 .FirstOrDefaultAsync();
 
@@ -165,33 +206,52 @@ namespace PgManagement_WebApi.Controllers
             return Ok(room);
         }
 
+
         [HttpPost("add-room")]
         public async Task<IActionResult> CreateRoom([FromBody] CreateRoomDto dto)
         {
             var pgId = User.FindFirst("pgId")?.Value;
-            if(string.IsNullOrEmpty(pgId))
-                return Unauthorized("gg");
+            if (string.IsNullOrEmpty(pgId))
+                return Unauthorized();
 
             var roomExists = await context.Rooms
-        .AnyAsync(r => r.PgId == pgId && r.RoomNumber == dto.RoomNumber);
+                .AnyAsync(r => r.PgId == pgId && r.RoomNumber == dto.RoomNumber);
 
             if (roomExists)
                 return Conflict("Room number already exists in this PG.");
 
+            using var transaction = await context.Database.BeginTransactionAsync();
+
+            // 1️⃣ Create Room (NO rent here)
             var room = new Room
             {
                 RoomId = Guid.NewGuid().ToString(),
                 PgId = pgId,
                 RoomNumber = dto.RoomNumber,
-                Capacity = dto.Capacity,
-                RentAmount = dto.RentAmount,
-                isAc=dto.IsAc
+                Capacity = dto.Capacity
             };
+
             context.Rooms.Add(room);
             await context.SaveChangesAsync();
 
+            // 2️⃣ Create initial rent history
+            var roomRentHistory = new RoomRentHistory
+            {
+                RoomId = room.RoomId,
+                RentAmount = dto.RentAmount,
+                IsAc = dto.IsAc,
+                EffectiveFrom = DateTime.Now,
+                EffectiveTo = null
+            };
+
+            context.RoomRentHistories.Add(roomRentHistory);
+            await context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+
             return CreatedAtAction(nameof(GetRooms), new { }, null);
         }
+
         [HttpPut("{roomId}")]
         public async Task<IActionResult> UpdateRoom(string roomId, [FromBody] UpdateRoomDto dto)
         {
@@ -201,6 +261,8 @@ namespace PgManagement_WebApi.Controllers
             var pgId = User.FindFirst("pgId")?.Value;
             if (string.IsNullOrEmpty(pgId))
                 return Unauthorized();
+
+            using var transaction = await context.Database.BeginTransactionAsync();
 
             var room = await context.Rooms
                 .FirstOrDefaultAsync(r => r.RoomId == roomId && r.PgId == pgId);
@@ -216,15 +278,69 @@ namespace PgManagement_WebApi.Controllers
             if (duplicateRoom)
                 return Conflict("Another room with same number already exists.");
 
+            // 1️⃣ Update non-financial fields
             room.RoomNumber = dto.RoomNumber;
             room.Capacity = dto.Capacity;
-            room.RentAmount = dto.RentAmount;
-            room.isAc = dto.isAc;
+
+            // 2️⃣ Fetch current active rent
+            var currentRent = await context.RoomRentHistories
+                .FirstOrDefaultAsync(rr =>
+                    rr.RoomId == roomId &&
+                    rr.EffectiveTo == null);
+
+            if (currentRent == null)
+                return BadRequest("Room has no active rent configuration.");
+
+            var isRentChanged =
+                currentRent.RentAmount != dto.RentAmount ||
+                currentRent.IsAc != dto.isAc;
+
+            // 3️⃣ Handle rent/AC change
+            if (isRentChanged)
+            {
+                // Close current rent
+                currentRent.EffectiveTo = DateTime.Now;
+
+                // Create new rent record
+                var newRent = new RoomRentHistory
+                {
+                    RoomId = roomId,
+                    RentAmount = dto.RentAmount,
+                    IsAc = dto.isAc,
+                    EffectiveFrom = DateTime.Now
+                };
+
+                context.RoomRentHistories.Add(newRent);
+                await context.SaveChangesAsync();
+
+                // Find active tenant rent histories for this room
+                var activeTenantRents = await context.TenantRentHistories
+                    .Include(trh => trh.RoomRentHistory)
+                    .Where(trh =>
+                        trh.ToDate == null &&
+                        trh.RoomRentHistory.RoomId == roomId)
+                    .ToListAsync();
+
+                // Close old tenant rent history and create new ones
+                foreach (var tenantRent in activeTenantRents)
+                {
+                    tenantRent.ToDate = DateTime.Now;
+
+                    context.TenantRentHistories.Add(new TenantRentHistory
+                    {
+                        TenantId = tenantRent.TenantId,
+                        RoomRentHistoryId = newRent.RoomRentHistoryId,
+                        FromDate = DateTime.Now
+                    });
+                }
+            }
 
             await context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return NoContent();
         }
+
         [HttpDelete("{roomId}")]
         public async Task<IActionResult> DeleteRoom(string roomId)
         {
@@ -239,17 +355,29 @@ namespace PgManagement_WebApi.Controllers
             if (room == null)
                 return NotFound();
 
-            var hasActiveAssignments = await context.TenantRooms.AnyAsync(tr =>
+            // 1. Check ANY tenant-room history (active OR moved-out)
+            var hasAnyTenantHistory = await context.TenantRooms.AnyAsync(tr =>
                 tr.RoomId == roomId &&
-                tr.PgId == pgId &&
-                tr.ToDate == null
+                tr.PgId == pgId
             );
 
-            if (hasActiveAssignments)
-                return BadRequest("Cannot delete room with active tenants.");
+            if (hasAnyTenantHistory)
+                return BadRequest("Room cannot be deleted because tenants are or were assigned to it.");
 
+            using var tx = await context.Database.BeginTransactionAsync();
+
+            // 2. Delete room rent history
+            var rentHistories = await context.RoomRentHistories
+                .Where(rrh => rrh.RoomId == roomId)
+                .ToListAsync();
+
+            context.RoomRentHistories.RemoveRange(rentHistories);
+
+            // 3. Delete room
             context.Rooms.Remove(room);
+
             await context.SaveChangesAsync();
+            await tx.CommitAsync();
 
             return NoContent();
         }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PgManagement_WebApi.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class RoomsAndTenants : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -124,8 +124,7 @@ namespace PgManagement_WebApi.Migrations
                     PgId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     RoomNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Capacity = table.Column<int>(type: "int", nullable: false),
-                    RentAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    IsVacant = table.Column<bool>(type: "bit", nullable: false)
+                    isAc = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -255,16 +254,44 @@ namespace PgManagement_WebApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RoomRentHistories",
+                columns: table => new
+                {
+                    RoomRentHistoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RoomId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RentAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    IsAc = table.Column<bool>(type: "bit", nullable: false),
+                    EffectiveFrom = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EffectiveTo = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RoomRentHistories", x => x.RoomRentHistoryId);
+                    table.ForeignKey(
+                        name: "FK_RoomRentHistories_Rooms_RoomId",
+                        column: x => x.RoomId,
+                        principalTable: "Rooms",
+                        principalColumn: "RoomId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Tenants",
                 columns: table => new
                 {
                     TenantId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     PgId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RoomId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CheckInDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CheckOutDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ContactNumber = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false)
+                    ContactNumber = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    AadharNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AdvanceAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    RentPaidUpto = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    isDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RoomId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -280,7 +307,7 @@ namespace PgManagement_WebApi.Migrations
                         column: x => x.RoomId,
                         principalTable: "Rooms",
                         principalColumn: "RoomId",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -315,7 +342,62 @@ namespace PgManagement_WebApi.Migrations
                         column: x => x.TenantId,
                         principalTable: "Tenants",
                         principalColumn: "TenantId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TenantRentHistories",
+                columns: table => new
+                {
+                    TenantRentHistoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TenantId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RoomRentHistoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FromDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ToDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TenantRentHistories", x => x.TenantRentHistoryId);
+                    table.ForeignKey(
+                        name: "FK_TenantRentHistories_RoomRentHistories_RoomRentHistoryId",
+                        column: x => x.RoomRentHistoryId,
+                        principalTable: "RoomRentHistories",
+                        principalColumn: "RoomRentHistoryId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_TenantRentHistories_Tenants_TenantId",
+                        column: x => x.TenantId,
+                        principalTable: "Tenants",
+                        principalColumn: "TenantId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TenantRooms",
+                columns: table => new
+                {
+                    TenantRoomId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TenantId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RoomId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PgId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FromDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ToDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TenantRooms", x => x.TenantRoomId);
+                    table.ForeignKey(
+                        name: "FK_TenantRooms_Rooms_RoomId",
+                        column: x => x.RoomId,
+                        principalTable: "Rooms",
+                        principalColumn: "RoomId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_TenantRooms_Tenants_TenantId",
+                        column: x => x.TenantId,
+                        principalTable: "Tenants",
+                        principalColumn: "TenantId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -378,9 +460,34 @@ namespace PgManagement_WebApi.Migrations
                 column: "TenantId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RoomRentHistories_RoomId",
+                table: "RoomRentHistories",
+                column: "RoomId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Rooms_PgId",
                 table: "Rooms",
                 column: "PgId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TenantRentHistories_RoomRentHistoryId",
+                table: "TenantRentHistories",
+                column: "RoomRentHistoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TenantRentHistories_TenantId",
+                table: "TenantRentHistories",
+                column: "TenantId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TenantRooms_RoomId",
+                table: "TenantRooms",
+                column: "RoomId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TenantRooms_TenantId",
+                table: "TenantRooms",
+                column: "TenantId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tenants_PgId",
@@ -425,6 +532,12 @@ namespace PgManagement_WebApi.Migrations
                 name: "Payments");
 
             migrationBuilder.DropTable(
+                name: "TenantRentHistories");
+
+            migrationBuilder.DropTable(
+                name: "TenantRooms");
+
+            migrationBuilder.DropTable(
                 name: "UserPgs");
 
             migrationBuilder.DropTable(
@@ -432,6 +545,9 @@ namespace PgManagement_WebApi.Migrations
 
             migrationBuilder.DropTable(
                 name: "PaymentModes");
+
+            migrationBuilder.DropTable(
+                name: "RoomRentHistories");
 
             migrationBuilder.DropTable(
                 name: "Tenants");

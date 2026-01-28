@@ -45,7 +45,6 @@ export class AddTenant implements OnInit {
     this.rooms$ = this.roomService.getRooms({
       page: 1,
       pageSize: 100,
-      status: 'available'
     }).pipe(
       map(res => res.items)
     );

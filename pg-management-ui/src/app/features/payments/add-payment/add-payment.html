@@ -1,0 +1,87 @@
+<div class="add-payment-page" *ngIf="paymentContext$ | async as ctx; else loading">
+  <div class="page-header">
+    <h2 class="page-title">Add Payment</h2>
+  </div>
+
+  <div class="payment-container">
+    <section class="summary-card">
+      <h3 class="section-title">Payment Summary</h3>
+      <div class="summary-item">
+        <span class="label">Tenant</span>
+        <span class="value">{{ ctx.tenantName }}</span>
+      </div>
+      <div class="summary-item highlight">
+        <span class="label">Pending Amount</span>
+        <span class="value">₹{{ ctx.pendingAmount | number:'1.2-2' }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">Next Due From</span>
+        <span class="value">{{ ctx.paidFrom | date:'dd MMM yyyy' }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">Allowed Till</span>
+        <span class="value">{{ ctx.maxPaidUpto | date:'dd MMM yyyy' }}</span>
+      </div>
+      
+      <div class="coverage-box">
+        <p class="coverage-label">Period Covered</p>
+        <p class="coverage-dates">
+          {{ ctx.paidFrom | date:'dd MMM' }} <span>→</span> {{ form.value.paidUpto | date:'dd MMM yyyy' }}
+        </p>
+      </div>
+    </section>
+
+    <form class="form-card" [formGroup]="form">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Payment Frequency</label>
+          <select class="form-input" formControlName="frequency">
+            <option *ngFor="let f of frequencies" [value]="f.key">{{ f.label }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Paid Upto</label>
+          <input type="date" class="form-input" formControlName="paidUpto" [min]="ctx.paidFrom" [max]="ctx.maxPaidUpto" />
+        </div>
+
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" class="form-input amount-input" formControlName="amount" placeholder="0.00" />
+        </div>
+
+        <div class="form-group">
+  <label>Payment Mode</label>
+  <select 
+    class="form-input" 
+    formControlName="paymentModeCode"
+    [class.placeholder-selected]="!form.get('paymentModeCode')?.value">
+    <option value="" disabled hidden>Select a payment mode</option>
+    
+    <option *ngFor="let m of (paymentModes$ | async)" [value]="m.code">
+      {{ m.description }}
+    </option>
+  </select>
+</div>
+
+        <div class="form-group full-width">
+          <label>Notes</label>
+          <textarea class="form-input" formControlName="notes" placeholder="Optional payment remarks..." rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" [routerLink]="['/tenants',ctx.tenantId]">Cancel</button>
+        <button type="button" class="btn-primary" (click)="save(ctx)" [disabled]="form.invalid || saving">
+          {{ saving ? 'Processing...' : 'Confirm Payment' }}
+        </button>
+      </div>
+      
+      <p class="error-msg" *ngIf="error">{{ error }}</p>
+    </form>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading-state">Loading payment details...</div>
+</ng-template>

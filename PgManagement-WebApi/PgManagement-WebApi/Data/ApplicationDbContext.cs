@@ -20,52 +20,126 @@ namespace PgManagement_WebApi.Data
         public DbSet<UserPg> UserPgs { get; set; }
         public DbSet<PgRole> PgRoles { get; set; }
         public DbSet<TenantRoom> TenantRooms { get; set; }
+        public DbSet<TenantRentHistory> TenantRentHistories { get; set; }
+        public DbSet<RoomRentHistory> RoomRentHistories { get; set; }
+        public DbSet<PaymentFrequency> PaymentFrequencies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            /* ============================================================
+               User ↔ PG (many-to-many)
+               ============================================================ */
             modelBuilder.Entity<UserPg>()
-        .HasKey(up => new { up.UserId, up.PgId });
+                .HasKey(up => new { up.UserId, up.PgId });
 
             modelBuilder.Entity<UserPg>()
                 .HasOne(up => up.User)
                 .WithMany()
-                .HasForeignKey(up => up.UserId);
+                .HasForeignKey(up => up.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<UserPg>()
                 .HasOne(up => up.PG)
                 .WithMany()
-                .HasForeignKey(up => up.PgId);
-            /*
-             1. Pg -> tenants
-             2. Pg -> pg -->rooms-tenants
-             */
-            modelBuilder.Entity<Tenant>()
-                .HasOne(t => t.Room)
-                .WithMany(r => r.Tenants)
-                .HasForeignKey(t => t.RoomId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(up => up.PgId)
+                .OnDelete(DeleteBehavior.Cascade);
 
+            /* ============================================================
+               Tenant → PG
+               ============================================================ */
             modelBuilder.Entity<Tenant>()
                 .HasOne(t => t.PG)
                 .WithMany(p => p.Tenants)
                 .HasForeignKey(t => t.PgId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            /* ============================================================
+               Room → PG
+               ============================================================ */
             modelBuilder.Entity<Room>()
                 .HasOne(r => r.PG)
                 .WithMany(p => p.Rooms)
                 .HasForeignKey(r => r.PgId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            /* ============================================================
+               TenantRoom (Occupancy History)
+               ============================================================ */
+            modelBuilder.Entity<TenantRoom>()
+                .HasOne(tr => tr.Tenant)
+                .WithMany()
+                .HasForeignKey(tr => tr.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TenantRoom>()
+                .HasOne(tr => tr.Room)
+                .WithMany()
+                .HasForeignKey(tr => tr.RoomId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            /* ============================================================
+               RoomRentHistory (Pricing History)
+               ============================================================ */
+            modelBuilder.Entity<RoomRentHistory>()
+                .HasOne(rrh => rrh.Room)
+                .WithMany()
+                .HasForeignKey(rrh => rrh.RoomId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RoomRentHistory>()
+                .Property(rrh => rrh.RentAmount)
+                .HasPrecision(18, 2);
+
+            /* ============================================================
+               TenantRentHistory (Rent Applicability History)
+               ============================================================ */
+            modelBuilder.Entity<TenantRentHistory>()
+                .HasOne(trh => trh.Tenant)
+                .WithMany()
+                .HasForeignKey(trh => trh.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TenantRentHistory>()
+                .HasOne(trh => trh.RoomRentHistory)
+                .WithMany()
+                .HasForeignKey(trh => trh.RoomRentHistoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            /* ============================================================
+               Payments
+               ============================================================ */
             modelBuilder.Entity<Payment>()
                 .Property(p => p.Amount)
                 .HasPrecision(18, 2);
 
-            modelBuilder.Entity<Room>()
-                .Property(r => r.RentAmount)
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Tenant)
+                .WithMany(t => t.Payments)
+                .HasForeignKey(p => p.TenantId)
+                .OnDelete(DeleteBehavior.Restrict); // 🔒 prevents cascade path
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.PG)
+                .WithMany()
+                .HasForeignKey(p => p.PgId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.PaymentMode)
+                .WithMany(pm => pm.Payments)
+                .HasForeignKey(p => p.PaymentModeCode)
+                .HasPrincipalKey(pm => pm.Code)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            /* ============================================================
+               Tenant Financial Fields
+               ============================================================ */
+            modelBuilder.Entity<Tenant>()
+                .Property(t => t.AdvanceAmount)
                 .HasPrecision(18, 2);
         }
+
     }
 }

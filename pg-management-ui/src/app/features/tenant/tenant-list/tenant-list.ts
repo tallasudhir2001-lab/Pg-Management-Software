@@ -145,7 +145,7 @@ prevPage(): void {
   this.selectedRoomLabel = '';
   this.roomSearchText = '';
 
-  this.updateUrl({ page: 1,status:null,roomId:null });
+  this.updateUrl({ page: 1,status:null,roomId:null,sortBy:null,sortDir:null });
   this.showFilters = false;
 }
 

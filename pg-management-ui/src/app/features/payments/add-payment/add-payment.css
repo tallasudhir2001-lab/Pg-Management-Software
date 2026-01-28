@@ -1,0 +1,170 @@
+.add-payment-page {
+  padding: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0F1041;
+  margin-bottom: 24px;
+}
+
+.payment-container {
+  display: grid;
+  grid-template-columns: 320px 1fr; /* Sidebar + Form */
+  gap: 24px;
+  align-items: start;
+}
+
+/* Summary Sidebar */
+.summary-card {
+  background: #0F1041;
+  color: white;
+  padding: 24px;
+  border-radius: 20px;
+  box-shadow: 0 10px 20px rgba(15, 16, 65, 0.15);
+}
+
+.summary-card .section-title {
+  color: white;
+  margin-top: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 12px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.summary-item .label {
+  font-size: 12px;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-item .value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.summary-item.highlight .value {
+  font-size: 24px;
+  color: #4ade80; /* Success green for money */
+}
+
+.coverage-box {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.coverage-label { font-size: 11px; opacity: 0.8; margin: 0; }
+.coverage-dates { font-size: 14px; font-weight: 500; margin: 5px 0 0; }
+
+/* Form Area */
+.form-card {
+  background: white;
+  padding: 32px;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.full-width { grid-column: span 2; }
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  font-size: 15px;
+  transition: all 0.2s;
+  outline: none;
+  color: #374151;
+}
+.form-input.placeholder-selected {
+  color: #9ca3af; /* A lighter grey to look like a placeholder */
+}
+.form-input option {
+  color: #374151;
+}
+select.form-input {
+  appearance: none; /* Removes default OS styling in some browsers */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+.form-input:focus {
+  border-color: #0F1041;
+  box-shadow: 0 0 0 4px rgba(15, 16, 65, 0.1);
+}
+
+.amount-input {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F1041;
+}
+
+/* Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 32px;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 24px;
+}
+
+.btn-primary {
+  background: #0F1041;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  padding: 12px 28px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.error-msg {
+  color: #dc2626;
+  font-size: 13px;
+  margin-top: 12px;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .payment-container { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .full-width { grid-column: span 1; }
+}

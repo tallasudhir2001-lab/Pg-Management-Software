@@ -9,6 +9,7 @@ import { map, Observable, startWith, Subject, switchMap, tap } from 'rxjs';
 import { UpdateTenantDto } from '../models/update-tenant-dto';
 import { Room } from '../../rooms/models/room.model';
 import { Roomservice } from '../../rooms/services/roomservice';
+import { PendingRent } from '../models/pending-rent.model';
 
 @Component({
   selector: 'app-tenant-details',
@@ -35,6 +36,12 @@ export class TenantDetails implements OnInit{
   //loading state
   isChangingRoom = false;
 
+  //tenant pending Rent Variables
+  pendingRent$!: Observable<PendingRent>;
+  pendingRentLoading = true;
+  pendingRentError = '';
+
+
 
   constructor(
     private route: ActivatedRoute,
@@ -55,6 +62,9 @@ ngOnInit(): void {
       this.editableTenant = { ...t };
     })
   );
+  this.pendingRent$ = this.tenantService.getPendingRent(this.tenantId).pipe(
+    tap(() => this.pendingRentLoading = false),
+  );  
 }
 
 
@@ -187,4 +197,12 @@ private mapToUpdateDto(
   };
 }
 
+// Payments methods start
+  addPayment(): void {
+    this.router.navigate([
+      '/payments/add',
+      this.tenantId
+    ]);
+  }
+//payment methods end
 }

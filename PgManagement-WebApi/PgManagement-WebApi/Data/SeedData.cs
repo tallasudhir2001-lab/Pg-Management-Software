@@ -22,6 +22,17 @@ namespace PgManagement_WebApi.Data
                 await context.PaymentModes.AddRangeAsync(modes);
                 await context.SaveChangesAsync();
             }
+            if(!await context.PaymentFrequencies.AnyAsync())
+            {
+                var frequencies = new List<PaymentFrequency> {
+
+                new PaymentFrequency { Code = "MONTHLY", Description = "Monthly", RequiresUnitCount = true },
+                new PaymentFrequency { Code = "DAILY", Description = "Daily", RequiresUnitCount = true },
+                new PaymentFrequency { Code = "CUSTOM", Description = "Custom Period", RequiresUnitCount = false }
+                };
+                await context.PaymentFrequencies.AddRangeAsync(frequencies);
+                await context.SaveChangesAsync();
+            }
 
             if(!await context.PgRoles.AnyAsync())
             {

@@ -35,6 +35,7 @@ export class Roomservice {
   roomNumber: string;
   capacity: number;
   rentAmount: number;
+  isAc: boolean;
   }) {
   return this.http.post(`${this.baseUrl}/add-room`, payload);
   }

@@ -13,6 +13,7 @@ import { TenantList } from './features/tenant/tenant-list/tenant-list';
 import { AddTenant } from './features/tenant/add-tenant/add-tenant';
 import { RoomDetails } from './features/rooms/room-details/room-details';
 import { TenantDetails } from './features/tenant/tenant-details/tenant-details';
+import { AddPayment } from './features/payments/add-payment/add-payment';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -30,7 +31,8 @@ export const routes: Routes = [
             { path :'tenant-list',component:TenantList},
             { path :'tenants/add',component:AddTenant},
             { path :'tenants/:id', component:TenantDetails, data : { mode : 'view'}},
-            { path :'tenants/:id/edit', component:TenantDetails, data : {mode : 'edit'}}
+            { path :'tenants/:id/edit', component:TenantDetails, data : {mode : 'edit'}},
+            { path : 'payments/add/:tenantId', component:AddPayment}
         ]
     },
     {

@@ -14,7 +14,6 @@ namespace PgManagement_WebApi.Models
         [Required]
         public string Name { get; set; }
 
-        public string RoomId { get; set; }    // Optional: assigned room
 
         [Required]
         [RegularExpression(@"^[6-9]\d{9}$",
@@ -37,8 +36,6 @@ namespace PgManagement_WebApi.Models
         [ForeignKey("PgId")]
         public PG PG { get; set; }
 
-        [ForeignKey("RoomId")]
-        public Room Room { get; set; }
 
         public ICollection<Payment> Payments { get; set; }
     }

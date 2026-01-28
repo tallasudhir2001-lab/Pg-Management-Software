@@ -16,8 +16,9 @@ namespace PgManagement_WebApi.Models
 
         public int Capacity { get; set; } = 1;
 
-        public decimal RentAmount { get; set; }
+        //public decimal RentAmount { get; set; }
 
+        //will remove it
         public bool isAc {  get; set; }
         // Navigation property
         [ForeignKey("PgId")]
