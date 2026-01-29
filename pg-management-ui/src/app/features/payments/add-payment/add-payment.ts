@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, input, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Observable, tap } from 'rxjs';
 import { PaymentService } from '../services/payment-service';
@@ -24,9 +24,10 @@ const PAYMENT_FREQUENCIES = [
   templateUrl: './add-payment.html',
   styleUrl: './add-payment.css',
 })
-export class AddPayment implements OnInit {
+export class AddPayment implements OnChanges {
 
   @Input() tenantId!: string;
+  @Input() showHeader: boolean = true;
 
   paymentContext$!: Observable<PaymentContext>;
   paymentModes$!: Observable<PaymentMode[]>;
@@ -46,18 +47,31 @@ export class AddPayment implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.tenantId = this.route.snapshot.paramMap.get('tenantId')!;
-    this.loadContext();
-    this.paymentModes$ = this.paymentService.getPaymentModes();
+    // Handle route-based usage
+    if (!this.tenantId) {
+      const routeTenantId = this.route.snapshot.paramMap.get('tenantId');
+      if (routeTenantId) {
+        this.tenantId = routeTenantId;
+        this.loadContext();
+      }
+    }
+  }
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['tenantId'] && this.tenantId) {
+      this.loadContext();
+    }
   }
 
   private loadContext() {
-    this.paymentContext$ = this.paymentService
-      .getPaymentContext(this.tenantId)
-      .pipe(
-        tap(ctx => this.buildForm(ctx))
-      );
-  }
+  this.paymentContext$ = this.paymentService
+    .getPaymentContext(this.tenantId)
+    .pipe(
+      tap(ctx => this.buildForm(ctx))
+    );
+
+  this.paymentModes$ = this.paymentService.getPaymentModes();
+}
+
 
   private buildForm(ctx: PaymentContext) {
     this.form = this.fb.group({

@@ -11,7 +11,7 @@ import { Room } from '../../rooms/models/room.model';
 import { Roomservice } from '../../rooms/services/roomservice';
 import { PendingRent } from '../models/pending-rent.model';
 import { ToastService } from '../../../shared/toast/toast-service';
-import { PaymentHistory } from '../../payments/payment-history/payment-history';
+import { PaymentHistory } from '../payment-history/payment-history';
 
 @Component({
   selector: 'app-tenant-details',
@@ -136,7 +136,6 @@ confirmChangeRoom(): void {
       error: err => {
         this.isChangingRoom = false;
         this.toastService.showError(err?.error || 'Failed to change room');
-        alert();
       }
     });
 }
@@ -152,12 +151,12 @@ confirmChangeRoom(): void {
     next: () => {
       
       this.mode = 'view';
+      this.toastService.showSuccess('Tenant Moved Out Successfully');
       this.reload$.next();
-
       // Ensure we are in view mode
     },
     error: err => {
-      alert(err?.error || 'Failed to move out tenant');
+      this.toastService.showError(err?.error || 'Failed to change room');
     }
   });
 }

@@ -11,16 +11,13 @@ import { jwtDecode } from 'jwt-decode';
   styleUrl: './layout.css',
 })
 export class Layout {
+  paymentsExpanded = false;
   //isAdmin=false;
   constructor(private auth: Auth,private router: Router) {}
 
-//   ngOnInit() {
-//   const token = localStorage.getItem('token');
-//   if (token) {
-//     const decoded: any = jwtDecode(token);
-//     this.isAdmin = decoded.role === 'Admin';
-//   }
-// }
+  togglePayments() {
+    this.paymentsExpanded = !this.paymentsExpanded;
+  }
 
   logout() {
     this.auth.logout();

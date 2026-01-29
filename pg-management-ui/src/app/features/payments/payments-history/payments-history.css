@@ -1,0 +1,629 @@
+/* ==============================
+   Page Wrapper
+================================ */
+.payment-history-page {
+  padding: 24px;
+  background-color: #f9fafb;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+/* ==============================
+   Page Header
+================================ */
+.page-header {
+  margin-bottom: 16px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+/* ==============================
+   Search + Actions Row
+================================ */
+.payment-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+/* Search Input */
+.search-input {
+  flex: 1;
+  max-width: 360px;
+  padding: 10px 14px;
+  font-size: 14px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  outline: none;
+  background-color: #ffffff;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow:
+    0 0 0 1px var(--primary),
+    0 0 0 4px rgba(15, 16, 65, 0.15);
+}
+
+/* Action Buttons Wrapper */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* ==============================
+   Buttons
+================================ */
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 11px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  width: auto;
+  min-width: unset;
+  flex: 0 0 auto;
+}
+
+/* Primary Button */
+.btn-primary {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-light);
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.btn-secondary:hover {
+  background-color: #d1d5db;
+}
+
+/* ==============================
+   Table Container
+================================ */
+.table-container {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow-x: auto;
+}
+
+/* ==============================
+   Data Table
+================================ */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px; /* row gap */
+}
+
+
+.data-table thead {
+  background-color: #f3f4f6;
+}
+
+.data-table th,
+.data-table td {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 14px;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.data-table th {
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Row Divider */
+.data-table td {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Hover Effect */
+.data-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* ==============================
+   Payment Mode Pills
+================================ */
+.payment-mode-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  text-align: center;
+}
+
+.payment-mode-pill[data-mode="cash"] {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.payment-mode-pill[data-mode="upi"] {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.payment-mode-pill[data-mode="card"] {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.payment-mode-pill[data-mode="bank"] {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+/* ==============================
+   Actions Column
+================================ */
+.data-table td:last-child {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-start;
+  gap: 8px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Base style for the small square buttons */
+.action-btn {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* Icon size constraint */
+.action-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Hover effects */
+.action-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.action-btn.danger:hover {
+  background-color: #fee2e2;
+}
+
+/* Info/View Button Hover */
+.action-btn[title="View"]:hover {
+  background-color: rgba(15, 16, 65, 0.1);
+}
+
+/* Edit Button Hover */
+.action-btn[title="Edit"]:hover {
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+/* ==============================
+   Clear Filters Icon Button
+================================ */
+.clear-filters-btn {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.clear-filters-btn img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+}
+
+.clear-filters-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.clear-filters-btn:hover img {
+  opacity: 1;
+}
+
+/* ==============================
+   Sort Arrow
+================================ */
+.sort-arrow {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--primary);
+  opacity: 0;
+  transform: rotate(180deg);
+  transition:
+    transform 0.25s ease,
+    opacity 0.2s ease;
+}
+
+.sort-arrow.visible {
+  opacity: 1;
+}
+
+.sort-arrow.asc {
+  transform: rotate(0deg);
+}
+
+/* ==============================
+   Pagination
+================================ */
+.pagination {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 32px 0;
+}
+
+.pagination-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+}
+
+.page-btn {
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #0F1041;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-btn.prev,
+.page-btn.next {
+  width: 96px;
+  height: 40px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.page-btn.page-number {
+  width: 48px;
+  height: 40px;
+  font-size: 14px;
+}
+
+.page-btn.active {
+  background-color: #0F1041;
+  color: white;
+  border-color: #0F1041;
+}
+
+.page-btn:hover:not(:disabled) {
+  background-color: #0F1041;
+  color: white;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ==============================
+   Pagination Info
+================================ */
+.pagination-info {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.pagination-info.empty {
+  color: #9ca3af;
+}
+
+.count-strong {
+  font-weight: 700;
+  color: #0f1041;
+}
+
+/* ==============================
+   Filter Drawer
+================================ */
+.filter-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 16, 65, 0.2);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+}
+
+.filter-drawer {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  width: 340px;
+  height: calc(100vh - 30px);
+  background: #f8f9fa;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+/* Header Styling */
+.filter-header {
+  padding: 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filter-title {
+  color: #0F1041;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.filter-close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #9ca3af;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Body & Cards */
+.filter-body {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.filter-card {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 15px;
+  margin-bottom: 16px;
+  border: 1px solid #edf2f7;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.filter-section-title {
+  color: #0F1041;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Radio Option Styling */
+.filter-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  cursor: pointer;
+  gap: 10px;
+}
+
+.filter-option input[type="radio"] {
+  accent-color: #0F1041;
+  width: 18px;
+  height: 18px;
+}
+
+.filter-radio-label {
+  font-size: 15px;
+  color: #4b5563;
+}
+
+
+/* Centered "All Modes" option */
+.filter-option-center {
+  justify-content: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 8px;
+}
+
+/* 2-column grid for payment mode options */
+.filter-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 12px;
+}
+
+.filter-options-grid .filter-option {
+  padding: 6px 0;
+}
+
+/* Search Dropdown / Input */
+.filter-form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
+.searchable-dropdown {
+  position: relative;
+}
+
+.dropdown-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+}
+
+.dropdown-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+}
+
+.dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+.dropdown-empty {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.filter-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* Footer & Buttons */
+.filter-footer {
+  padding: 20px;
+  background: #ffffff;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 12px;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  border: none;
+}
+
+.filter-btn-primary {
+  background: #0F1041;
+  color: white;
+}
+
+.filter-btn-primary:hover {
+  background: #1a1b5c;
+}
+
+.filter-btn-secondary {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+/* ==============================
+   Responsive Adjustments
+================================ */
+@media (max-width: 768px) {
+  .payment-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input {
+    max-width: 100%;
+  }
+
+  .action-buttons {
+    justify-content: flex-end;
+  }
+}
+.data-table thead th {
+  text-align: left;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280; /* muted gray */
+  font-weight: 600;
+  padding: 12px 16px;
+}
+.data-table tbody tr {
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+}
+
+.data-table tbody td {
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+.data-table tbody tr td:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.data-table tbody tr td:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+.tenant-cell {
+  font-weight: 600;
+  color: #111827;
+}
+.amount-cell {
+  font-weight: 700;
+  color: #0f766e; /* premium teal */
+}
+.muted {
+  color: #6b7280;
+  font-size: 0.85rem;
+}

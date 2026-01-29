@@ -14,6 +14,8 @@ import { AddTenant } from './features/tenant/add-tenant/add-tenant';
 import { RoomDetails } from './features/rooms/room-details/room-details';
 import { TenantDetails } from './features/tenant/tenant-details/tenant-details';
 import { AddPayment } from './features/payments/add-payment/add-payment';
+import { AddPaymentContainer } from './features/payments/add-payment-container/add-payment-container';
+import { PaymentsHistory } from './features/payments/payments-history/payments-history';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -24,25 +26,34 @@ export const routes: Routes = [
         component: Layout,
         canActivate: [authGuard],
         children: [
-            { path : 'dashboard', component: Dashboard },
-            { path :'room-list', component:RoomList},
-            { path :'add-room', component:AddRoom},
-            { path : 'room/:id',component:RoomDetails},
-            { path :'tenant-list',component:TenantList},
-            { path :'tenants/add',component:AddTenant},
-            { path :'tenants/:id', component:TenantDetails, data : { mode : 'view'}},
-            { path :'tenants/:id/edit', component:TenantDetails, data : {mode : 'edit'}},
-            { path : 'payments/add/:tenantId', component:AddPayment}
+            { path: 'dashboard', component: Dashboard },
+            { path: 'room-list', component: RoomList },
+            { path: 'add-room', component: AddRoom },
+            { path: 'room/:id', component: RoomDetails },
+            { path: 'tenant-list', component: TenantList },
+            { path: 'tenants/add', component: AddTenant },
+            { path: 'tenants/:id', component: TenantDetails, data: { mode: 'view' } },
+            { path: 'tenants/:id/edit', component: TenantDetails, data: { mode: 'edit' } },
+            {
+                path: 'payments',
+                children: [
+                    { path: '', redirectTo: 'add', pathMatch: 'full' },
+                    { path: 'add', component: AddPaymentContainer },
+                    { path: 'add/:tenantId', component: AddPayment },
+                    { path: 'history', component: PaymentsHistory }
+                ]
+            }
+
         ]
     },
     {
         path: 'admin',
-        component :AdminLayout,
-        canActivate :[authGuard,adminGuard],
-        children :[
-            {path: 'register-pg',component:RegisterPg}
+        component: AdminLayout,
+        canActivate: [authGuard, adminGuard],
+        children: [
+            { path: 'register-pg', component: RegisterPg }
         ]
     },
     // DEFAULT
-  { path: '**', redirectTo: 'login' }
+    { path: '**', redirectTo: 'login' }
 ];

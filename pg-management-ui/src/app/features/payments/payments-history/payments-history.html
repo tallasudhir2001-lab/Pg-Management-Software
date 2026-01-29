@@ -1,0 +1,250 @@
+<div class="payment-history-page">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">Payment History</h1>
+    </div>
+
+    <!-- Search + Actions Row -->
+    <div class="payment-actions">
+        <input type="text" class="search-input" placeholder="Search by tenant name..." [value]="searchText"
+            (input)="onSearchChange($any($event.target).value)" />
+
+        <div class="action-buttons">
+            <!-- Clear Filters (Ghost Icon Button) -->
+            <button
+                *ngIf="filterPaymentMode || selectedTenantId || selectedUserId || sortBy !== 'paymentDate' || sortDir !== 'desc'"
+                class="clear-filters-btn" (click)="clearFilters()" title="Clear all filters">
+                <img src="/assets/icons/clear-filters.svg" alt="Clear" />
+            </button>
+
+            <!-- Filter Button -->
+            <button class="btn btn-secondary" (click)="showFilters = true">
+                Filters
+            </button>
+
+            <!-- Add Payment Button -->
+            <button class="btn btn-primary" routerLink="/payments/add">
+                + Add Payment
+            </button>
+        </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th (click)="onSort('paymentDate')" style="cursor: pointer;">
+                        Payment Date
+                        <span class="sort-arrow" [class.visible]="isSortedBy('paymentDate')"
+                            [class.asc]="isSortAsc('paymentDate')">▼</span>
+                    </th>
+                    <th (click)="onSort('tenantName')" style="cursor: pointer;">
+                        Tenant Name
+                        <span class="sort-arrow" [class.visible]="isSortedBy('tenantName')"
+                            [class.asc]="isSortAsc('tenantName')">▼</span>
+                    </th>
+                    <th (click)="onSort('periodCovered')" style="cursor: pointer;">
+                        Period Covered
+                        <span class="sort-arrow" [class.visible]="isSortedBy('periodCovered')"
+                            [class.asc]="isSortAsc('periodCovered')">▼</span>
+                    </th>
+                    <th (click)="onSort('amount')" style="cursor: pointer;">
+                        Amount
+                        <span class="sort-arrow" [class.visible]="isSortedBy('amount')"
+                            [class.asc]="isSortAsc('amount')">▼</span>
+                    </th>
+                    <th (click)="onSort('mode')" style="cursor: pointer;">
+                        Mode
+                        <span class="sort-arrow" [class.visible]="isSortedBy('mode')"
+                            [class.asc]="isSortAsc('mode')">▼</span>
+                    </th>
+                    <th>Collected By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let payment of (payments$ | async)?.items">
+                    <td>{{ formatDate(payment.paymentDate) }}</td>
+                    <td class="tenant-cell">{{ payment.tenantName }}</td>
+                    <td class="muted">{{ payment.periodCovered }}</td>
+                    <td class="amount-cell">{{ formatCurrency(payment.amount) }}</td>
+
+                    <td>
+                        <span class="payment-mode-pill" [attr.data-mode]="payment.mode.toLowerCase()">
+                            {{ formatPaymentMode(payment.mode) }}
+                        </span>
+                    </td>
+                    <td class="muted">{{ payment.collectedBy }}</td>
+                    <td>
+                        <!-- View -->
+                        <button class="action-btn" (click)="onAction('view', payment)" title="View">
+                            <img src="assets/icons/info.svg" alt="View" />
+                        </button>
+
+                        <!-- Edit -->
+                        <button class="action-btn" (click)="onAction('edit', payment)" title="Edit">
+                            <img src="/assets/icons/edit.svg" alt="Edit" />
+                        </button>
+
+                        <!-- Delete -->
+                        <button class="action-btn danger" (click)="onAction('delete', payment)" title="Delete">
+                            <img src="/assets/icons/delete.svg" alt="Delete" />
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Info -->
+    <div class="pagination-info" [class.empty]="totalCount === 0">
+        <ng-container *ngIf="totalCount > 0; else noResults">
+            Showing
+            <span class="count-strong">{{ startItem }}</span>
+            –
+            <span class="count-strong">{{ endItem }}</span>
+            of
+            <span class="count-strong">{{ totalCount }}</span>
+            payments
+        </ng-container>
+        <ng-template #noResults>
+            No payments found
+        </ng-template>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination" *ngIf="totalPages > 1">
+        <div class="pagination-inner">
+            <!-- Previous Button -->
+            <button class="page-btn prev" (click)="prevPage()" [disabled]="currentPage === 1">
+                Previous
+            </button>
+
+            <!-- Page Numbers -->
+            <button *ngFor="let page of pages" class="page-btn page-number" [class.active]="page === currentPage"
+                (click)="goToPage(page)">
+                {{ page }}
+            </button>
+
+            <!-- Next Button -->
+            <button class="page-btn next" (click)="nextPage()" [disabled]="currentPage === totalPages">
+                Next
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Drawer -->
+<div *ngIf="showFilters">
+    <!-- Backdrop -->
+    <div class="filter-backdrop" (click)="showFilters = false"></div>
+
+    <!-- Drawer -->
+    <aside class="filter-drawer">
+        <!-- Header -->
+        <div class="filter-header">
+            <h3 class="filter-title">Filters</h3>
+            <button class="filter-close-btn" (click)="showFilters = false">&times;</button>
+        </div>
+
+        <!-- Body -->
+        <div class="filter-body">
+            <!-- Payment Mode Filter -->
+            <div class="filter-card">
+                <p class="filter-section-title">Payment Mode</p>
+
+                <!-- All Modes - Centered -->
+                <label class="filter-option filter-option-center">
+                    <input type="radio" name="mode" value="" [(ngModel)]="filterPaymentMode" />
+                    <span class="filter-radio-label">All Modes</span>
+                </label>
+
+                <!-- Payment Modes - 2 Columns -->
+                <div class="filter-options-grid">
+                    <label class="filter-option">
+                        <input type="radio" name="mode" value="cash" [(ngModel)]="filterPaymentMode" />
+                        <span class="filter-radio-label">Cash</span>
+                    </label>
+
+                    <label class="filter-option">
+                        <input type="radio" name="mode" value="upi" [(ngModel)]="filterPaymentMode" />
+                        <span class="filter-radio-label">UPI</span>
+                    </label>
+
+                    <label class="filter-option">
+                        <input type="radio" name="mode" value="card" [(ngModel)]="filterPaymentMode" />
+                        <span class="filter-radio-label">Card</span>
+                    </label>
+
+                    <label class="filter-option">
+                        <input type="radio" name="mode" value="bank" [(ngModel)]="filterPaymentMode" />
+                        <span class="filter-radio-label">Bank</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Tenant Filter -->
+            <div class="filter-card">
+                <p class="filter-section-title">Filter by Tenant</p>
+
+                <div class="searchable-dropdown">
+                    <input type="text" class="filter-form-input" [value]="selectedTenantLabel || tenantSearchText"
+                        placeholder="Search tenant..." (input)="onTenantInput($any($event.target).value)"
+                        (keydown)="onTenantKeyDown($event)" (focus)="isTenantDropdownOpen = true" />
+
+
+                    <div class="dropdown-list" *ngIf="isTenantDropdownOpen && filteredTenants.length > 0">
+                        <div *ngFor="let tenant of filteredTenants" class="dropdown-item"
+                            (click)="selectTenant(tenant)">
+                            {{ tenant.name }}
+                        </div>
+                    </div>
+
+                    <p class="dropdown-empty" *ngIf="isTenantDropdownOpen && filteredTenants.length === 0">
+                        No tenants found
+                    </p>
+                </div>
+
+                <p class="filter-hint" *ngIf="selectedTenantLabel">
+                    Selected: {{ selectedTenantLabel }}
+                </p>
+            </div>
+
+            <!-- Collected By Filter -->
+            <div class="filter-card">
+                <p class="filter-section-title">Collected By</p>
+
+                <div class="searchable-dropdown">
+                    <input type="text" class="filter-form-input" [value]="selectedUserLabel || userSearchText"
+                        placeholder="Search user..." (input)="onUserInput($any($event.target).value)"
+                        (keydown)="onUserKeyDown($event)" (focus)="isUserDropdownOpen = true" />
+
+                    <div class="dropdown-list" *ngIf="isUserDropdownOpen && filteredUsers.length > 0">
+                        <div *ngFor="let user of filteredUsers" class="dropdown-item" (click)="selectUser(user)">
+                            {{ user.name }}
+                        </div>
+                    </div>
+
+                    <p class="dropdown-empty" *ngIf="isUserDropdownOpen && filteredUsers.length === 0">
+                        No users found
+                    </p>
+                </div>
+
+                <p class="filter-hint" *ngIf="selectedUserLabel">
+                    Selected: {{ selectedUserLabel }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="filter-footer">
+            <button class="filter-btn filter-btn-secondary" (click)="clearFilters()">
+                Clear
+            </button>
+            <button class="filter-btn filter-btn-primary" (click)="applyFilters()">
+                Apply
+            </button>
+        </div>
+    </aside>
+</div>

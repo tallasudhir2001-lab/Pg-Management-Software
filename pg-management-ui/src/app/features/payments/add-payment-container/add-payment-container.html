@@ -1,0 +1,49 @@
+<div class="page-container">
+  <h2 class="page-title">Add Payment</h2>
+
+  <div class="selection-card">
+    <div class="search-flex-container">
+      
+      <div class="selected-tenant-display" *ngIf="selectedTenant">
+        <span class="label">Selected Tenant:</span>
+        <span class="value">{{ search }}</span>
+      </div>
+
+      <div class="search-box" *ngIf="!selectedTenant" style="flex: 1;">
+        <label class="form-label">Search Tenant</label>
+        <input
+          type="text"
+          class="form-input"
+          placeholder="Start typing tenant name..."
+          [(ngModel)]="search"
+          (input)="onSearchChange()"
+        />
+        
+        <div class="search-results" *ngIf="tenants.length > 0">
+          <div class="result-item" *ngFor="let t of tenants" (mousedown)="selectTenant(t)">
+            <strong>{{ t.name }}</strong>
+            <div class="muted">Room: {{ t.roomNumber || 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        *ngIf="selectedTenant"
+        class="btn-change"
+        type="button"
+        (click)="clearTenant()">
+        Change
+      </button>
+      
+    </div>
+  </div>
+
+  <div class="content-body" *ngIf="selectedTenant">
+    <app-add-payment [tenantId]="selectedTenant.tenantId"></app-add-payment>
+  </div>
+  <div *ngIf="!selectedTenant" class="empty-state-card">
+    <p>Please select a tenant to view payment details and history.</p>
+  </div>
+</div>
+
+  

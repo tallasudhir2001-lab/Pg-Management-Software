@@ -6,7 +6,7 @@
         public string TenantName { get; set; }
 
         public DateTime PaidFrom { get; set; }     
-        public DateTime MaxPaidUpto { get; set; }  
+        public DateTime? MaxPaidUpto { get; set; }  
         public decimal PendingAmount { get; set; }
         public DateTime AsOfDate { get; set; }
 

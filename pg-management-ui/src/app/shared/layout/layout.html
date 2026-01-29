@@ -7,7 +7,22 @@
       <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
       <a routerLink="/room-list" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Rooms</a>
       <a routerLink="/tenant-list" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Tenants</a>
-      <a routerLink="/payments" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Payments</a>
+      <div class="nav-group">
+        <button class="nav-parent" (click)="togglePayments()">
+          Payments
+          <span class="arrow" [class.expanded]="paymentsExpanded">▼</span>
+        </button>
+
+        <div class="nav-children" [class.expanded]="paymentsExpanded">
+          <a routerLink="/payments/add" routerLinkActive="active">
+            Add Payment
+          </a>
+
+          <a routerLink="/payments/history" routerLinkActive="active">
+            Payment History
+          </a>
+        </div>
+      </div>
     </nav>
 
     <button class="logout-btn" (click)="logout()">Logout</button>

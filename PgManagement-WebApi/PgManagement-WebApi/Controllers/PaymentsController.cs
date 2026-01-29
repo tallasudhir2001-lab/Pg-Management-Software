@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PgManagement_WebApi.Data;
+using PgManagement_WebApi.DTOs.Pagination;
 using PgManagement_WebApi.DTOs.Payment;
 using PgManagement_WebApi.DTOs.Payment.PendingRent;
 using PgManagement_WebApi.Helpers;
@@ -342,19 +343,38 @@ namespace PgManagement_WebApi.Controllers
                 }
             }
 
-            return Ok(new PaymentContextDto
-            {
-                TenantId = tenant.TenantId,
-                TenantName = tenant.Name,
-                PaidFrom = paidFrom,
-                MaxPaidUpto = maxPaidUpto,
-                PendingAmount = Decimal.Round(
-                    pendingAmount,
-                    2,
-                    MidpointRounding.AwayFromZero),
-                AsOfDate = today,
-                HasActiveStay = stay.ToDate == null
-            });
+           var roundedPending = Decimal.Round(
+    pendingAmount,
+    2,
+    MidpointRounding.AwayFromZero
+);
+
+if (roundedPending <= 0)
+{
+    return Ok(new PaymentContextDto
+    {
+        TenantId = tenant.TenantId,
+        TenantName = tenant.Name,
+        PaidFrom = paidFrom,            // informational (future)
+        MaxPaidUpto = null,             // 👈 IMPORTANT
+        PendingAmount = 0,
+        AsOfDate = today,
+        HasActiveStay = stay.ToDate == null
+    });
+}
+
+// 👇 existing behavior for due payments
+return Ok(new PaymentContextDto
+{
+    TenantId = tenant.TenantId,
+    TenantName = tenant.Name,
+    PaidFrom = paidFrom,
+    MaxPaidUpto = maxPaidUpto,
+    PendingAmount = roundedPending,
+    AsOfDate = today,
+    HasActiveStay = stay.ToDate == null
+});
+
         }
         [HttpGet("tenant/{tenantId}")]
         public async Task<IActionResult> GetPaymentHistoryForTenant(string tenantId)
@@ -398,6 +418,97 @@ namespace PgManagement_WebApi.Controllers
                 .ToListAsync();
 
             return Ok(payments);
+        }
+        [HttpGet("history")]
+        public async Task<IActionResult> GetPaymentHistory(
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10,
+    [FromQuery] string? search = null,
+    [FromQuery] string? mode = null,
+    [FromQuery] string? tenantId = null,
+    [FromQuery] string? userId = null,
+    [FromQuery] string sortBy = "paymentDate",
+    [FromQuery] string sortDir = "desc")
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId))
+                return Unauthorized();
+
+            var query = context.Payments
+                .AsNoTracking()
+                .Include(p => p.Tenant)
+                .Include(p => p.CreatedByUser)
+                .Where(p => p.PgId == pgId);
+
+            // 🔍 Search
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(p =>
+                    p.Tenant.Name.ToLower().Contains(term)
+                );
+            }
+
+            // 🎯 Filters
+            if (!string.IsNullOrEmpty(mode))
+                query = query.Where(p => p.PaymentModeCode == mode);
+
+            if (!string.IsNullOrEmpty(tenantId))
+                query = query.Where(p => p.TenantId == tenantId);
+
+            if (!string.IsNullOrEmpty(userId))
+                query = query.Where(p => p.CreatedByUserId == userId);
+
+            // 📊 Total count (before paging)
+            var totalCount = await query.CountAsync();
+
+            // ↕ Sorting
+            query = sortBy.ToLower() switch
+            {
+                "tenantname" => sortDir == "asc"
+                    ? query.OrderBy(p => p.Tenant.Name)
+                    : query.OrderByDescending(p => p.Tenant.Name),
+
+                "amount" => sortDir == "asc"
+                    ? query.OrderBy(p => p.Amount)
+                    : query.OrderByDescending(p => p.Amount),
+
+                "mode" => sortDir == "asc"
+                    ? query.OrderBy(p => p.PaymentModeCode)
+                    : query.OrderByDescending(p => p.PaymentModeCode),
+
+                "periodcovered" => sortDir == "asc"
+                    ? query.OrderBy(p => p.PaidFrom)
+                    : query.OrderByDescending(p => p.PaidFrom),
+
+                _ => sortDir == "asc"
+                    ? query.OrderBy(p => p.PaymentDate)
+                    : query.OrderByDescending(p => p.PaymentDate)
+            };
+
+            // 📄 Paging + projection
+            var payments = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new PaymentHistoryDto
+                {
+                    PaymentId = p.PaymentId,
+                    PaymentDate = p.PaymentDate,
+                    TenantName = p.Tenant.Name,
+                    PeriodCovered =
+                        p.PaidFrom.ToString("dd MMM yyyy") + " - " +
+                        p.PaidUpto.ToString("dd MMM yyyy"),
+                    Amount = p.Amount,
+                    Mode = p.PaymentModeCode,
+                    CollectedBy = p.CreatedByUser.UserName!
+                })
+                .ToListAsync();
+
+            return Ok(new PageResultsDto<PaymentHistoryDto>
+            {
+                Items = payments,
+                TotalCount = totalCount
+            });
         }
 
     }

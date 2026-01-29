@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { PaymentService } from '../services/payment-service';
+import { PaymentService } from '../../payments/services/payment-service';
 import { TenantPaymentHistory } from '../../payments/models/tenant-payment-history.model';
 import { DecimalPipe } from '@angular/common';
 import { DatePipe } from '@angular/common';

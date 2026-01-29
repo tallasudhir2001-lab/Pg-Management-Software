@@ -1,6 +1,6 @@
 <div class="add-payment-page" *ngIf="paymentContext$ | async as ctx; else loading">
     <div class="page-header">
-        <h2 class="page-title">Add Payment</h2>
+        <h2 class="page-title" *ngIf="showHeader">Add Payment</h2>
     </div>
 
     <div class="payment-container">
@@ -10,6 +10,7 @@
                 <span class="label">Tenant</span>
                 <span class="value">{{ ctx.tenantName }}</span>
             </div>
+
             <div class="summary-item highlight">
                 <span class="label">Pending Amount</span>
                 <span class="value">₹{{ ctx.pendingAmount | number:'1.2-2' }}</span>
@@ -18,16 +19,18 @@
                 <span class="label">Next Due From</span>
                 <span class="value">{{ ctx.paidFrom | date:'dd MMM yyyy' }}</span>
             </div>
-            <div class="summary-item">
-                <span class="label">Allowed Till</span>
-                <span class="value">{{ ctx.maxPaidUpto | date:'dd MMM yyyy' }}</span>
-            </div>
+            <div *ngIf="ctx.pendingAmount>0">
+                <div class="summary-item">
+                    <span class="label">Allowed Till</span>
+                    <span class="value">{{ ctx.maxPaidUpto | date:'dd MMM yyyy' }}</span>
+                </div>
 
-            <div class="coverage-box">
-                <p class="coverage-label">Period Covered</p>
-                <p class="coverage-dates">
-                    {{ ctx.paidFrom | date:'dd MMM' }} <span>→</span> {{ form.value.paidUpto | date:'dd MMM yyyy' }}
-                </p>
+                <div class="coverage-box">
+                    <p class="coverage-label">Period Covered</p>
+                    <p class="coverage-dates">
+                        {{ ctx.paidFrom | date:'dd MMM' }} <span>→</span> {{ form.value.paidUpto | date:'dd MMM yyyy' }}
+                    </p>
+                </div>
             </div>
         </section>
 
