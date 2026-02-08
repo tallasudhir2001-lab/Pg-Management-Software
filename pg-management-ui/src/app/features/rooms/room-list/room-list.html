@@ -4,17 +4,14 @@
     <input type="text" placeholder="Search room number" [(ngModel)]="searchText"
       (ngModelChange)="onSearchChange($event)" class="search-input" />
 
-    <select [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange($event)" class="status-select">
-      <option value="">All Status</option>
-      <option value="available">Available</option>
-      <option value="partial">Partial</option>
-      <option value="full">Full</option>
-    </select>
-    <select [(ngModel)]="selectedAc" (ngModelChange)="onAcChange($event)" class="status-select">
-      <option value="">All Types</option>
-      <option value="ac">AC</option>
-      <option value="non-ac">Non-AC</option>
-    </select>
+    <div class="action-buttons">
+      <button class="btn btn-secondary" (click)="showFilters = true">
+        Filters
+      </button>
+      <button class="icon-btn clear-filters-btn" title="Clear Filters" (click)="clearFilters()">
+        <img src="assets/icons/clear-filters.svg" alt="Clear Filters" />
+      </button>
+    </div>
   </div>
   <button class="btn-primary add-room-btn" type="button" (click)="openAddRoom()">
     + Add Room
@@ -82,5 +79,102 @@
         Next
       </button>
     </div>
+  </div>
+</div>
+
+<!-- ================= FILTER DRAWER ================= -->
+<div class="filter-backdrop" *ngIf="showFilters" (click)="showFilters = false"></div>
+
+<div class="filter-drawer" *ngIf="showFilters">
+  <div class="filter-header">
+    <h3 class="filter-title">Filters</h3>
+    <button class="filter-close-btn" (click)="showFilters = false">&times;</button>
+  </div>
+
+  <div class="filter-body">
+
+    <!-- Occupancy Status Filter -->
+    <div class="filter-card">
+      <p class="filter-section-title">Occupancy Status</p>
+      <div class="filter-radio-group">
+        <label class="filter-option">
+          <input type="radio" name="status" value="" [(ngModel)]="filterStatus" />
+          <span class="filter-radio-label">All Rooms</span>
+        </label>
+
+        <label class="filter-option">
+          <input type="radio" name="status" value="available" [(ngModel)]="filterStatus" />
+          <span class="filter-radio-label">Available</span>
+        </label>
+
+        <label class="filter-option">
+          <input type="radio" name="status" value="partial" [(ngModel)]="filterStatus" />
+          <span class="filter-radio-label">Partial</span>
+        </label>
+
+        <label class="filter-option">
+          <input type="radio" name="status" value="full" [(ngModel)]="filterStatus" />
+          <span class="filter-radio-label">Full</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- AC Type Filter -->
+    <div class="filter-card">
+      <p class="filter-section-title">Room Type</p>
+      <div class="filter-radio-group">
+        <label class="filter-option">
+          <input type="radio" name="ac" value="" [(ngModel)]="filterAc" />
+          <span class="filter-radio-label">All Types</span>
+        </label>
+
+        <label class="filter-option">
+          <input type="radio" name="ac" value="ac" [(ngModel)]="filterAc" />
+          <span class="filter-radio-label">AC</span>
+        </label>
+
+        <label class="filter-option">
+          <input type="radio" name="ac" value="non-ac" [(ngModel)]="filterAc" />
+          <span class="filter-radio-label">Non-AC</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Vacancies Filter -->
+    <div class="filter-card">
+      <p class="filter-section-title">Number of Vacancies</p>
+      <div class="filter-radio-group">
+        <label class="filter-option">
+          <input type="radio" name="vacancies" value="" [(ngModel)]="filterVacancies" />
+          <span class="filter-radio-label">Any</span>
+        </label>
+
+        <label class="filter-option">
+          <input type="radio" name="vacancies" value="0" [(ngModel)]="filterVacancies" />
+          <span class="filter-radio-label">0 (Full)</span>
+        </label>
+
+        <label class="filter-option">
+          <input type="radio" name="vacancies" value="1" [(ngModel)]="filterVacancies" />
+          <span class="filter-radio-label">1 Vacancy</span>
+        </label>
+
+        <label class="filter-option">
+          <input type="radio" name="vacancies" value="2" [(ngModel)]="filterVacancies" />
+          <span class="filter-radio-label">2 Vacancies</span>
+        </label>
+
+        <label class="filter-option">
+          <input type="radio" name="vacancies" value="3+" [(ngModel)]="filterVacancies" />
+          <span class="filter-radio-label">3+ Vacancies</span>
+        </label>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="filter-footer">
+    <button class="filter-btn filter-btn-secondary" (click)="showFilters = false">Cancel</button>
+    <button class="filter-btn filter-btn-primary" (click)="applyFilters()">Apply Filters</button>
   </div>
 </div>

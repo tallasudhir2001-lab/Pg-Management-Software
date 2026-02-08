@@ -31,7 +31,8 @@ namespace PgManagement_WebApi.Controllers
     int pageSize = 12,
     string? search = null,
     string? status = null,
-    string? ac = null
+    string? ac = null,
+    string? vacancies = null
 )
         {
             var pgId = User.FindFirst("pgId")?.Value;
@@ -69,6 +70,7 @@ namespace PgManagement_WebApi.Controllers
                         ));
                 }
             }
+
 
             // 🧮 Project with OccupiedBeds + Current Rent
             var projectedQuery = query.Select(r => new
@@ -111,6 +113,34 @@ namespace PgManagement_WebApi.Controllers
 
                     _ => projectedQuery
                 };
+            }
+            // 🏠 Vacancies filter
+            if (!string.IsNullOrWhiteSpace(vacancies))
+            {
+                if (vacancies == "0")
+                {
+                    // 0 vacancies = Full rooms
+                    projectedQuery = projectedQuery.Where(x =>
+                        x.Room.Capacity - x.OccupiedBeds == 0);
+                }
+                else if (vacancies == "1")
+                {
+                    // Exactly 1 vacancy
+                    projectedQuery = projectedQuery.Where(x =>
+                        x.Room.Capacity - x.OccupiedBeds == 1);
+                }
+                else if (vacancies == "2")
+                {
+                    // Exactly 2 vacancies
+                    projectedQuery = projectedQuery.Where(x =>
+                        x.Room.Capacity - x.OccupiedBeds == 2);
+                }
+                else if (vacancies == "3+")
+                {
+                    // 3 or more vacancies
+                    projectedQuery = projectedQuery.Where(x =>
+                        x.Room.Capacity - x.OccupiedBeds >= 3);
+                }
             }
 
             // 🔢 Total count

@@ -19,13 +19,15 @@ export class Roomservice {
   search?: string;
   status?: string;
   ac?: string;
+  vacancies?: string;
 }) {
   const query = new HttpParams()
     .set('page', params.page)
     .set('pageSize', params.pageSize)
     .set('search', params.search || '')
     .set('status', params.status || '')
-    .set('ac', params.ac || '');
+    .set('ac', params.ac || '')
+    .set('vacancies', params.vacancies || '');
 
   return this.http.get<PagedResults<Room>>(`${this.baseUrl}`, { params: query });
 }
