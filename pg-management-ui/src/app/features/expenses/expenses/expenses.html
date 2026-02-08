@@ -1,0 +1,282 @@
+<div class="expenses-page">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">Expenses</h1>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards" *ngIf="summary$ | async as summary">
+        <!-- Total Expense Card -->
+        <div class="summary-card total-card">
+            <div class="card-header">
+                <span class="card-icon">💰</span>
+                <span class="card-label">Total Expenses</span>
+            </div>
+            <div class="card-amount">{{ formatCurrency(summary.totalExpense) }}</div>
+        </div>
+
+        <!-- Category Breakdown Cards -->
+        <div class="summary-card category-card" *ngFor="let cat of summary.categoryBreakdown.slice(0, 3)">
+            <div class="card-header">
+                <span class="card-label">{{ cat.category }}</span>
+                <div class="card-amount">{{ formatCurrency(cat.totalAmount) }}</div>
+            </div>
+            <div class="card-percentage">
+                {{ (cat.totalAmount / summary.totalExpense * 100).toFixed(1) }}% of total
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Row -->
+    <div class="expense-actions">
+    <div class="pill-group">
+    <button 
+        class="pill-btn" 
+        [class.active]="activeRange === 'all'"
+        (click)="clearFilters()">
+        All Time
+    </button>
+    <button 
+        class="pill-btn" 
+        [class.active]="activeRange === 'today'"
+        (click)="setDateRange('today'); applyFilters()">Today</button>
+    <button 
+        class="pill-btn" 
+        [class.active]="activeRange === 'week'"
+        (click)="setDateRange('week'); applyFilters()">This Week</button>
+    <button 
+        class="pill-btn" 
+        [class.active]="activeRange === 'month'"
+        (click)="setDateRange('month'); applyFilters()">This Month</button>
+</div>
+
+    <div class="action-buttons">
+        <button
+            *ngIf="selectedFromDate || selectedToDate || selectedCategoryId || minAmount || maxAmount"
+            class="clear-filters-btn" 
+            (click)="clearFilters()" 
+            title="Clear all filters">
+            <img src="/assets/icons/clear-filters.svg" alt="Clear" />
+        </button>
+
+        <button class="btn btn-secondary" (click)="showFilters = true">
+            More Filters
+        </button>
+
+        <button class="btn btn-primary" (click)="openAddExpense()">
+            + Add Expense
+        </button>
+    </div>
+</div>
+    <app-expense-drawer
+  *ngIf="showDrawer"
+  [mode]="drawerMode"
+  [expenseId]="selectedExpenseId"
+  (closed)="closeDrawer()"
+  (saved)="onExpenseSaved()">
+</app-expense-drawer>
+
+
+    <!-- Table Container -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th (click)="onSort('expenseDate')" style="cursor: pointer;">
+                        Date
+                        <span class="sort-arrow" 
+                              [class.visible]="isSortedBy('expenseDate')"
+                              [class.asc]="isSortAsc('expenseDate')">▼</span>
+                    </th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th (click)="onSort('amount')" style="cursor: pointer;">
+                        Amount
+                        <span class="sort-arrow" 
+                              [class.visible]="isSortedBy('amount')"
+                              [class.asc]="isSortAsc('amount')">▼</span>
+                    </th>
+                    <th>Payment Mode</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let expense of (expenses$ | async)?.items">
+                    <td class="muted">{{ formatDate(expense.expenseDate) }}</td>
+                    <td class="category-cell">{{ expense.category }}</td>
+                    <td>{{ expense.description }}</td>
+                    <td class="amount-cell">{{ formatCurrency(expense.amount) }}</td>
+                    <td>
+                        <span class="payment-mode-pill" [attr.data-mode]="expense.paymentMode.toLowerCase()">
+                            {{ formatPaymentMode(expense.paymentModeLabel) }}
+                        </span>
+                    </td>
+                    <td>
+                        <!-- View -->
+                        <button class="action-btn" (click)="onAction('view', expense)" title="View">
+                            <img src="assets/icons/info.svg" alt="View" />
+                        </button>
+
+                        <!-- Edit -->
+                        <button class="action-btn" (click)="onAction('edit', expense)" title="Edit">
+                            <img src="/assets/icons/edit.svg" alt="Edit" />
+                        </button>
+
+                        <!-- Delete -->
+                        <button class="action-btn danger" (click)="onAction('delete', expense)" title="Delete">
+                            <img src="/assets/icons/delete.svg" alt="Delete" />
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Info -->
+    <div class="pagination-info" [class.empty]="totalCount === 0">
+        <ng-container *ngIf="totalCount > 0; else noResults">
+            Showing
+            <span class="count-strong">{{ startItem }}</span>
+            —
+            <span class="count-strong">{{ endItem }}</span>
+            of
+            <span class="count-strong">{{ totalCount }}</span>
+            expenses
+        </ng-container>
+        <ng-template #noResults>
+            No expenses found
+        </ng-template>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination" *ngIf="totalPages > 1">
+        <div class="pagination-inner">
+            <!-- Previous Button -->
+            <button class="page-btn prev" (click)="prevPage()" [disabled]="currentPage === 1">
+                Previous
+            </button>
+
+            <!-- Page Numbers -->
+            <button *ngFor="let page of pages" 
+                    class="page-btn page-number" 
+                    [class.active]="page === currentPage"
+                    (click)="goToPage(page)">
+                {{ page }}
+            </button>
+
+            <!-- Next Button -->
+            <button class="page-btn next" (click)="nextPage()" [disabled]="currentPage === totalPages">
+                Next
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Drawer -->
+<div *ngIf="showFilters">
+    <!-- Backdrop -->
+    <div class="filter-backdrop" (click)="showFilters = false"></div>
+
+    <!-- Drawer -->
+    <aside class="filter-drawer">
+        <!-- Header -->
+        <div class="filter-header">
+            <h3 class="filter-title">More Filters</h3>
+            <button class="filter-close-btn" (click)="showFilters = false">&times;</button>
+        </div>
+
+        <!-- Body -->
+        <div class="filter-body">
+            <!-- Date Range Filter -->
+            <div class="filter-card">
+                <p class="filter-section-title">Date Range</p>
+                
+                <div class="date-inputs">
+                    <div class="date-input-group">
+                        <label class="date-label">From Date</label>
+                        <input 
+                            type="date" 
+                            class="filter-form-input" 
+                            [(ngModel)]="selectedFromDate" />
+                    </div>
+
+                    <div class="date-input-group">
+                        <label class="date-label">To Date</label>
+                        <input 
+                            type="date" 
+                            class="filter-form-input" 
+                            [(ngModel)]="selectedToDate" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="filter-card">
+                <p class="filter-section-title">Category</p>
+
+                <div class="searchable-dropdown">
+                    <input 
+                        type="text" 
+                        class="filter-form-input" 
+                        [value]="selectedCategoryLabel || categorySearchText"
+                        placeholder="Search category..." 
+                        (input)="onCategoryInput($any($event.target).value)"
+                        (keydown)="onCategoryKeyDown($event)" 
+                        (focus)="isCategoryDropdownOpen = true" />
+
+                    <div class="dropdown-list" *ngIf="isCategoryDropdownOpen && filteredCategories.length > 0">
+                        <div *ngFor="let category of filteredCategories" 
+                             class="dropdown-item"
+                             (click)="selectCategory(category)">
+                            {{ category.name }}
+                        </div>
+                    </div>
+
+                    <p class="dropdown-empty" *ngIf="isCategoryDropdownOpen && filteredCategories.length === 0">
+                        No categories found
+                    </p>
+                </div>
+
+                <p class="filter-hint" *ngIf="selectedCategoryLabel">
+                    Selected: {{ selectedCategoryLabel }}
+                </p>
+            </div>
+
+            <!-- Amount Range Filter -->
+            <div class="filter-card">
+                <p class="filter-section-title">Amount Range</p>
+                
+                <div class="amount-inputs">
+                    <div class="amount-input-group">
+                        <label class="amount-label">Min Amount</label>
+                        <input 
+                            type="number" 
+                            class="filter-form-input" 
+                            placeholder="0"
+                            [(ngModel)]="minAmount" />
+                    </div>
+
+                    <div class="amount-input-group">
+                        <label class="amount-label">Max Amount</label>
+                        <input 
+                            type="number" 
+                            class="filter-form-input" 
+                            placeholder="999999"
+                            [(ngModel)]="maxAmount" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="filter-footer">
+            <button class="filter-btn filter-btn-secondary" (click)="clearFilters()">
+                Clear
+            </button>
+            <button class="filter-btn filter-btn-primary" (click)="applyFilters()">
+                Apply
+            </button>
+        </div>
+    </aside>
+</div>
+

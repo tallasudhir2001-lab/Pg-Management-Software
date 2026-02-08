@@ -1,172 +1,560 @@
+/* ========================================
+   ROOT VARIABLES - Navy Theme
+   ======================================== */
+:root {
+  --navy-950: #0f0d29;
+  --navy-900: #1e1b4b;
+  --navy-800: #2e2966;
+  --navy-700: #3d3780;
+  --navy-600: #4c4599;
+  --navy-500: #5b54b3;
+  --navy-400: #7c76cc;
+  
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  
+  --white: #ffffff;
+  --red-500: #ef4444;
+  --green-500: #22c55e;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-navy: 0 10px 40px rgba(30, 27, 75, 0.12);
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================
+   PAGE LAYOUT
+   ======================================== */
 .page-container {
-  padding: 24px;
-  background-color: #f8fafc; /* Subtle light background to make cards pop */
+  padding: 32px 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   min-height: 100vh;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-header {
+  max-width: 900px;
+  margin: 0 auto 32px;
+  text-align: center;
+  animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .page-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1e1b4b;
-  margin-bottom: 24px;
-  text-align: center;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--navy-900);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-700) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* The Main Selection Card */
+.page-subtitle {
+  font-size: 0.95rem;
+  color: var(--slate-600);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* ========================================
+   SELECTION CARD
+   ======================================== */
 .selection-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(30, 27, 75, 0.08); /* Navy tinted shadow */
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  box-shadow: var(--shadow-navy);
   max-width: 900px;
-  margin: 0 auto 30px auto;
-  border: 1px solid #e2e8f0;
+  margin: 0 auto 32px;
+  border: 1px solid var(--slate-200);
+  animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all var(--transition-base);
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.selection-card:hover {
+  box-shadow: 0 15px 50px rgba(30, 27, 75, 0.15);
+  transform: translateY(-2px);
 }
 
 .search-flex-container {
   display: flex;
-  align-items: flex-end;
-  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 60px;
 }
 
+/* ========================================
+   SEARCH BOX
+   ======================================== */
 .search-box {
   position: relative;
   flex: 1;
+  animation: expandIn 0.3s ease-out;
+}
+
+@keyframes expandIn {
+  from {
+    opacity: 0;
+    max-width: 0;
+  }
+  to {
+    opacity: 1;
+    max-width: 100%;
+  }
 }
 
 .form-label {
-  display: block;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-  color: #64748b;
-  margin-bottom: 8px;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--navy-900);
+  margin-bottom: 10px;
 }
 
-/* Input matches your screenshot's subtle grey/white look */
+.label-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
 .form-input {
   width: 100%;
-  padding: 14px 18px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 10px;
-  background-color: #f9fafb;
+  padding: 16px 20px;
+  border: 2px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  background-color: var(--slate-50);
   font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-/* Selection State: Matches the Navy theme when a tenant is chosen */
-.form-input.selected-mode {
-  background-color: #1e1b4b; /* Dark navy from your theme */
-  color: #ffffff;
-  border-color: #1e1b4b;
+  color: var(--navy-900);
+  transition: all var(--transition-base);
   font-weight: 500;
-  cursor: default;
 }
 
-.btn-change {
-  background: #ef4444; /* Soft red to indicate "reset/change" action */
-  color: white;
-  border: none;
-  padding: 0 20px;
-  border-radius: 10px;
-  font-weight: 600;
-  height: 52px; /* Matches input height */
-  cursor: pointer;
-  transition: transform 0.2s;
+.form-input::placeholder {
+  color: var(--slate-400);
+  font-weight: 400;
 }
 
-/* Dropdown styling */
+.form-input:focus {
+  outline: none;
+  border-color: var(--navy-600);
+  background-color: var(--white);
+  box-shadow: 0 0 0 4px rgba(30, 27, 75, 0.08);
+  transform: translateY(-1px);
+}
+
+/* ========================================
+   SEARCH RESULTS DROPDOWN
+   ======================================== */
 .search-results {
   position: absolute;
   width: 100%;
-  background: #ffffff;
-  border-radius: 10px;
-  margin-top: 8px;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+  background: var(--white);
+  border-radius: var(--radius-md);
+  margin-top: 10px;
+  box-shadow: var(--shadow-xl), 0 0 0 1px var(--slate-200);
   z-index: 100;
-  border: 1px solid #e2e8f0;
   overflow: hidden;
+  animation: dropDown 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+@keyframes dropDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.search-results::-webkit-scrollbar {
+  width: 8px;
+}
+
+.search-results::-webkit-scrollbar-track {
+  background: var(--slate-100);
+}
+
+.search-results::-webkit-scrollbar-thumb {
+  background: var(--slate-300);
+  border-radius: 4px;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover {
+  background: var(--slate-400);
 }
 
 .result-item {
-  padding: 12px 18px;
+  padding: 14px 20px;
   cursor: pointer;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--slate-100);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all var(--transition-fast);
+}
+
+.result-item:last-child {
+  border-bottom: none;
 }
 
 .result-item:hover {
-  background: #f1f5f9;
-  color: #1e1b4b;
+  background: linear-gradient(90deg, var(--navy-900) 0%, var(--navy-800) 100%);
+  color: var(--white);
+  padding-left: 24px;
 }
 
-.empty-state-card {
-  text-align: center;
-  padding: 40px;
-  background: #f1f5f9;
-  border-radius: 12px;
-  border: 2px dashed #cbd5e1;
-  color: #64748b;
-}
-
-/* Container for the text and button to sit side-by-side */
-.selection-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 20px 30px;
-  box-shadow: 0 10px 30px rgba(30, 27, 75, 0.08);
-  max-width: 900px;
-  margin: 0 auto 30px auto;
-  border: 1px solid #e2e8f0;
-}
-
-.search-flex-container {
+.result-content {
   display: flex;
-  align-items: center; /* Vertical centering */
-  justify-content: space-between; /* Pushes button to the right */
-  gap: 20px;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/* Selected Text Styling */
+.tenant-result-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: inherit;
+}
+
+.tenant-room {
+  font-size: 0.85rem;
+  color: var(--slate-500);
+  font-weight: 500;
+}
+
+.result-item:hover .tenant-room {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.arrow-icon {
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: all var(--transition-fast);
+}
+
+.result-item:hover .arrow-icon {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ========================================
+   SELECTED TENANT DISPLAY
+   ======================================== */
 .selected-tenant-display {
+  flex: 1;
+  animation: slideInLeft 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.tenant-badge {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-800) 100%);
+  padding: 16px 24px;
+  border-radius: var(--radius-md);
+  color: var(--white);
+  box-shadow: 0 4px 12px rgba(30, 27, 75, 0.2);
+}
+
+.icon-check {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  animation: checkPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
+}
+
+@keyframes checkPop {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.tenant-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tenant-label {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+}
+
+.tenant-name {
   font-size: 1.1rem;
-  color: #1e1b4b; /* Your theme navy */
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* ========================================
+   CHANGE BUTTON
+   ======================================== */
+.btn-change {
+  background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-800) 100%);
+  color: var(--white);
+  border: none;
+  padding: 14px 28px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.selected-tenant-display span.label {
+  transition: all var(--transition-base);
+  box-shadow: 0 4px 12px rgba(30, 27, 75, 0.2);
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   font-size: 0.8rem;
-  font-weight: 600;
-  color: #64748b;
-  letter-spacing: 0.05em;
+  animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.selected-tenant-display span.value {
-  font-weight: 700; /* Makes the name bold */
-  color: #1e1b4b;
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-/* Updated Button to Theme Navy */
-.btn-change {
-  background: #1e1b4b; /* Replaced red with theme navy */
-  color: white;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s;
+.btn-change:hover {
+  background: linear-gradient(135deg, var(--navy-800) 0%, var(--navy-700) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(30, 27, 75, 0.3);
 }
 
+.btn-change:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(30, 27, 75, 0.2);
+}
 
-/* Keep standard input styling for search mode */
-.form-input {
+.btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ========================================
+   CONTENT BODY
+   ======================================== */
+.content-body {
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeInUp 0.5s ease-out 0.2s backwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   EMPTY STATE
+   ======================================== */
+.empty-state-card {
+  text-align: center;
+  padding: 64px 32px;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--slate-300);
+  color: var(--slate-500);
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out 0.3s backwards;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  color: var(--slate-300);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.empty-icon svg {
   width: 100%;
-  padding: 12px 16px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 10px;
-  background-color: #f9fafb;
+  height: 100%;
+}
+
+.empty-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--navy-900);
+  margin: 0 0 12px 0;
+  letter-spacing: -0.01em;
+}
+
+.empty-text {
+  font-size: 1rem;
+  color: var(--slate-500);
+  margin: 0;
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 24px 16px;
+  }
+  
+  .page-title {
+    font-size: 1.75rem;
+  }
+  
+  .selection-card {
+    padding: 20px;
+  }
+  
+  .search-flex-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  
+  .btn-change {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .tenant-badge {
+    padding: 14px 18px;
+  }
+  
+  .empty-state-card {
+    padding: 48px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .page-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  .form-input {
+    padding: 14px 16px;
+    font-size: 0.95rem;
+  }
+  
+  .tenant-name {
+    font-size: 1rem;
+  }
+  
+  .empty-icon {
+    width: 64px;
+    height: 64px;
+  }
+  
+  .empty-title {
+    font-size: 1.25rem;
+  }
+  
+  .empty-text {
+    font-size: 0.9rem;
+  }
 }

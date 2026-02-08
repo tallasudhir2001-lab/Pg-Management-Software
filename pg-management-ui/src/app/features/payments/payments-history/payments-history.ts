@@ -5,7 +5,7 @@ import { PaymentService } from '../services/payment-service';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PagedResults } from '../../../shared/models/page-results.model';
-import { distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
+import { distinctUntilChanged, map, Observable, switchMap, tap, Subject, combineLatest,startWith } from 'rxjs';
 import { Tenantservice } from '../../tenant/services/tenantservice';
 import { ToastService } from '../../../shared/toast/toast-service';
 import { UserService } from '../../../shared/services/user-service';
@@ -19,6 +19,7 @@ import { UserService } from '../../../shared/services/user-service';
 })
 export class PaymentsHistory implements OnInit {
   payments$!: Observable<PagedResults<PaymentHistoryDto>>;
+  private refresh$ = new Subject<void>();
 
   // Pagination
   pageSize = 10;
@@ -72,66 +73,48 @@ export class PaymentsHistory implements OnInit {
     // Load users for collected by filter
     this.loadUsersForFilter();
 
-    this.payments$ = this.route.queryParamMap.pipe(
-      map(params => {
-        const page = Number(params.get('page')) || 1;
-        const search = params.get('search') || '';
-        const paymentMode = params.get('mode') || '';
-        const tenantIdParam = params.get('tenantId');
-        const tenantId = tenantIdParam ? tenantIdParam : null;
-        const userIdParam = params.get('userId');
-        const userId = userIdParam ? userIdParam : null;
-        const sortByParam = params.get('sortBy') || 'paymentDate';
-        const sortDirParam = (params.get('sortDir') as 'asc' | 'desc') || 'desc';
-        
-        // Sync UI
-        this.currentPage = page;
-        this.searchText = search;
-        this.filterPaymentMode = paymentMode as any;
-        this.selectedTenantId = tenantId;
-        this.selectedUserId = userId;
-        this.sortBy = sortByParam;
-        this.sortDir = sortDirParam;
+    this.payments$ = combineLatest([
+  this.route.queryParamMap,
+  this.refresh$.pipe(startWith(undefined))
+]).pipe(
+  map(([params]) => {
+    const page = Number(params.get('page')) || 1;
+    const search = params.get('search') || '';
+    const paymentMode = params.get('mode') || '';
+    const tenantId = params.get('tenantId');
+    const userId = params.get('userId');
+    const sortBy = params.get('sortBy') || 'paymentDate';
+    const sortDir = (params.get('sortDir') as 'asc' | 'desc') || 'desc';
 
-        // Restore selected tenant label
-        if (tenantId) {
-          const tenant = this.tenants.find(t => t.tenantId === tenantId);
-          this.selectedTenantLabel = tenant ? tenant.name : '';
-        } else {
-          this.selectedTenantLabel = '';
-        }
+    this.currentPage = page;
+    this.searchText = search;
+    this.filterPaymentMode = paymentMode as any;
+    this.selectedTenantId = tenantId;
+    this.selectedUserId = userId;
+    this.sortBy = sortBy;
+    this.sortDir = sortDir;
 
-        // Restore selected user label
-        if (userId) {
-          const user = this.users.find(u => u.userId === userId);
-          this.selectedUserLabel = user ? user.name : '';
-        } else {
-          this.selectedUserLabel = '';
-        }
+    return { page, search, paymentMode, tenantId, userId, sortBy, sortDir };
+  }),
+  switchMap(q =>
+    this.paymentService.getPaymentHistory({
+      page: q.page,
+      pageSize: this.pageSize,
+      search: q.search,
+      mode: q.paymentMode,
+      tenantId: q.tenantId ?? undefined,
+      userId: q.userId ?? undefined,
+      sortBy: q.sortBy,
+      sortDir: q.sortDir
+    })
+  ),
+  tap(result => {
+    this.totalCount = result.totalCount;
+    this.totalPages = Math.ceil(result.totalCount / this.pageSize);
+    this.buildPages();
+  })
+);
 
-        return { page, search, paymentMode, tenantId, userId, sortBy: sortByParam, sortDir: sortDirParam };
-      }),
-      distinctUntilChanged(
-        (a, b) => JSON.stringify(a) === JSON.stringify(b)
-      ),
-      switchMap(({ page, search, paymentMode, tenantId, userId, sortBy, sortDir }) =>
-        this.paymentService.getPaymentHistory({
-          page,
-          pageSize: this.pageSize,
-          search,
-          mode: paymentMode,
-          tenantId: tenantId ?? undefined,
-          userId: userId ?? undefined,
-          sortBy,
-          sortDir
-        })
-      ),
-      tap(result => {
-        this.totalCount = result.totalCount;
-        this.totalPages = Math.ceil(result.totalCount / this.pageSize);
-        this.buildPages();
-      })
-    );
   }
 
   // Search
@@ -381,10 +364,7 @@ export class PaymentsHistory implements OnInit {
     this.paymentService.deletePayment(paymentId).subscribe({
       next: () => {
         this.toastService.showSuccess('Payment Deleted Successfully.');
-        this.router.navigate([], {
-          relativeTo: this.route,
-          queryParamsHandling: 'preserve'
-        });
+        this.refresh$.next();
       },
       error: (err: { error: any; }) => {
         this.toastService.showError(err?.error || 'Failed to delete payment. Please try again.');

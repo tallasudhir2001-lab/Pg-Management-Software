@@ -1,0 +1,777 @@
+/* ==============================
+   Page Wrapper
+================================ */
+.expenses-page {
+  padding: 24px;
+  background-color: #f9fafb;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+/* ==============================
+   Page Header
+================================ */
+.page-header {
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+/* ==============================
+   Summary Cards
+================================ */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.summary-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.total-card {
+  background: linear-gradient(135deg, #0f1041 0%, #1a1b5c 100%);
+  color: white;
+}
+
+.total-card .card-label,
+.total-card .card-amount {
+  color: white;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.card-icon {
+  font-size: 24px;
+}
+
+.card-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.card-percentage {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.category-card .card-label {
+  font-size: 13px;
+}
+
+.category-card .card-amount {
+  font-size: 22px;
+  color: #0f766e;
+}
+
+/* ==============================
+   Actions Row
+================================ */
+.expense-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+/* Date Filters */
+.date-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.date-filter-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.date-filter-btn:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.date-filter-btn.active {
+  background: #0f1041;
+  color: white;
+  border-color: #0f1041;
+}
+
+/* Action Buttons Wrapper */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* ==============================
+   Buttons
+================================ */
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 11px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  width: auto;
+  min-width: unset;
+  flex: 0 0 auto;
+}
+
+/* Primary Button */
+.btn-primary {
+  background-color: var(--primary, #0f1041);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-light, #1a1b5c);
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.btn-secondary:hover {
+  background-color: #d1d5db;
+}
+
+/* ==============================
+   Table Container
+================================ */
+.table-container {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow-x: auto;
+}
+
+/* ==============================
+   Data Table
+================================ */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.data-table thead {
+  background-color: #f3f4f6;
+}
+
+.data-table thead th {
+  text-align: left;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.data-table tbody tr {
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.data-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.data-table tbody td {
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  color: #111827;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.data-table tbody tr td:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.data-table tbody tr td:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+/* ==============================
+   Cell Styles
+================================ */
+.category-cell {
+  font-weight: 600;
+  color: #111827;
+}
+
+.amount-cell {
+  font-weight: 700;
+  color: #0f766e;
+}
+
+.muted {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+/* ==============================
+   Payment Mode Pills
+================================ */
+.payment-mode-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  text-align: center;
+}
+
+.payment-mode-pill[data-mode="cash"] {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.payment-mode-pill[data-mode="upi"] {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.payment-mode-pill[data-mode="card"] {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.payment-mode-pill[data-mode="bank"] {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+/* ==============================
+   Actions Column
+================================ */
+.data-table td:last-child {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-start;
+  gap: 8px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.action-btn {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.action-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  display: block;
+}
+
+.action-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.action-btn.danger:hover {
+  background-color: #fee2e2;
+}
+
+.action-btn[title="View"]:hover {
+  background-color: rgba(15, 16, 65, 0.1);
+}
+
+.action-btn[title="Edit"]:hover {
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+/* ==============================
+   Clear Filters Icon Button
+================================ */
+.clear-filters-btn {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.clear-filters-btn img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+}
+
+.clear-filters-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.clear-filters-btn:hover img {
+  opacity: 1;
+}
+
+/* ==============================
+   Sort Arrow
+================================ */
+.sort-arrow {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--primary, #0f1041);
+  opacity: 0;
+  transform: rotate(180deg);
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.sort-arrow.visible {
+  opacity: 1;
+}
+
+.sort-arrow.asc {
+  transform: rotate(0deg);
+}
+
+/* ==============================
+   Pagination
+================================ */
+.pagination {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 32px 0;
+}
+
+.pagination-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+}
+
+.page-btn {
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #0f1041;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-btn.prev,
+.page-btn.next {
+  width: 96px;
+  height: 40px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.page-btn.page-number {
+  width: 48px;
+  height: 40px;
+  font-size: 14px;
+}
+
+.page-btn.active {
+  background-color: #0f1041;
+  color: white;
+  border-color: #0f1041;
+}
+
+.page-btn:hover:not(:disabled) {
+  background-color: #0f1041;
+  color: white;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ==============================
+   Pagination Info
+================================ */
+.pagination-info {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.pagination-info.empty {
+  color: #9ca3af;
+}
+
+.count-strong {
+  font-weight: 700;
+  color: #0f1041;
+}
+
+/* ==============================
+   Filter Drawer
+================================ */
+.filter-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 16, 65, 0.2);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+}
+
+.filter-drawer {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  width: 340px;
+  height: calc(100vh - 30px);
+  background: #f8f9fa;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+/* Header Styling */
+.filter-header {
+  padding: 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filter-title {
+  color: #0f1041;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.filter-close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #9ca3af;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Body & Cards */
+.filter-body {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.filter-card {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 15px;
+  margin-bottom: 16px;
+  border: 1px solid #edf2f7;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.filter-section-title {
+  color: #0f1041;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Date Inputs */
+.date-inputs,
+.amount-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.date-input-group,
+.amount-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.date-label,
+.amount-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Search Dropdown / Input */
+.filter-form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.filter-form-input:focus {
+  outline: none;
+  border-color: #0f1041;
+  box-shadow: 0 0 0 3px rgba(15, 16, 65, 0.1);
+}
+
+.searchable-dropdown {
+  position: relative;
+}
+
+.dropdown-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+}
+
+.dropdown-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+  transition: background-color 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+.dropdown-empty {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.filter-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* Footer & Buttons */
+.filter-footer {
+  padding: 20px;
+  background: #ffffff;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 12px;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  border: none;
+  font-size: 15px;
+}
+
+.filter-btn-primary {
+  background: #0f1041;
+  color: white;
+}
+
+.filter-btn-primary:hover {
+  background: #1a1b5c;
+}
+
+.filter-btn-secondary {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.filter-btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+/* ==============================
+   Responsive Adjustments
+================================ */
+@media (max-width: 768px) {
+  .expense-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-filters {
+    justify-content: center;
+  }
+
+  .action-buttons {
+    justify-content: flex-end;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-drawer {
+    width: calc(100vw - 30px);
+    left: 15px;
+  }
+
+  .date-inputs,
+  .amount-inputs {
+    grid-template-columns: 1fr;
+  }
+}
+/* Container layout to split left and right */
+.expense-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Pushes pill-group left and action-buttons right */
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+/* Pill Group Styling */
+.pill-group {
+  display: flex;
+  background-color: #f3f4f6; /* Light gray background for the track */
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+}
+
+.pill-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+/* Hover state - subtle theme color background */
+/* Update these specific rules in your CSS */
+
+.pill-btn:hover {
+  color: #0f1041;
+  background-color: #e5e7eb; /* Slightly darker gray to show it's interactive */
+}
+
+/* This ensures that even if you hover over the active button, it stays Navy */
+.pill-btn.active:hover {
+  background-color: #1a1b5c; /* A slightly lighter navy for the hover state */
+  color: #ffffff;
+}
+
+.pill-btn.active {
+  background-color: #0f1041 !important; /* Force the theme color */
+  color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(15, 16, 65, 0.2);
+}
+
+/* Ensure right-side buttons stay grouped */
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Responsive: stack on small screens */
+@media (max-width: 768px) {
+  .expense-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .pill-group {
+    justify-content: space-around;
+  }
+
+  .action-buttons {
+    justify-content: flex-end;
+  }
+}

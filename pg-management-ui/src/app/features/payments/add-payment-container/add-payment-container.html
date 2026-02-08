@@ -1,16 +1,33 @@
 <div class="page-container">
-  <h2 class="page-title">Add Payment</h2>
+  <div class="page-header">
+    <h2 class="page-title">Add Payment</h2>
+    <div class="page-subtitle">Select a tenant to record a new payment</div>
+  </div>
 
   <div class="selection-card">
     <div class="search-flex-container">
       
+      <!-- Selected State -->
       <div class="selected-tenant-display" *ngIf="selectedTenant">
-        <span class="label">Selected Tenant:</span>
-        <span class="value">{{ search }}</span>
+        <div class="tenant-badge">
+          <svg class="icon-check" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          <div class="tenant-info">
+            <span class="tenant-label">Selected Tenant</span>
+            <span class="tenant-name">{{ search }}</span>
+          </div>
+        </div>
       </div>
 
-      <div class="search-box" *ngIf="!selectedTenant" style="flex: 1;">
-        <label class="form-label">Search Tenant</label>
+      <!-- Search State -->
+      <div class="search-box" *ngIf="!selectedTenant">
+        <label class="form-label">
+          <svg class="label-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+          </svg>
+          Search Tenant
+        </label>
         <input
           type="text"
           class="form-input"
@@ -21,29 +38,45 @@
         
         <div class="search-results" *ngIf="tenants.length > 0">
           <div class="result-item" *ngFor="let t of tenants" (mousedown)="selectTenant(t)">
-            <strong>{{ t.name }}</strong>
-            <div class="muted">Room: {{ t.roomNumber || 'N/A' }}</div>
+            <div class="result-content">
+              <strong class="tenant-result-name">{{ t.name }}</strong>
+              <span class="tenant-room">Room {{ t.roomNumber || 'N/A' }}</span>
+            </div>
+            <svg class="arrow-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+            </svg>
           </div>
         </div>
       </div>
 
+      <!-- Change Button -->
       <button
         *ngIf="selectedTenant"
         class="btn-change"
         type="button"
         (click)="clearTenant()">
-        Change
+        <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+        </svg>
+        Change Tenant
       </button>
       
     </div>
   </div>
 
+  <!-- Payment Form -->
   <div class="content-body" *ngIf="selectedTenant">
     <app-add-payment [tenantId]="selectedTenant.tenantId"></app-add-payment>
   </div>
+
+  <!-- Empty State -->
   <div *ngIf="!selectedTenant" class="empty-state-card">
-    <p>Please select a tenant to view payment details and history.</p>
+    <div class="empty-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+      </svg>
+    </div>
+    <h3 class="empty-title">No Tenant Selected</h3>
+    <p class="empty-text">Search and select a tenant above to begin adding a payment record.</p>
   </div>
 </div>
-
-  

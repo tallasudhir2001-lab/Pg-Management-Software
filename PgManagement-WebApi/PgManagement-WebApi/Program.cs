@@ -6,11 +6,17 @@ using Microsoft.OpenApi.Models;
 using PgManagement_WebApi.Data;
 using PgManagement_WebApi.Identity;
 using PgManagement_WebApi.MiddleWare;
+using PgManagement_WebApi.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<IExpenseCategoryService, ExpenseCategoryService>();
+
 
 builder.Services.AddCors(options =>
 {

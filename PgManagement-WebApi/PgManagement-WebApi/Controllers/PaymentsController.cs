@@ -343,37 +343,37 @@ namespace PgManagement_WebApi.Controllers
                 }
             }
 
-           var roundedPending = Decimal.Round(
-    pendingAmount,
-    2,
-    MidpointRounding.AwayFromZero
-);
+            var roundedPending = Decimal.Round(
+     pendingAmount,
+     2,
+     MidpointRounding.AwayFromZero
+ );
 
-if (roundedPending <= 0)
-{
-    return Ok(new PaymentContextDto
-    {
-        TenantId = tenant.TenantId,
-        TenantName = tenant.Name,
-        PaidFrom = paidFrom,            // informational (future)
-        MaxPaidUpto = null,             // 👈 IMPORTANT
-        PendingAmount = 0,
-        AsOfDate = today,
-        HasActiveStay = stay.ToDate == null
-    });
-}
+            if (roundedPending <= 0)
+            {
+                return Ok(new PaymentContextDto
+                {
+                    TenantId = tenant.TenantId,
+                    TenantName = tenant.Name,
+                    PaidFrom = paidFrom,            // informational (future)
+                    MaxPaidUpto = null,             // 👈 IMPORTANT
+                    PendingAmount = 0,
+                    AsOfDate = today,
+                    HasActiveStay = stay.ToDate == null
+                });
+            }
 
-// 👇 existing behavior for due payments
-return Ok(new PaymentContextDto
-{
-    TenantId = tenant.TenantId,
-    TenantName = tenant.Name,
-    PaidFrom = paidFrom,
-    MaxPaidUpto = maxPaidUpto,
-    PendingAmount = roundedPending,
-    AsOfDate = today,
-    HasActiveStay = stay.ToDate == null
-});
+            // 👇 existing behavior for due payments
+            return Ok(new PaymentContextDto
+            {
+                TenantId = tenant.TenantId,
+                TenantName = tenant.Name,
+                PaidFrom = paidFrom,
+                MaxPaidUpto = maxPaidUpto,
+                PendingAmount = roundedPending,
+                AsOfDate = today,
+                HasActiveStay = stay.ToDate == null
+            });
 
         }
         [HttpGet("tenant/{tenantId}")]
@@ -438,7 +438,7 @@ return Ok(new PaymentContextDto
                 .AsNoTracking()
                 .Include(p => p.Tenant)
                 .Include(p => p.CreatedByUser)
-                .Where(p => p.PgId == pgId);
+                .Where(p => p.PgId == pgId && !p.IsDeleted);
 
             // 🔍 Search
             if (!string.IsNullOrWhiteSpace(search))
@@ -509,6 +509,49 @@ return Ok(new PaymentContextDto
                 Items = payments,
                 TotalCount = totalCount
             });
+        }
+        [HttpDelete("{paymentId}")]
+        public async Task<IActionResult> DeletePayment(string paymentId)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(pgId) || string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            // 1️ Load payment
+            var payment = await context.Payments
+                .FirstOrDefaultAsync(p =>
+                    p.PaymentId == paymentId &&
+                    p.PgId == pgId &&
+                    !p.IsDeleted);
+
+            if (payment == null)
+                return NotFound("Payment not found");
+
+            // 2️ Check if there is any later payment for this tenant
+            var hasLaterPayments = await context.Payments.AnyAsync(p =>
+                p.TenantId == payment.TenantId &&
+                p.PgId == pgId &&
+                !p.IsDeleted &&
+                p.PaidFrom > payment.PaidFrom
+            );
+
+            if (hasLaterPayments)
+            {
+                return BadRequest(
+                    "This payment cannot be deleted because newer payments exist."
+                );
+            }
+
+            // 3️ Soft delete
+            payment.IsDeleted = true;
+            payment.DeletedAt = DateTime.UtcNow;
+            payment.DeletedByUserId = userId;
+
+            await context.SaveChangesAsync();
+
+            return Ok();
         }
 
     }

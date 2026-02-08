@@ -50,6 +50,26 @@ namespace PgManagement_WebApi.Data
             {
                 await roleManager.CreateAsync(new IdentityRole("Admin"));
             }
+            //Expense categories
+            if (!await context.ExpenseCategories.AnyAsync())
+            {
+                var categories = new List<ExpenseCategory>
+            {
+                new ExpenseCategory { Name = "Electricity", IsActive = true, CreatedAt = DateTime.UtcNow },
+                new ExpenseCategory { Name = "Water", IsActive = true, CreatedAt = DateTime.UtcNow },
+                new ExpenseCategory { Name = "Rent", IsActive = true, CreatedAt = DateTime.UtcNow },
+                new ExpenseCategory { Name = "Internet", IsActive = true, CreatedAt = DateTime.UtcNow },
+                new ExpenseCategory { Name = "Maintenance", IsActive = true, CreatedAt = DateTime.UtcNow },
+                new ExpenseCategory { Name = "Salary", IsActive = true, CreatedAt = DateTime.UtcNow },
+                new ExpenseCategory { Name = "Repairs", IsActive = true, CreatedAt = DateTime.UtcNow },
+                new ExpenseCategory { Name = "Housekeeping", IsActive = true, CreatedAt = DateTime.UtcNow },
+                new ExpenseCategory { Name = "Groceries", IsActive = true, CreatedAt = DateTime.UtcNow },
+                new ExpenseCategory { Name = "Others", IsActive = true, CreatedAt = DateTime.UtcNow }
+            };
+
+                await context.ExpenseCategories.AddRangeAsync(categories);
+                await context.SaveChangesAsync();
+            }
 
             //creating admin user
             var adminEmail = "admin@pgapp.com";

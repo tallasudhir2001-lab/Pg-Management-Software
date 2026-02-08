@@ -16,6 +16,7 @@ import { TenantDetails } from './features/tenant/tenant-details/tenant-details';
 import { AddPayment } from './features/payments/add-payment/add-payment';
 import { AddPaymentContainer } from './features/payments/add-payment-container/add-payment-container';
 import { PaymentsHistory } from './features/payments/payments-history/payments-history';
+import { Expenses } from './features/expenses/expenses/expenses';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -42,7 +43,8 @@ export const routes: Routes = [
                     { path: 'add/:tenantId', component: AddPayment },
                     { path: 'history', component: PaymentsHistory }
                 ]
-            }
+            },
+            {path: 'expenses', component: Expenses}
 
         ]
     },

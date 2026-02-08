@@ -1,0 +1,125 @@
+<div class="drawer-backdrop" (click)="close()"></div>
+
+<div class="drawer-panel">
+  <div class="drawer-header">
+    <h2>
+  {{ mode === 'add' ? 'Add Expense' :
+     mode === 'edit' ? 'Edit Expense' :
+     'View Expense' }}
+</h2>
+
+    <button class="close-btn" (click)="close()" type="button">✕</button>
+  </div>
+  
+  <div class="drawer-body">
+    <form [class.readonly]="mode === 'view'" (ngSubmit)="submit()">
+
+      <!-- Category -->
+      <div class="form-group">
+        <label>Category <span class="required">*</span></label>
+        <select 
+          [(ngModel)]="model.categoryId" 
+          name="categoryId" 
+          class="form-select"
+          [disabled]="mode === 'view'"
+          required>
+          <option [ngValue]="null">Select a category</option>
+          <option *ngFor="let c of categories" [ngValue]="c.categoryId">
+            {{ c.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Amount -->
+      <div class="form-group">
+        <label>Amount <span class="required">*</span></label>
+        <input 
+          type="number" 
+          [(ngModel)]="model.amount" 
+          name="amount" 
+          class="form-input"
+          [disabled]="mode === 'view'"
+          placeholder="Enter amount"
+          required />
+      </div>
+
+      <!-- Date -->
+      <div class="form-group">
+        <label>Expense Date <span class="required">*</span></label>
+        <input 
+          type="date" 
+          [(ngModel)]="model.expenseDate" 
+          name="expenseDate" 
+          class="form-input"
+          [disabled]="mode === 'view'"
+          required />
+      </div>
+
+      <!-- Payment Mode -->
+      <div class="form-group">
+        <label>Payment Mode <span class="required">*</span></label>
+        <select 
+          [(ngModel)]="model.paymentModeCode" 
+          name="paymentModeCode" 
+          class="form-select"
+          [disabled]="mode === 'view'"
+          required>
+          <option value="">Select payment mode</option>
+          <option *ngFor="let pm of paymentModes" [value]="pm.code">
+            {{ pm.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label>Description</label>
+        <textarea 
+          [(ngModel)]="model.description" 
+          name="description"
+          class="form-textarea"
+          [disabled]="mode === 'view'"
+          placeholder="Add notes or details about this expense..."></textarea>
+      </div>
+
+      <!-- Recurring Checkbox -->
+      <div class="checkbox-wrapper">
+        <div class="checkbox-group">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="model.isRecurring" 
+            name="isRecurring"
+            [disabled]="mode === 'view'"
+            id="isRecurring" />
+          <label for="isRecurring">Recurring Expense</label>
+        </div>
+      </div>
+
+      <!-- Recurring Frequency (conditional) -->
+      <div *ngIf="model.isRecurring" class="recurring-options">
+        <div class="form-group">
+          <label>Frequency <span class="required">*</span></label>
+          <select 
+            [(ngModel)]="model.recurringFrequency" 
+            name="recurringFrequency"
+            class="form-select"
+            [disabled]="mode === 'view'">
+            <option value="Weekly">Weekly</option>
+            <option value="Monthly">Monthly</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="actions">
+        <button type="button" class="btn-cancel" (click)="close()">
+          {{ mode === 'view' ? 'Close' : 'Cancel' }}
+        </button>
+        <button *ngIf="mode !== 'view'" type="submit" class="btn-submit" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Saving...' : (mode === 'edit' ? 'Update' : 'Save') }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PgManagement_WebApi.Data;
 
@@ -11,9 +12,11 @@ using PgManagement_WebApi.Data;
 namespace PgManagement_WebApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260129171147_PaymentDeletionFields")]
+    partial class PaymentDeletionFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -223,141 +226,6 @@ namespace PgManagement_WebApi.Migrations
                     b.HasIndex("PgId");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("PgManagement_WebApi.Models.Expense", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("decimal(12,2)");
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime>("ExpenseDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsRecurring")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("PaymentModeCode")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("PgId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int?>("RecurringFrequency")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ReferenceNo")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("PaymentModeCode");
-
-                    b.HasIndex("PgId");
-
-                    b.ToTable("Expenses");
-                });
-
-            modelBuilder.Entity("PgManagement_WebApi.Models.ExpenseAuditLog", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime>("ChangedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("ChangedBy")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<string>("ExpenseId")
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<string>("NewValue")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OldValue")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExpenseId");
-
-                    b.ToTable("ExpenseAuditLogs");
-                });
-
-            modelBuilder.Entity("PgManagement_WebApi.Models.ExpenseCategory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("ExpenseCategories");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.PG", b =>
@@ -766,43 +634,6 @@ namespace PgManagement_WebApi.Migrations
                         .HasForeignKey("PgId");
                 });
 
-            modelBuilder.Entity("PgManagement_WebApi.Models.Expense", b =>
-                {
-                    b.HasOne("PgManagement_WebApi.Models.ExpenseCategory", "Category")
-                        .WithMany("Expenses")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("PgManagement_WebApi.Models.PaymentMode", "PaymentMode")
-                        .WithMany()
-                        .HasForeignKey("PaymentModeCode")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("PgManagement_WebApi.Models.PG", "Pg")
-                        .WithMany()
-                        .HasForeignKey("PgId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-
-                    b.Navigation("PaymentMode");
-
-                    b.Navigation("Pg");
-                });
-
-            modelBuilder.Entity("PgManagement_WebApi.Models.ExpenseAuditLog", b =>
-                {
-                    b.HasOne("PgManagement_WebApi.Models.Expense", "Expense")
-                        .WithMany("AuditLogs")
-                        .HasForeignKey("ExpenseId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Expense");
-                });
-
             modelBuilder.Entity("PgManagement_WebApi.Models.Payment", b =>
                 {
                     b.HasOne("PgManagement_WebApi.Identity.ApplicationUser", "CreatedByUser")
@@ -953,16 +784,6 @@ namespace PgManagement_WebApi.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("PgManagement_WebApi.Models.Expense", b =>
-                {
-                    b.Navigation("AuditLogs");
-                });
-
-            modelBuilder.Entity("PgManagement_WebApi.Models.ExpenseCategory", b =>
-                {
-                    b.Navigation("Expenses");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.PG", b =>
