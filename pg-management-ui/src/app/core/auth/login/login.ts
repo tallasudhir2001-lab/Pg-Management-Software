@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth } from '../../services/auth';
+import { ToastService } from '../../../shared/toast/toast-service';
 
 @Component({
   selector: 'app-login',
@@ -16,11 +17,10 @@ export class Login {
   password = '';
   error = '';
 
-  constructor(private auth:Auth,private router : Router){
+  constructor(private auth:Auth,private router : Router, private toastService: ToastService){
 
   }
   login(){
-    this.error='';
     this.auth.login({
       userNameOrEmail: this.userNameOrEmail,
       password: this.password
@@ -45,7 +45,7 @@ export class Login {
         }
       },
       error: err => {
-        this.error = 'Invalid credentials';
+        this.toastService.showError(err.error || "Invalid Credentials");
       }
     });
   }

@@ -412,5 +412,31 @@ namespace PgManagement_WebApi.Controllers
             return NoContent();
         }
 
+        [HttpGet("{roomId}/tenants")]
+        public async Task<IActionResult> GetTenantsInRoom(string roomId)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId))
+                return Unauthorized();
+
+            var tenants = await context.TenantRooms
+                .AsNoTracking()
+                .Where(tr =>
+                    tr.RoomId == roomId &&
+                    tr.PgId == pgId &&
+                    tr.ToDate == null)
+                .Select(tr => new
+                {
+                    tr.Tenant.TenantId,
+                    tr.Tenant.Name,
+                    tr.Tenant.ContactNumber,
+                    CheckedInAt = tr.FromDate,
+                    Status = "Active"
+                })
+                .ToListAsync();
+
+            return Ok(tenants);
+        }
+
     }
 }

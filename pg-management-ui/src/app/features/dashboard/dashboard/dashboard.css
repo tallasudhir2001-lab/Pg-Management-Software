@@ -1,0 +1,254 @@
+/* ==========================================================================
+   RESET / BASE
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+}
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.75rem 2rem;
+  background: #f9fafb;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacOSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ==========================================================================
+   KPI CARDS
+   ========================================================================== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.kpi-card {
+  position: relative;
+  background: white;
+  border-radius: 1rem;           /* 16px */
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06),
+              0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition: all 0.22s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.12),
+              0 6px 12px -2px rgba(0, 0, 0, 0.06);
+}
+
+/* Left accent bar */
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  inset: 0  auto 0 0;
+  width: 5px;
+  background: #e2e8f0;
+  transition: background 0.3s ease;
+}
+
+.kpi-card.primary::before    { background: #0f1041; }
+.kpi-card.success::before    { background: #16a34a; }
+.kpi-card.warning::before    { background: #d97706; }
+.kpi-card.highlight::before  { background: #0f1041; }
+
+/* Highlight (Revenue) – gradient background */
+.kpi-card.highlight {
+  background: linear-gradient(135deg, #0f1041 0%, #1e293b 100%);
+  color: white;
+}
+
+.highlight .kpi-label { color: rgba(255, 255, 255, 0.78); }
+.highlight .kpi-value { color: white; }
+
+.kpi-label {
+  font-size: 0.875rem;          /* 14px */
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.75rem;
+}
+
+.kpi-value {
+  font-size: 2.25rem;           /* ~36px */
+  font-weight: 800;
+  line-height: 1.05;
+  color: #0f1041;
+}
+
+/* ==========================================================================
+   CHARTS & GENERAL CARDS
+   ========================================================================== */
+.charts-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 1.75rem;
+}
+
+.card {
+  background: white;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.25s ease;
+}
+
+.card:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  padding: 1.25rem 1.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f1041;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-body.p-0 {
+  padding: 0;
+}
+
+/* ==========================================================================
+   RECENT PAYMENTS TABLE
+   ========================================================================== */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.95rem;
+}
+
+.table th {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+  letter-spacing: 0.025em;
+  padding: 1rem 1.25rem;
+  text-align: left;
+  border-bottom: 2px solid #cbd5e1;
+}
+
+.table td {
+  padding: 1.125rem 1.25rem;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table td.text-right {
+  text-align: right;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.empty-state {
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 1.1rem;
+  font-style: italic;
+}
+
+/* ==========================================================================
+   HELPERS & UTILITIES
+   ========================================================================== */
+.text-muted       { color: #9ca3af !important; }
+.text-primary     { color: #0f1041 !important; }
+.text-success     { color: #16a34a !important; }
+.text-warning     { color: #d97706 !important; }
+
+.text-right       { text-align: right !important; }
+
+/* ==========================================================================
+   LOADING STATE
+   ========================================================================== */
+.dashboard-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  font-size: 1.25rem;
+  color: #64748b;
+  gap: 0.75rem;
+}
+
+/* ==========================================================================
+   RESPONSIVE TWEAKS
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-container {
+    padding: 1.25rem 1rem;
+  }
+  
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  
+  .kpi-value {
+    font-size: 1.75rem;
+  }
+}
+/* ================= DASHBOARD TOOLBAR ================= */
+/* ================= DASHBOARD TOOLBAR ================= */
+.dashboard-toolbar {
+  display: flex;
+  justify-content: flex-end; /* Kept to the right per your preference */
+  margin-bottom: 1rem;
+}
+
+/* ================= RANGE SELECTOR ================= */
+/* ================= RANGE SELECTOR (PILL STYLE) ================= */
+.range-selector {
+  display: inline-flex;
+  gap: 0.25rem;
+  background: #f1f5f9;    /* Matches table header background */
+  padding: 0.4rem;
+  border-radius: 99px;    /* Makes the container a pill */
+  border: 1px solid #e2e8f0;
+}
+
+.range-btn {
+  border: none;
+  background: transparent;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;         /* Matches .kpi-label color */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 99px;    /* Makes the individual buttons pills */
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.range-btn:hover {
+  color: #0f1041;         /* Matches primary brand navy */
+  background: rgba(15, 16, 65, 0.05);
+}
+
+.range-btn.active {
+  background: #0f1041;    /* Theme Primary Navy */
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(15, 16, 65, 0.15);
+}

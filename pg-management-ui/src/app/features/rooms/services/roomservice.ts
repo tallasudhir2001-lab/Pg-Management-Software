@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { Room } from '../models/room.model';
 import { environment } from '../../../../environments/environment';
 import { PagedResults } from '../../../shared/models/page-results.model';
+import { RoomTenant } from '../models/room.tenant.model';
 
 @Injectable({
   providedIn: 'root',
@@ -11,35 +12,35 @@ import { PagedResults } from '../../../shared/models/page-results.model';
 export class Roomservice {
   private readonly baseUrl = `${environment.apiBaseUrl}/rooms`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
- getRooms(params: {
-  page: number;
-  pageSize: number;
-  search?: string;
-  status?: string;
-  ac?: string;
-  vacancies?: string;
-}) {
-  const query = new HttpParams()
-    .set('page', params.page)
-    .set('pageSize', params.pageSize)
-    .set('search', params.search || '')
-    .set('status', params.status || '')
-    .set('ac', params.ac || '')
-    .set('vacancies', params.vacancies || '');
+  getRooms(params: {
+    page: number;
+    pageSize: number;
+    search?: string;
+    status?: string;
+    ac?: string;
+    vacancies?: string;
+  }) {
+    const query = new HttpParams()
+      .set('page', params.page)
+      .set('pageSize', params.pageSize)
+      .set('search', params.search || '')
+      .set('status', params.status || '')
+      .set('ac', params.ac || '')
+      .set('vacancies', params.vacancies || '');
 
-  return this.http.get<PagedResults<Room>>(`${this.baseUrl}`, { params: query });
-}
+    return this.http.get<PagedResults<Room>>(`${this.baseUrl}`, { params: query });
+  }
 
 
   createRoom(payload: {
-  roomNumber: string;
-  capacity: number;
-  rentAmount: number;
-  isAc: boolean;
+    roomNumber: string;
+    capacity: number;
+    rentAmount: number;
+    isAc: boolean;
   }) {
-  return this.http.post(`${this.baseUrl}/add-room`, payload);
+    return this.http.post(`${this.baseUrl}/add-room`, payload);
   }
   getRoomById(roomId: string) {
     return this.http.get<Room>(`${this.baseUrl}/${roomId}`);
@@ -52,5 +53,7 @@ export class Roomservice {
   deleteRoom(roomId: string) {
     return this.http.delete(`${this.baseUrl}/${roomId}`);
   }
-
+  getTenantsByRoom(roomId: string) {
+    return this.http.get<RoomTenant[]>(`${this.baseUrl}/${roomId}/tenants`);
+  }
 }

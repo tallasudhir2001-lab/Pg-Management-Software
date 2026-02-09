@@ -1,2 +1,146 @@
-  <h2>Dashboard</h2>
-  <p>Welcome to your PG Management System.</p>
+<ng-container *ngIf="vm$ | async as vm; else loading">
+  <div class="dashboard-container">
+    <div class="dashboard-toolbar">
+  <div class="range-selector">
+    <button
+      *ngFor="let r of ranges"
+      type="button"
+      class="range-btn"
+      [class.active]="selectedRange === r.key"
+      (click)="onRangeChange(r.key)">
+      {{ r.label }}
+    </button>
+  </div>
+</div>
+
+    <!-- ================= KPI CARDS ================= -->
+    <div class="kpi-grid">
+  <div class="kpi-card primary">
+    <div class="kpi-label">Total Tenants</div>
+    <div class="kpi-value">{{ vm.summary.totalTenants }}</div>
+  </div>
+
+  <div class="kpi-card success">
+    <div class="kpi-label">Active Tenants</div>
+    <div class="kpi-value">
+      {{ vm.summary.activeTenants }}
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-label">Moved Out</div>
+    <div class="kpi-value text-muted">
+      {{ vm.summary.movedOutTenants }}
+    </div>
+  </div>
+
+  <div class="kpi-card primary">
+    <div class="kpi-label">Occupied Beds</div>
+    <div class="kpi-value">
+      {{ vm.summary.occupiedBeds }}
+    </div>
+  </div>
+
+  <div class="kpi-card warning">
+    <div class="kpi-label">Vacant Beds</div>
+    <div class="kpi-value">
+      {{ vm.summary.vacantBeds }}
+    </div>
+  </div>
+
+  <div class="kpi-card highlight">
+    <div class="kpi-label">Monthly Revenue</div>
+    <div class="kpi-value">
+      ₹{{ vm.summary.monthlyRevenue | number:'1.0-0' }}
+    </div>
+  </div>
+  <div class="kpi-card primary">
+  <div class="kpi-label">Total Expenses</div>
+  <div class="kpi-value text-danger">
+    ₹{{ vm.expenses.totalExpenses | number:'1.0-0' }}
+  </div>
+</div>
+
+<div class="kpi-card highlight">
+  <div class="kpi-label">Net Profit</div>
+  <div
+    class="kpi-value"
+    [class.text-success]="getNetProfit(vm) >= 0"
+    [class.text-danger]="getNetProfit(vm) < 0">
+    ₹{{ getNetProfit(vm) | number:'1.0-0' }}
+  </div>
+</div>
+
+</div>
+
+    <!-- ================= CHARTS SECTION ================= -->
+   <div class="charts-grid">
+
+  <!-- Revenue Trend -->
+  <div class="card">
+    <div class="card-header">Revenue Trend</div>
+    <div class="card-body">
+      <app-revenue-line-chart
+        [data]="vm.revenueTrend">
+      </app-revenue-line-chart>
+    </div>
+  </div>
+
+  <!-- Occupancy -->
+  <div class="card">
+    <div class="card-header">Occupancy</div>
+    <div class="card-body">
+      <app-occupancy-donut-chart
+        [occupied]="vm.occupancy.occupied"
+        [vacant]="vm.occupancy.vacant">
+      </app-occupancy-donut-chart>
+    </div>
+  </div>
+
+</div>
+
+
+    <!-- ================= RECENT PAYMENTS ================= -->
+    <div class="card">
+      <div class="card-header">Recent Payments</div>
+
+      <div class="card-body p-0">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Tenant</th>
+              <th>Date</th>
+              <th>Mode</th>
+              <th class="text-right">Amount</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let p of vm.recentPayments">
+              <td>{{ p.tenantName }}</td>
+              <td>{{ p.paymentDate | date:'dd MMM yyyy' }}</td>
+              <td>{{ p.mode }}</td>
+              <td class="text-right">
+                ₹{{ p.amount | number:'1.0-0' }}
+              </td>
+            </tr>
+
+            <tr *ngIf="vm.recentPayments.length === 0">
+              <td colspan="4" class="empty-state">
+                No recent payments found
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</ng-container>
+
+<!-- ================= LOADING STATE ================= -->
+<ng-template #loading>
+  <div class="dashboard-loading">
+    Loading dashboard…
+  </div>
+</ng-template>

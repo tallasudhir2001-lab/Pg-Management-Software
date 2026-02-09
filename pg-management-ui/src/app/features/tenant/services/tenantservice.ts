@@ -28,6 +28,7 @@ export class Tenantservice {
   search?: string;
   status?: string;
   roomId?: string;
+  rentPending?: boolean;
   sortBy?: string;
   sortDir?: string;
 }) {
@@ -47,6 +48,10 @@ export class Tenantservice {
 
   if (params.roomId) {
     httpParams = httpParams.set('roomId', params.roomId);
+  }
+
+  if (params.rentPending !== undefined) {
+    httpParams = httpParams.set('rentPending', params.rentPending);
   }
 
   if (params.sortBy) {

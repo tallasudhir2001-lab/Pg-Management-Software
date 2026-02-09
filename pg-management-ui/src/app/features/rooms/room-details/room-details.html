@@ -58,4 +58,45 @@
 
     <p class="error-msg" *ngIf="error">{{ error }}</p>
   </div>
+  <section class="section">
+  <h3>Tenants in this Room</h3>
+
+  <table class="table" *ngIf="tenants$ | async as tenants">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Contact</th>
+        <th>Checked In</th>
+        <th>Status</th>
+        <th class="text-right">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let t of tenants">
+        <td>{{ t.name }}</td>
+        <td>{{ t.contactNumber }}</td>
+        <td>{{ t.checkedInAt | date:'dd MMM yyyy' }}</td>
+        <td>
+          <span class="badge badge-success">Active</span>
+        </td>
+        <td class="text-right">
+          <button class="icon-btn" title="View Details">
+            <img src="assets/icons/info.svg" alt="View" (click)="onAction('view', t.tenantId)"/>
+          </button>
+          <button class="icon-btn danger" title="Checkout">
+            <img src="assets/icons/edit.svg" alt="Checkout" (click)="onAction('edit', t.tenantId)"/>
+          </button>
+        </td>
+      </tr>
+
+      <tr *ngIf="tenants.length === 0">
+        <td colspan="5" class="empty">
+          No tenants in this room
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
 </div>

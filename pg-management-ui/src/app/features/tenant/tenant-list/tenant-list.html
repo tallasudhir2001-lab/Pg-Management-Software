@@ -45,9 +45,10 @@
               ▲
             </span>
           </th>
-
-          <th>Contact</th>
           <th>Status</th>
+          <th>Contact</th>
+          
+          <th>Rent</th>
           <th class="sortable" [class.active-sort]="isSortedBy('checkedin')" (click)="onSort('checkedin')">
             Checked In
             <span class="sort-arrow" [class.visible]="isSortedBy('checkedin')" [class.asc]="isSortAsc('checkedin')">
@@ -63,13 +64,24 @@
         <tr *ngFor="let t of (tenants$ | async)?.items">
           <td>{{ t.name }}</td>
           <td>{{ t.roomNumber ?? '—' }}</td>
-          <td>{{ t.contactNumber }}</td>
-
           <td>
             <span class="status-pill" [class.active]="t.status === 'Active'" [class.inactive]="t.status === 'MovedOut'">
               {{ t.status }}
             </span>
           </td>
+          <td>{{ t.contactNumber }}</td>
+
+          
+          <td>
+  <span
+    class="rent-pill"
+    [class.pending]="t.isRentPending"
+    [class.paid]="!t.isRentPending"
+    [title]="t.isRentPending ? 'Tenant has pending rent' : 'No rent due'">
+    {{ t.isRentPending ? 'Pending' : 'Paid' }}
+  </span>
+</td>
+
 
           <td>{{ t.checkedInAt | date }}</td>
 
@@ -172,6 +184,26 @@
         <div class="dropdown-empty" *ngIf="filteredRooms.length === 0">
           No rooms found
         </div>
+      </div>
+    </div>
+
+    <div class="filter-card">
+      <p class="filter-section-title">Rent Status</p>
+      <div class="filter-radio-group">
+        <label class="filter-option">
+          <input type="radio" name="rentPending" value="" [(ngModel)]="filterRentPending" />
+          <span class="filter-radio-label">All</span>
+        </label>
+
+        <label class="filter-option">
+          <input type="radio" name="rentPending" value="true" [(ngModel)]="filterRentPending" />
+          <span class="filter-radio-label">Pending</span>
+        </label>
+
+        <label class="filter-option">
+          <input type="radio" name="rentPending" value="false" [(ngModel)]="filterRentPending" />
+          <span class="filter-radio-label">Paid</span>
+        </label>
       </div>
     </div>
 

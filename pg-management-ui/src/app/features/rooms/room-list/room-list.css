@@ -105,6 +105,11 @@
   width: 80%;
 }
 
+.action-buttons {
+  display: flex;
+  justify-content: center;
+}
+
 /* Dynamic Status Indicators (Subtle bottom border) */
 .room-card.available { border-bottom: 5px solid #16a34a; }
 .room-card.partial { border-bottom: 5px solid #2563eb; }

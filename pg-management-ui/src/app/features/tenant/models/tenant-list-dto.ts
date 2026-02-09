@@ -8,4 +8,5 @@ export interface TenantListDto {
   contactNumber: string;
   status: 'Active' | 'MovedOut';
   checkedInAt?: string | null;
+  isRentPending: boolean;
 }

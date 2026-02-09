@@ -37,6 +37,7 @@ export class TenantList implements OnInit{
   isRoomDropdownOpen = false;
   selectedRoomLabel = '';
   filterStatus: '' | 'active' | 'movedout' = '';
+  filterRentPending: '' | 'true' | 'false' = '';
 
   //sorting
   sortBy = 'updated';
@@ -67,13 +68,17 @@ export class TenantList implements OnInit{
         const tenantStatus  = params.get('status') || '';
         const roomIdParam = params.get('roomId');
         const roomId = roomIdParam ? roomIdParam : null;
+        const rentPendingParam = params.get('rentPending');
+        const rentPending = rentPendingParam ? rentPendingParam : null;
         const sortByParam = params.get('sortBy') || 'updated';
         const sortDirParam = (params.get('sortDir') as 'asc' | 'desc') || 'desc';
-        // 🔁 sync UI
+        
+        //  sync UI
         this.currentPage = page;
         this.searchText = search;
         this.filterStatus = tenantStatus as any;
         this.selectedRoomId = roomId;
+        this.filterRentPending = (rentPending || '') as any;
         this.sortBy = sortByParam;
         this.sortDir = sortDirParam;
 
@@ -85,18 +90,19 @@ export class TenantList implements OnInit{
           this.selectedRoomLabel = '';
         }
 
-        return { page, search, tenantStatus, roomId, sortBy: sortByParam, sortDir: sortDirParam};
+        return { page, search, tenantStatus, roomId, rentPending, sortBy: sortByParam, sortDir: sortDirParam};
       }),
       distinctUntilChanged(
         (a, b) => JSON.stringify(a) === JSON.stringify(b)
       ),
-      switchMap(({ page, search, tenantStatus, roomId, sortBy, sortDir }) =>
+      switchMap(({ page, search, tenantStatus, roomId, rentPending, sortBy, sortDir }) =>
         this.tenantService.getTenants({
           page,
           pageSize: this.pageSize,
           search,
           status:tenantStatus,
           roomId:roomId ?? undefined,
+          rentPending: rentPending === 'true' ? true : rentPending === 'false' ? false : undefined,
           sortBy,
           sortDir
         })
@@ -135,7 +141,8 @@ prevPage(): void {
   this.updateUrl({
     page: 1,
     status: this.filterStatus || null,
-    roomId: this.selectedRoomId || null
+    roomId: this.selectedRoomId || null,
+    rentPending: this.filterRentPending || null
   });
 
   this.showFilters = false;
@@ -146,8 +153,9 @@ prevPage(): void {
   this.selectedRoomId = null;
   this.selectedRoomLabel = '';
   this.roomSearchText = '';
+  this.filterRentPending = '';
 
-  this.updateUrl({ page: 1,status:null,roomId:null,sortBy:null,sortDir:null });
+  this.updateUrl({ page: 1,status:null,roomId:null,rentPending:null,sortBy:null,sortDir:null });
   this.showFilters = false;
 }
 
@@ -156,6 +164,7 @@ prevPage(): void {
   search?: string | null;
   status?: string | null;
   roomId?: string | null;
+  rentPending?: string | null;
   sortBy?: string | null;
   sortDir?: string | null;
 }): void {
@@ -166,7 +175,7 @@ prevPage(): void {
     const value = (params as any)[key];
 
     if (value === null) {
-      cleanParams[key] = null; // 🔑 removes param when merging
+      cleanParams[key] = null; // 🔒 removes param when merging
     } else if (value !== undefined && value !== '') {
       cleanParams[key] = value;
     }

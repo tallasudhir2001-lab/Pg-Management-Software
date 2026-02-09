@@ -121,7 +121,7 @@ export class ExpenseDrawer implements OnInit, OnChanges  {
       },
       error: (err) => {
         ExpenseDrawer.isLoadingCategories = false;
-        console.error('Error loading categories:', err);
+        this.toastService.showError(err.error || "Failed to load categories");
       }
     });
   }
@@ -153,7 +153,7 @@ export class ExpenseDrawer implements OnInit, OnChanges  {
       },
       error: (err) => {
         ExpenseDrawer.isLoadingPaymentModes = false;
-        console.error('Error loading payment modes:', err);
+        this.toastService.showError(err.error || "Failed to load Payment Modes");
       }
     });
   }
@@ -190,8 +190,9 @@ export class ExpenseDrawer implements OnInit, OnChanges  {
         this.saved.emit();
         this.close();
       },
-      error: () => {
+      error: (err) => {
         this.isSubmitting = false;
+        this.toastService.showError(err.error || 'Expense Save Failed');
       }
     });
   }
@@ -225,8 +226,7 @@ export class ExpenseDrawer implements OnInit, OnChanges  {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.toastService.showError('Failed to load expense details');
-        console.error('Error loading expense:', err);
+        this.toastService.showError(err.error||'Failed to load expense details');
       }
     });
   }

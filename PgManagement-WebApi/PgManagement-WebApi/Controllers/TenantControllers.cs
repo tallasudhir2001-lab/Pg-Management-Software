@@ -30,10 +30,12 @@ namespace PgManagement_WebApi.Controllers
      string? search = null,
      string? status = null,
      string? roomId = null,
+     bool? rentPending = null,
      string sortBy = "updated",
      string sortDir = "desc"
  )
         {
+            var today = DateTime.UtcNow.Date;
             var pgId = User.FindFirst("pgId")?.Value;
             if (string.IsNullOrEmpty(pgId))
                 return Unauthorized();
@@ -64,8 +66,44 @@ namespace PgManagement_WebApi.Controllers
                         tr.Room.RoomNumber,
                         tr.FromDate
                     })
-                    .FirstOrDefault()
+                    .FirstOrDefault(),
+
+                LastAssignment = context.TenantRooms
+                    .Where(tr =>
+                        tr.TenantId == t.TenantId &&
+                        tr.PgId == pgId &&
+                        tr.ToDate != null)
+                    .OrderByDescending(tr => tr.ToDate)
+                    .Select(tr => new
+                    {
+                        tr.RoomId,
+                        tr.Room.RoomNumber,
+                        tr.FromDate,
+                        tr.ToDate
+                    })
+                    .FirstOrDefault(),
+
+
+                HasAnyPendingRent = context.TenantRooms
+                    .Where(tr =>
+                        tr.TenantId == t.TenantId &&
+                        tr.PgId == pgId)
+                    .Any(tr =>
+                        !context.Payments.Any(p =>
+                        p.TenantId == t.TenantId &&
+                        p.PgId == pgId &&
+                        p.PaidFrom <= (tr.ToDate ?? today) &&
+                        p.PaidUpto >= tr.FromDate
+                    )
+                )
             });
+
+            //pending rent filter
+            if (rentPending.HasValue)
+            {
+                projectedQuery = projectedQuery
+                    .Where(x => x.HasAnyPendingRent == rentPending.Value);
+            }
 
             // Status filter
             if (!string.IsNullOrEmpty(status))
@@ -132,14 +170,17 @@ namespace PgManagement_WebApi.Controllers
                     Name = x.Tenant.Name,
                     ContactNumber = x.Tenant.ContactNumber,
 
-                    RoomId = x.ActiveAssignment != null ? x.ActiveAssignment.RoomId : null,
-                    RoomNumber = x.ActiveAssignment != null ? x.ActiveAssignment.RoomNumber : null,
+                    RoomId = x.ActiveAssignment != null
+                        ? x.ActiveAssignment.RoomId: x.LastAssignment != null? x.LastAssignment.RoomId: null,
+
+                    RoomNumber = x.ActiveAssignment != null
+                        ? x.ActiveAssignment.RoomNumber: x.LastAssignment != null? x.LastAssignment.RoomNumber + " (ex)": null,
 
                     CheckedInAt = x.ActiveAssignment != null
-                        ? x.ActiveAssignment.FromDate
-                        : null,
+                        ? x.ActiveAssignment.FromDate: x.LastAssignment != null? x.LastAssignment.FromDate: null,
 
-                    Status = x.ActiveAssignment == null ? "MovedOut" : "Active"
+                    Status = x.ActiveAssignment == null ? "MovedOut" : "Active",
+                    IsRentPending = x.HasAnyPendingRent
                 })
                 .ToListAsync();
 

@@ -163,8 +163,8 @@
 }
 
 .status-pill.inactive {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: #eef8ff;
+  color: #2395ce;
 }
 
 /* ==============================
@@ -591,3 +591,26 @@
   color: #0f1041; /* same as active page button */
 }
 
+/* ==============================
+   Rent Status Pills
+================================ */
+.rent-pill {
+  display: inline-block;
+  padding: 4px 10px;          /* same as status-pill */
+  font-size: 12px;
+  font-weight: 700;           /* match status-pill */
+  border-radius: 999px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 🔴 Pending Rent */
+.rent-pill.pending {
+  background-color: #fee2e2;  /* same family as inactive status */
+  color: #991b1b;             /* deep red text */
+}
+/* 🟢 Rent Paid */
+.rent-pill.paid {
+  background-color: #dcfce7;  /* same as active status */
+  color: #166534;             /* deep green text */
+}

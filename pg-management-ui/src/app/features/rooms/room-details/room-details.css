@@ -159,7 +159,7 @@
 /* Ensure the container allows the arrow to sit at the top left */
 .form-page-container {
   padding: 20px 40px; /* Adjusted padding */
-  max-width: 600px;   /* Constrains the whole column including the arrow */
+  max-width: 900px;   /* Constrains the whole column including the arrow */
   margin: 0 auto;    /* Centers the entire column on the screen */
   display: flex;
   flex-direction: column;
@@ -172,4 +172,135 @@
   font-size: 26px;
   font-weight: 700;
   text-align: left; /* Aligns with the arrow */
+}
+/* Tenants Section */
+.section {
+  background: white;
+  width: 100%;
+  max-width: 900px; /* Wider than the form card to give more space */
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  margin-top: 32px;
+}
+
+.section h3 {
+  color: #0F1041;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+}
+
+/* Table Styling */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 15px;
+}
+
+.table thead {
+  background-color: #f9fafb;
+}
+
+.table th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.table th.text-right {
+  text-align: right;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s;
+}
+
+.table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table td {
+  padding: 16px;
+  color: #0F1041;
+}
+
+.table td.text-right {
+  text-align: right;
+}
+
+.table td.empty {
+  text-align: center;
+  padding: 40px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Badge Styling */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.badge-success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+/* Action Buttons in Table */
+.table button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+  background-color: white;
+  color: #0F1041;
+  transition: all 0.2s;
+  margin-left: 8px;
+}
+
+.table button:hover {
+  background-color: #f9fafb;
+  border-color: #0F1041;
+}
+
+.table button.danger {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.table button.danger:hover {
+  background-color: #fef2f2;
+  border-color: #dc2626;
+}
+
+/* Icon Buttons */
+.table button.icon-btn {
+  padding: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.table button.icon-btn img {
+  width: 18px;
+  height: 18px;
+  display: block;
 }

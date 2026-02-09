@@ -6,16 +6,18 @@ import { Observable, tap } from 'rxjs';
 import { Roomservice } from '../services/roomservice';
 import { Room } from '../models/room.model';
 import { ToastService } from '../../../shared/toast/toast-service';
+import { RoomTenant } from '../models/room.tenant.model';
 
 @Component({
   selector: 'app-room-details',
-  standalone:true,
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './room-details.html',
   styleUrl: './room-details.css',
 })
-export class RoomDetails implements OnInit{
+export class RoomDetails implements OnInit {
   room$!: Observable<Room>;
+  tenants$!: Observable<RoomTenant[]>;
 
   model!: Room;
   isSaving = false;
@@ -26,16 +28,17 @@ export class RoomDetails implements OnInit{
     private router: Router,
     private roomService: Roomservice,
     private cdr: ChangeDetectorRef,
-    private toastService:ToastService
-  ) {}
+    private toastService: ToastService
+  ) { }
 
   ngOnInit(): void {
     const roomId = this.route.snapshot.paramMap.get('id')!;
     this.room$ = this.roomService.getRoomById(roomId).pipe(
-    tap(room => {
-      this.model = { ...room };
-    })
-  );
+      tap(room => {
+        this.model = { ...room };
+      })
+    );
+    this.tenants$ = this.roomService.getTenantsByRoom(roomId);
   }
   save(): void {
     this.isSaving = true;
@@ -69,7 +72,23 @@ export class RoomDetails implements OnInit{
       }
     });
   }
-  cancel():void{
+  cancel(): void {
     this.router.navigate(['/room-list']);
+  }
+  onAction(action: 'view' | 'edit', tenantId: string): void {
+    switch (action) {
+      case 'view':
+        this.viewTenant(tenantId);
+        break;
+      case 'edit':
+        this.editTenant(tenantId);
+        break;
+    }
+  }
+  private viewTenant(tenantId: string): void {
+    this.router.navigate(['/tenants', tenantId]);
+  }
+  private editTenant(tenantId: string): void {
+    this.router.navigate(['/tenants', tenantId, 'edit']);
   }
 }

@@ -36,7 +36,6 @@ export class AddPayment implements OnChanges {
   frequencies = PAYMENT_FREQUENCIES;
 
   saving = false;
-  error = '';
 
   constructor(
     private fb: FormBuilder,
@@ -115,7 +114,6 @@ export class AddPayment implements OnChanges {
     if (this.saving) return;
 
     this.saving = true;
-    this.error = '';
 
     const payload = {
       tenantId: ctx.tenantId,
@@ -135,7 +133,7 @@ export class AddPayment implements OnChanges {
         this.router.navigate(['/tenants', ctx.tenantId]);
       },
       error: (err: { error: string; }) => {
-        this.error = err?.error || 'Payment failed';
+        this.toastService.showError(err.error || "Failed to Add Payment");
         this.saving = false;
       }
     });
