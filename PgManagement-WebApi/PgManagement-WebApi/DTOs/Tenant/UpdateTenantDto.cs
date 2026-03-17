@@ -12,7 +12,6 @@ namespace PgManagement_WebApi.DTOs.Tenant
         [Required]
         public string AadharNumber { get; set; }
         public decimal? AdvanceAmount { get; set; }
-        public DateTime? RentPaidUpto { get; set; }
         public string Notes { get; set; }
     }
 }

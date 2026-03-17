@@ -24,7 +24,6 @@ namespace PgManagement_WebApi.Models
             ErrorMessage = "Aadhaar must be 12 digits")]
         public string AadharNumber { get; set; }
         public decimal? AdvanceAmount { get; set; }
-        public DateTime? RentPaidUpto { get; set; }
         public string Notes { get; set; }
 
         public DateTime CreatedAt { get; set; }

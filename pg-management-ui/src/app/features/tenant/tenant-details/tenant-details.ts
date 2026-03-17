@@ -196,7 +196,6 @@ private mapToUpdateDto(
     contactNumber: tenant.contactNumber,
     aadharNumber: tenant.aadharNumber,
     advanceAmount: tenant.advanceAmount,
-    rentPaidUpto: tenant.rentPaidUpto,
     notes: tenant.notes
   };
 }

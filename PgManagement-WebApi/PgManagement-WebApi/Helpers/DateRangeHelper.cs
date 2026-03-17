@@ -7,6 +7,8 @@
             DateTime rangeTo,
             IEnumerable<(DateTime From, DateTime To)> subtractRanges)
         {
+            rangeFrom = rangeFrom.Date;
+            rangeTo = rangeTo.Date;
             var result = new List<(DateTime From, DateTime To)>
         {
             (rangeFrom, rangeTo)
@@ -14,7 +16,10 @@
 
             foreach (var (subFrom, subTo) in subtractRanges)
             {
-                result = result.SelectMany(r => SubtractOne(r, subFrom, subTo)).ToList();
+                var sFrom = subFrom.Date;
+                var sTo = subTo.Date;
+                result = result.SelectMany(r => SubtractOne(r, sFrom, sTo))
+                    .Where(r => r.From <= r.To).ToList();
             }
 
             return result;

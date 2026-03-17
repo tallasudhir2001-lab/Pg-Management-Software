@@ -35,17 +35,18 @@ namespace PgManagement_WebApi.Controllers
             if (string.IsNullOrEmpty(pgId) || string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            // 1️ Validate tenant
-            var tenant = await context.Tenants
-                .FirstOrDefaultAsync(t =>
-                    t.TenantId == dto.TenantId &&
-                    t.PgId == pgId &&
-                    !t.isDeleted);
+            var today = DateTime.UtcNow.Date;
 
-            if (tenant == null)
+            // 1️⃣ Validate tenant
+            var tenantExists = await context.Tenants.AnyAsync(t =>
+                t.TenantId == dto.TenantId &&
+                t.PgId == pgId &&
+                !t.isDeleted);
+
+            if (!tenantExists)
                 return NotFound("Invalid tenant");
 
-            // 2️ Get all stays ordered
+            // 2️⃣ Load stays (chronological)
             var stays = await context.TenantRooms
                 .Where(tr => tr.TenantId == dto.TenantId && tr.PgId == pgId)
                 .OrderBy(tr => tr.FromDate)
@@ -54,62 +55,85 @@ namespace PgManagement_WebApi.Controllers
             if (!stays.Any())
                 return BadRequest("Tenant has no stay history");
 
-            // 3️ Get last payment (if any)
-            var lastPayment = await context.Payments
-                .Where(p => p.TenantId == dto.TenantId && p.PgId == pgId)
-                .OrderByDescending(p => p.PaidUpto)
-                .FirstOrDefaultAsync();
+            // 3️⃣ Load existing payments
+            var payments = await context.Payments
+                .Where(p =>
+                    p.TenantId == dto.TenantId &&
+                    p.PgId == pgId &&
+                    !p.IsDeleted)
+                .ToListAsync();
 
-            // 4️ Determine PaidFrom
-            DateTime paidFrom;
+            // 4️⃣ Collect ALL unpaid ranges across stays
+            var allUnpaidRanges = new List<(DateTime From, DateTime To)>();
 
-            if (lastPayment != null)
+            foreach (var stay in stays)
             {
-                paidFrom = lastPayment.PaidUpto.AddDays(1);
-            }
-            else
-            {
-                paidFrom = stays.First().FromDate;
-            }
+                var stayFrom = stay.FromDate.Date;
+                var stayTo = stay.ToDate ?? dto.PaidUpto;
 
-            // 5️ Find the stay that contains PaidFrom
-            var stay = stays.FirstOrDefault(tr =>
-                tr.FromDate <= paidFrom &&
-                (tr.ToDate == null || paidFrom <= tr.ToDate.Value));
+                if (stayFrom > stayTo)
+                    continue;
 
-            if (stay == null)
-                return BadRequest("No stay exists for the unpaid period");
+                var unpaidRanges = DateRangeHelper.Subtract(
+                    stayFrom,
+                    stayTo,
+                    payments.Select(p => (p.PaidFrom.Date, p.PaidUpto.Date))
+                );
 
-            // 6️ Validate PaidUpto
-            if (dto.PaidUpto < paidFrom)
-                return BadRequest("Paid upto date is before unpaid period");
-
-            if (stay.ToDate.HasValue && dto.PaidUpto > stay.ToDate.Value)
-                return BadRequest("Payment exceeds stay duration");
-
-            // 7️ Soft frequency correction
-            var frequencyCode = dto.PaymentFrequencyCode;
-
-            if (frequencyCode != "CUSTOM")
-            {
-                // If UI intent doesn't match actual dates, downgrade
-                // (logic optional, safe default)
-                // frequencyCode = "CUSTOM";
+                if (unpaidRanges.Any())
+                    allUnpaidRanges.AddRange(unpaidRanges);
             }
 
-            // 8 Create payment
+            if (!allUnpaidRanges.Any())
+                return BadRequest("No pending rent exists for this tenant.");
+
+            // 5️⃣ Merge unpaid ranges into ONE continuous payable window
+            var ordered = allUnpaidRanges
+                .OrderBy(r => r.From)
+                .ToList();
+
+            var payableFrom = ordered.First().From;
+            var payableUpto = ordered.First().To;
+
+            foreach (var range in ordered.Skip(1))
+            {
+                // contiguous or overlapping
+                if (range.From <= payableUpto.AddDays(1))
+                {
+                    if (range.To > payableUpto)
+                        payableUpto = range.To;
+                }
+                else
+                {
+                    break; // GAP found → cannot pay beyond this
+                }
+            }
+
+            // 6️⃣ Validate requested payment period
+            if (dto.PaidUpto < payableFrom || dto.PaidUpto > payableUpto)
+            {
+                return BadRequest(
+                    $"Payment period must be between {payableFrom:dd MMM yyyy} and {payableUpto:dd MMM yyyy}."
+                );
+            }
+
+            // 7️⃣ Create payment (PaidFrom is enforced by backend)
             var payment = new Payment
             {
                 PaymentId = Guid.NewGuid().ToString(),
                 PgId = pgId,
                 TenantId = dto.TenantId,
+
                 Amount = dto.Amount,
                 PaymentDate = dto.PaymentDate ?? DateTime.UtcNow,
-                PaidFrom = paidFrom,
+
+                PaidFrom = payableFrom,
                 PaidUpto = dto.PaidUpto,
-                PaymentFrequencyCode = frequencyCode,
+
+                PaymentFrequencyCode = dto.PaymentFrequencyCode,
                 PaymentModeCode = dto.PaymentModeCode,
                 Notes = dto.Notes,
+
                 CreatedByUserId = userId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -125,6 +149,7 @@ namespace PgManagement_WebApi.Controllers
                 Amount = payment.Amount
             });
         }
+
         [HttpGet("pending/{tenantId}")]
         public async Task<IActionResult> GetPendingRent(
     string tenantId,
@@ -165,7 +190,7 @@ namespace PgManagement_WebApi.Controllers
 
             // 3️ Load all payments
             var payments = await context.Payments
-                .Where(p => p.TenantId == tenantId && p.PgId == pgId)
+                .Where(p => p.TenantId == tenantId && p.PgId == pgId && !p.IsDeleted)
                 .ToListAsync();
 
             decimal totalPending = 0;
@@ -250,21 +275,18 @@ namespace PgManagement_WebApi.Controllers
 
             var today = DateTime.UtcNow.Date;
 
-            // 1️ Validate tenant
+            // 1️⃣ Validate tenant
             var tenant = await context.Tenants
                 .Where(t => t.TenantId == tenantId && t.PgId == pgId && !t.isDeleted)
-                .Select(t => new
-                {
-                    t.TenantId,
-                    t.Name
-                })
+                .Select(t => new { t.TenantId, t.Name })
                 .FirstOrDefaultAsync();
 
             if (tenant == null)
                 return NotFound("Invalid tenant");
 
-            // 2️ Load stays
+            // 2️⃣ Load stays (chronological)
             var stays = await context.TenantRooms
+                .Include(tr => tr.Room)
                 .Where(tr => tr.TenantId == tenantId && tr.PgId == pgId)
                 .OrderBy(tr => tr.FromDate)
                 .ToListAsync();
@@ -272,110 +294,134 @@ namespace PgManagement_WebApi.Controllers
             if (!stays.Any())
                 return BadRequest("Tenant has no stay history");
 
-            // 3️ Load last payment
-            var lastPayment = await context.Payments
-                .Where(p => p.TenantId == tenantId && p.PgId == pgId)
-                .OrderByDescending(p => p.PaidUpto)
-                .FirstOrDefaultAsync();
-
-            // 4️ Determine PaidFrom
-            DateTime paidFrom = lastPayment != null
-                ? lastPayment.PaidUpto.AddDays(1)
-                : stays.First().FromDate;
-
-            // 5️ Find stay that contains PaidFrom
-            var stay = stays.FirstOrDefault(tr =>
-                tr.FromDate <= paidFrom &&
-                (tr.ToDate == null || paidFrom <= tr.ToDate.Value));
-
-            if (stay == null)
-                return BadRequest("No unpaid stay period exists");
-
-            // 6️ Determine MaxPaidUpto
-            var maxPaidUpto = stay.ToDate.HasValue
-                ? stay.ToDate.Value
-                : today;
-
-            // 7️ Get pending amount (reuse logic pattern)
-            // We reuse Pending Rent endpoint logic conceptually,
-            // but only need the total as-of today.
-            decimal pendingAmount = 0;
-
-            // Load payments once
+            // 3️⃣ Load all payments once
             var payments = await context.Payments
-                .Where(p => p.TenantId == tenantId && p.PgId == pgId)
+                .Where(p => p.TenantId == tenantId && p.PgId == pgId &&!p.IsDeleted)
                 .ToListAsync();
 
-            // Subtract paid ranges from stay
-            var stayFrom = stay.FromDate;
-            var stayTo = stay.ToDate.HasValue
-                ? Min(stay.ToDate.Value, today)
-                : today;
+            var pendingStays = new List<PendingStayContextDto>();
+            var allUnpaidRanges = new List<(DateTime From, DateTime To)>();
 
-            if (stayFrom <= stayTo)
+            // 4️⃣ Compute unpaid ranges per stay
+            foreach (var stay in stays)
             {
+                var stayFrom = stay.FromDate.Date;
+                var stayTo = stay.ToDate.HasValue
+                    ? Min(stay.ToDate.Value, today)
+                    : today;
+
+                if (stayFrom > stayTo)
+                    continue;
+
                 var unpaidRanges = DateRangeHelper.Subtract(
                     stayFrom,
                     stayTo,
-                    payments.Select(p => (p.PaidFrom, p.PaidUpto))
+                    payments.Select(p => (p.PaidFrom.Date, p.PaidUpto.Date))
                 );
 
-                if (unpaidRanges.Any())
+                if (!unpaidRanges.Any())
+                    continue;
+
+                allUnpaidRanges.AddRange(unpaidRanges);
+
+                // rent calculation for UI only
+                var rentHistories = await context.RoomRentHistories
+                    .Where(r =>
+                        r.RoomId == stay.RoomId &&
+                        r.EffectiveFrom <= stayTo &&
+                        (r.EffectiveTo == null || r.EffectiveTo >= stayFrom))
+                    .OrderBy(r => r.EffectiveFrom)
+                    .ToListAsync();
+
+                decimal stayPending = 0;
+
+                foreach (var range in unpaidRanges)
                 {
-                    var rentHistories = await context.RoomRentHistories
-                        .Where(r =>
-                            r.RoomId == stay.RoomId &&
-                            r.EffectiveFrom <= stayTo &&
-                            (r.EffectiveTo == null || r.EffectiveTo >= stayFrom))
-                        .OrderBy(r => r.EffectiveFrom)
-                        .ToListAsync();
+                    var slices = RentHelper.GetRentSlices(
+                        range.From,
+                        range.To,
+                        rentHistories
+                    );
 
-                    foreach (var range in unpaidRanges)
+                    stayPending += slices.Sum(s => s.Amount);
+                }
+
+                if (stayPending > 0)
+                {
+                    pendingStays.Add(new PendingStayContextDto
                     {
-                        var slices = RentHelper.GetRentSlices(
-                            range.From,
-                            range.To,
-                            rentHistories
-                        );
-
-                        pendingAmount += slices.Sum(s => s.Amount);
-                    }
+                        RoomId = stay.RoomId,
+                        RoomNumber = stay.Room.RoomNumber,
+                        FromDate = stayFrom,
+                        ToDate = stayTo,
+                        PendingAmount = Decimal.Round(stayPending, 2),
+                        IsActiveStay = stay.ToDate == null,
+                        IsNextPayable = false // set later
+                    });
                 }
             }
 
-            var roundedPending = Decimal.Round(
-     pendingAmount,
-     2,
-     MidpointRounding.AwayFromZero
- );
-
-            if (roundedPending <= 0)
+            // 5️⃣ No pending rent at all
+            if (!allUnpaidRanges.Any())
             {
                 return Ok(new PaymentContextDto
                 {
                     TenantId = tenant.TenantId,
                     TenantName = tenant.Name,
-                    PaidFrom = paidFrom,            // informational (future)
-                    MaxPaidUpto = null,             // 👈 IMPORTANT
                     PendingAmount = 0,
-                    AsOfDate = today,
-                    HasActiveStay = stay.ToDate == null
+                    PendingStays = new List<PendingStayContextDto>(),
+                    PaidFrom = null,
+                    MaxPaidUpto = null,
+                    HasActiveStay = false,
+                    AsOfDate = today
                 });
             }
 
-            // 👇 existing behavior for due payments
+            // 6️⃣ Merge unpaid ranges into one continuous window
+            var ordered = allUnpaidRanges
+                .OrderBy(r => r.From)
+                .ToList();
+
+            var paidFrom = ordered.First().From;
+            var maxPaidUpto = ordered.First().To;
+
+            foreach (var range in ordered.Skip(1))
+            {
+                // contiguous or overlapping
+                if (range.From <= maxPaidUpto.AddDays(1))
+                {
+                    if (range.To > maxPaidUpto)
+                        maxPaidUpto = range.To;
+                }
+                else
+                {
+                    break; // gap → stop
+                }
+            }
+
+            // 7️⃣ Mark stays that fall inside payable window
+            foreach (var stay in pendingStays)
+            {
+                if (stay.FromDate <= maxPaidUpto && stay.ToDate >= paidFrom)
+                {
+                    stay.IsNextPayable = true;
+                }
+            }
+
             return Ok(new PaymentContextDto
             {
                 TenantId = tenant.TenantId,
                 TenantName = tenant.Name,
+                PendingAmount = pendingStays.Sum(s => s.PendingAmount),
+                PendingStays = pendingStays,
                 PaidFrom = paidFrom,
                 MaxPaidUpto = maxPaidUpto,
-                PendingAmount = roundedPending,
-                AsOfDate = today,
-                HasActiveStay = stay.ToDate == null
+                HasActiveStay = pendingStays.Any(s => s.IsActiveStay),
+                AsOfDate = today
             });
-
         }
+
+
         [HttpGet("tenant/{tenantId}")]
         public async Task<IActionResult> GetPaymentHistoryForTenant(string tenantId)
         {
@@ -396,7 +442,7 @@ namespace PgManagement_WebApi.Controllers
             var payments = await context.Payments
                 .Where(p =>
                     p.TenantId == tenantId &&
-                    p.PgId == pgId
+                    p.PgId == pgId && !p.IsDeleted
                 )
                 .OrderByDescending(p => p.PaymentDate)
                 .Select(p => new TenantPaymentHistoryDto

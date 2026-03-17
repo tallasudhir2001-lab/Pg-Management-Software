@@ -9,33 +9,44 @@
         <!-- LEFT SECTION -->
         <div class="form-section section-left">
           <h3 class="section-subtitle">Tenant Details</h3>
-          
+
+          <div class="form-group">
+            <label>Aadhaar Number</label>
+            <input type="text" maxlength="12" inputmode="numeric" pattern="[0-9]*" class="form-input"
+              placeholder="Enter Aadhaar number" formControlName="aadharNumber" />
+          </div>
+          <div *ngIf="existingTenant" class="existing-tenant-warning">
+
+            <p>
+              Tenant <span class="existing-tenant-name">{{ existingTenant.name }}</span> already exists.
+            </p>
+
+            <div class="existing-tenant-actions">
+
+              <button type="button" class="btn-secondary" (click)="viewExistingTenant()">
+                View Tenant
+              </button>
+
+              <button type="button" class="btn-primary" (click)="createStayForExisting()">
+                Create Stay
+              </button>
+
+            </div>
+
+          </div>
+
+
           <div class="form-group">
             <label>Tenant Name</label>
-            <input
-              type="text"
-              class="form-input"
-              placeholder="Enter tenant name"
-              formControlName="name" />
+            <input type="text" class="form-input" placeholder="Enter tenant name" formControlName="name" />
           </div>
 
           <div class="form-group">
             <label>Mobile Number</label>
-            <input
-              type="text"
-              class="form-input"
-              placeholder="Enter mobile number"
-              formControlName="contactNumber" />
+            <input type="text" class="form-input" placeholder="Enter mobile number" formControlName="contactNumber" />
           </div>
 
-          <div class="form-group">
-            <label>Aadhaar Number</label>
-            <input
-              type="text"
-              class="form-input"
-              placeholder="Enter Aadhaar number"
-              formControlName="aadharNumber" />
-          </div>
+
         </div>
 
         <!-- RIGHT SECTION -->
@@ -44,15 +55,11 @@
 
           <div class="form-group">
             <label>Room</label>
-            <select
-              class="form-input"
-              formControlName="roomId">
-              
+            <select class="form-input" formControlName="roomId">
+
               <option value="">Select room</option>
 
-              <option
-                *ngFor="let room of rooms$ | async"
-                [value]="room.roomId">
+              <option *ngFor="let room of rooms$ | async" [value]="room.roomId">
                 Room {{ room.roomNumber }} - available beds -> ({{ room.vacancies }})
               </option>
             </select>
@@ -60,10 +67,7 @@
 
           <div class="form-group">
             <label>Checked In Date</label>
-            <input
-              type="date"
-              class="form-input"
-              formControlName="fromDate" />
+            <input type="date" class="form-input" formControlName="fromDate" />
           </div>
         </div>
 
@@ -74,28 +78,13 @@
           <div class="financial-row">
             <div class="form-group">
               <label>Advance Amount (₹)</label>
-              <input
-                type="number"
-                class="form-input"
-                placeholder="Enter amount"
-                formControlName="advanceAmount" />
+              <input type="number" class="form-input" placeholder="Enter amount" formControlName="advanceAmount" />
             </div>
 
-            <div class="form-group">
-              <label>Rent Paid Upto</label>
-              <input
-                type="date"
-                class="form-input"
-                formControlName="rentPaidUpto" />
-            </div>
           </div>
           <div class="form-group">
             <label>Notes</label>
-            <textarea
-                rows="3"
-                class="form-input"
-                placeholder="Additional notes (optional)"
-                formControlName="notes">
+            <textarea rows="3" class="form-input" placeholder="Additional notes (optional)" formControlName="notes">
             </textarea>
           </div>
         </div>
@@ -104,18 +93,12 @@
 
       <!-- ACTIONS -->
       <div class="actions">
-        <button
-          type="button"
-          class="btn-cancel"
-          (click)="cancel()">
+        <button type="button" class="btn-cancel" (click)="cancel()">
           Cancel
         </button>
 
-        <button
-          type="button"
-          class="btn-save"
-          (click)="save()"
-          [disabled]="form.invalid">
+        <button *ngIf="!existingTenant" type="button" class="btn-save" (click)="save()"
+          [disabled]="form.invalid || checkingAadhar">
           Save Tenant
         </button>
       </div>

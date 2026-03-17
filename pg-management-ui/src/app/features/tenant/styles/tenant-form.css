@@ -521,10 +521,39 @@
 }
 .full-width-row {
   width: 100%;
-  align-self: stretch; /* important in a flex-column with align-items:center */
+  max-width: 750px;
+  margin: 0 auto; 
+  box-sizing: border-box;
 }
 
 .full-width-row app-payment-history {
   display: block;
   width: 100%;
+}
+.existing-tenant-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  margin-bottom: 14px;
+  justify-content: center;
+
+}
+
+.existing-tenant-actions button {
+  padding: 6px 12px;
+  font-size: 14px;
+  width: auto;
+}
+.existing-tenant-name {
+  color: #16a34a;
+  font-weight: 600;
+}
+.status-active {
+  color: #16a34a;   /* green */
+  font-weight: 600;
+}
+
+.status-inactive {
+  color: #dc2626;   /* red */
+  font-weight: 600;
 }

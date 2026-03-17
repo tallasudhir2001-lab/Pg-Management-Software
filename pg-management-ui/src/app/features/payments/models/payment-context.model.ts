@@ -1,10 +1,20 @@
+export interface PendingStayContext {
+  roomId: string;
+  roomNumber: string;
+  fromDate: string;
+  toDate: string;
+  pendingAmount: number;
+  isActiveStay: boolean;
+  isNextPayable: boolean;
+}
+
 export interface PaymentContext {
   tenantId: string;
-  PaymentFrequencyCode: 'MONTHLY' | 'DAILY' | 'CUSTOM';
   tenantName: string;
-  paidFrom: string;
-  maxPaidUpto: string;
+  paidFrom: string | null;
+  maxPaidUpto: string | null;
   pendingAmount: number;
   asOfDate: string;
   hasActiveStay: boolean;
+  pendingStays: PendingStayContext[];
 }

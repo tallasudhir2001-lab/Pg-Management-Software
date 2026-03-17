@@ -7,6 +7,9 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Tenantservice } from '../services/tenantservice';
 import { ToastService } from '../../../shared/toast/toast-service';
+import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+
 
 @Component({
   selector: 'app-add-tenant',
@@ -30,19 +33,56 @@ export class AddTenant implements OnInit {
   // 🔹 Rooms for dropdown
   rooms$!: Observable<Room[]>;
   error= '';
+
+  existingTenant: any = null;
+  checkingAadhar = false;
+
   
   ngOnInit(): void {
     this.form = this.fb.group({
     name: ['', Validators.required],
     contactNumber: ['', Validators.required],
-    aadharNumber: [''],
-    roomId: ['', Validators.required],   // 👈 GUID goes here
+    aadharNumber: ['',
+      [
+        Validators.pattern(/^\d{12}$/)
+      ]
+    ],
+    roomId: ['', Validators.required], 
     fromDate: [null],
     advanceAmount: [null],
-    rentPaidUpto: [null],
     notes: ['']
   });
     this.loadAvailableRooms();
+    this.form.get('aadharNumber')?.valueChanges
+  .pipe(
+    debounceTime(400),
+    distinctUntilChanged(),
+    switchMap(value => {
+
+      if (!value || value.length !== 12) {
+        this.existingTenant = null;
+        return of(null);
+      }
+
+      this.checkingAadhar = true;
+
+      return this.tenantService.findByAadhar(value)
+        .pipe(catchError(() => of(null)));
+
+    })
+  )
+  .subscribe(res => {
+
+    this.checkingAadhar = false;
+
+    if (res) {
+      this.existingTenant = res;
+    } else {
+      this.existingTenant = null;
+    }
+
+  });
+
   }
   private loadAvailableRooms(): void {
     this.rooms$ = this.roomService.getRooms({
@@ -75,4 +115,38 @@ export class AddTenant implements OnInit {
   cancel(): void {
     this.router.navigate(['/tenant-list']);
   }
+  viewExistingTenant() {
+  this.router.navigate(['/tenants', this.existingTenant.tenantId]);
+}
+
+createStayForExisting() {
+
+  const payload = {
+    tenantId: this.existingTenant.tenantId,
+    roomId: this.form.value.roomId,
+    fromDate: this.form.value.fromDate,
+    advanceAmount: this.form.value.advanceAmount
+  };
+  if (!this.form.value.roomId) {
+    this.toastService.showError('Please select a room first.');
+    return;
+  }
+
+  this.tenantService.createStay(payload).subscribe({
+    next: () => {
+
+      this.toastService.showSuccess('Stay created successfully.');
+
+      this.router.navigate(['/tenants', this.existingTenant.tenantId]);
+
+    },
+    error: (err) => {
+
+      this.toastService.showError(err.error);
+
+    }
+  });
+
+}
+
 }

@@ -73,6 +73,11 @@ export class AddPayment implements OnChanges {
 
 
   private buildForm(ctx: PaymentContext) {
+    // Only build form if there's pending amount
+    if (ctx.pendingAmount === 0) {
+      return;
+    }
+
     this.form = this.fb.group({
       frequency: ['MONTHLY', Validators.required],
       paidFrom: [{ value: ctx.paidFrom, disabled: true }],
@@ -88,6 +93,8 @@ export class AddPayment implements OnChanges {
   }
 
   private updatePaidUpto(freq: string, ctx: PaymentContext) {
+    if (!ctx.paidFrom) return;
+    
     const from = new Date(ctx.paidFrom);
     let upto = new Date(from);
 
@@ -97,9 +104,11 @@ export class AddPayment implements OnChanges {
       upto = new Date(from);
     }
 
-    const max = new Date(ctx.maxPaidUpto);
-    if (upto > max) {
-      upto = max;
+    if (ctx.maxPaidUpto) {
+      const max = new Date(ctx.maxPaidUpto);
+      if (upto > max) {
+        upto = max;
+      }
     }
 
     this.form.patchValue({ paidUpto: upto.toISOString().substring(0, 10) });
@@ -107,18 +116,25 @@ export class AddPayment implements OnChanges {
 
   save(ctx: PaymentContext) {
     if (this.form.invalid) {
-    this.toastService.showError('Please fill in all required fields correctly.');
-    this.form.markAllAsTouched(); 
-    return; 
-  }
+      this.toastService.showError('Please fill in all required fields correctly.');
+      this.form.markAllAsTouched(); 
+      return; 
+    }
+    
     if (this.saving) return;
+
+    // Validate that paidFrom exists
+    if (!ctx.paidFrom) {
+      this.toastService.showError('Payment cannot be processed - no pending amount.');
+      return;
+    }
 
     this.saving = true;
 
     const payload = {
       tenantId: ctx.tenantId,
-      PaymentFrequencyCode:this.form.value.frequency,
-      paidFrom: ctx.paidFrom,
+      PaymentFrequencyCode: this.form.value.frequency,
+      paidFrom: ctx.paidFrom, // TypeScript now knows this is not null
       paidUpto: this.form.value.paidUpto,
       amount: this.form.value.amount,
       paymentModeCode: this.form.value.paymentModeCode,
@@ -128,7 +144,6 @@ export class AddPayment implements OnChanges {
     this.paymentService.createPayment(payload).subscribe({
       next: () => {
         this.saving = false;
-        // close modal / navigate / emit event
         this.toastService.showSuccess('Payment recorded successfully');
         this.router.navigate(['/tenants', ctx.tenantId]);
       },

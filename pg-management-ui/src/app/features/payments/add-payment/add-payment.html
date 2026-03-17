@@ -6,20 +6,23 @@
     <div class="payment-container">
         <section class="summary-card">
             <h3 class="section-title">Payment Summary</h3>
+            
             <div class="summary-item">
                 <span class="label">Tenant</span>
                 <span class="value">{{ ctx.tenantName }}</span>
             </div>
 
             <div class="summary-item highlight">
-                <span class="label">Pending Amount</span>
+                <span class="label">Total Pending Amount</span>
                 <span class="value">₹{{ ctx.pendingAmount | number:'1.2-2' }}</span>
             </div>
-            <div class="summary-item">
-                <span class="label">Next Due From</span>
-                <span class="value">{{ ctx.paidFrom | date:'dd MMM yyyy' }}</span>
-            </div>
-            <div *ngIf="ctx.pendingAmount>0">
+
+            <div *ngIf="ctx.pendingAmount > 0">
+                <div class="summary-item">
+                    <span class="label">Next Due From</span>
+                    <span class="value">{{ ctx.paidFrom | date:'dd MMM yyyy' }}</span>
+                </div>
+
                 <div class="summary-item">
                     <span class="label">Allowed Till</span>
                     <span class="value">{{ ctx.maxPaidUpto | date:'dd MMM yyyy' }}</span>
@@ -32,9 +35,40 @@
                     </p>
                 </div>
             </div>
+
+            <!-- Pending Stays Section -->
+            <div class="pending-stays-section" *ngIf="ctx.pendingStays && ctx.pendingStays.length > 0">
+                <div class="section-subtitle">Pending Stays</div>
+                
+                <div *ngFor="let stay of ctx.pendingStays" 
+                     class="stay-card" 
+                     [class.next-payable]="stay.isNextPayable"
+                     [class.active-stay]="stay.isActiveStay">
+                    
+                    <div class="stay-card-header">
+                        <span class="room-number">Room {{ stay.roomNumber }}</span>
+                        <span class="stay-amount">₹{{ stay.pendingAmount | number:'1.2-2' }}</span>
+                    </div>
+                    
+                    <div class="stay-period">STAY PERIOD</div>
+                    <div class="stay-dates">
+                        {{ stay.fromDate | date:'dd MMM yyyy' }} → {{ stay.toDate | date:'dd MMM yyyy' }}
+                    </div>
+                    
+                    <div *ngIf="stay.isNextPayable" class="next-payable-badge">
+                        NEXT PAYABLE
+                    </div>
+                </div>
+            </div>
+
+            <!-- No Pending Rent Message -->
+            <div class="no-pending-message" *ngIf="ctx.pendingAmount === 0">
+                <div class="icon">✓</div>
+                <div>All rent payments are up to date!</div>
+            </div>
         </section>
 
-        <form class="form-card" [formGroup]="form">
+        <form class="form-card" [formGroup]="form" *ngIf="ctx.pendingAmount > 0">
             <div class="form-grid">
                 <div class="form-group">
                     <label>Payment Frequency</label>
@@ -45,8 +79,9 @@
 
                 <div class="form-group">
                     <label>Paid Upto</label>
-                    <input type="date" class="form-input" formControlName="paidUpto" [min]="ctx.paidFrom"
-                        [max]="ctx.maxPaidUpto" />
+                    <input type="date" class="form-input" formControlName="paidUpto" 
+                           [min]="ctx.paidFrom"
+                           [max]="ctx.maxPaidUpto" />
                 </div>
 
                 <div class="form-group">
