@@ -6,10 +6,10 @@ namespace PgManagement_WebApi.Models
     public class Tenant
     {
         [Key]
-        public string TenantId { get; set; }  // e.g., "T001"
+        public string TenantId { get; set; } 
 
         [Required]
-        public string PgId { get; set; }      // Tenant belongs to PG
+        public string PgId { get; set; }   
 
         [Required]
         public string Name { get; set; }
@@ -23,7 +23,6 @@ namespace PgManagement_WebApi.Models
         [RegularExpression(@"^\d{12}$",
             ErrorMessage = "Aadhaar must be 12 digits")]
         public string AadharNumber { get; set; }
-        public decimal? AdvanceAmount { get; set; }
         public string Notes { get; set; }
 
         public DateTime CreatedAt { get; set; }

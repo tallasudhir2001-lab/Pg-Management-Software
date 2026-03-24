@@ -46,7 +46,6 @@
 .styled-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px; /* Prevents squishing on small screens */
 }
 
 .styled-table th {
@@ -67,14 +66,20 @@
   vertical-align: middle;
 }
 
+.type-cell {
+  font-weight: 600;
+  color: #374151;
+}
+
 .date-cell { 
-  font-weight: 600; 
-  color: #111827;
+  color: #6b7280;
+  font-size: 14px;
 }
 
 .period-range { 
-  color: #6b7280; 
-  font-size: 14px; 
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
 }
 .period-range span { 
   color: #d1d5db; 

@@ -84,4 +84,10 @@ export class PaymentService {
   deletePayment(paymentId: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${paymentId}`);
   }
+  getPayment(paymentId: string): Observable<any> {
+  return this.http.get<any>(`${this.baseUrl}/${paymentId}`);
+}
+updatePayment(paymentId: string, payload: any): Observable<any> {
+  return this.http.put(`${this.baseUrl}/${paymentId}`, payload);
+}
 }

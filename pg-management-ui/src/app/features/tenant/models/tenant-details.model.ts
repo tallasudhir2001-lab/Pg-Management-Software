@@ -1,3 +1,5 @@
+import { Advance } from "../../advances/models/advance.model";
+
 export interface TenantDetailsModel {
   tenantId: string;
 
@@ -7,7 +9,10 @@ export interface TenantDetailsModel {
   aadharNumber: string;
 
   // Financial details
-  advanceAmount: number;
+  hasAdvance: boolean;
+  advanceAmount: number | null;
+  advancePaymentMode: string | null;
+
   notes: string | null;
 
   // Room / stay details
@@ -17,4 +22,16 @@ export interface TenantDetailsModel {
 
   // Derived state
   status: 'Active' | 'MovedOut';
+
+  //stays
+  stays: Stay[];
+  
+  advances: Advance[];
 }
+export interface Stay {
+  roomId: string;
+  roomNumber: string;
+  fromDate: string;
+  toDate: string | null;
+}
+

@@ -3,6 +3,7 @@
     public class TenantPaymentHistoryDto
     {
         public string PaymentId { get; set; }
+        public string PaymentType { get; set; }
 
         public DateTime PaymentDate { get; set; }
 

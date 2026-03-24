@@ -17,6 +17,7 @@ import { AddPayment } from './features/payments/add-payment/add-payment';
 import { AddPaymentContainer } from './features/payments/add-payment-container/add-payment-container';
 import { PaymentsHistory } from './features/payments/payments-history/payments-history';
 import { Expenses } from './features/expenses/expenses/expenses';
+import { PaymentDetails } from './features/payments/payment-details/payment-details';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -41,7 +42,9 @@ export const routes: Routes = [
                     { path: '', redirectTo: 'add', pathMatch: 'full' },
                     { path: 'add', component: AddPaymentContainer },
                     { path: 'add/:tenantId', component: AddPayment },
-                    { path: 'history', component: PaymentsHistory }
+                    { path: 'history', component: PaymentsHistory },
+                    { path: ':paymentId', component: PaymentDetails },
+                    { path: ':paymentId/edit', component: PaymentDetails }
                 ]
             },
             {path: 'expenses', component: Expenses}

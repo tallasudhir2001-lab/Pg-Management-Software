@@ -8,6 +8,7 @@
     <table class="styled-table">
       <thead>
         <tr>
+          <th>Type</th>
           <th>Date</th>
           <th>Period</th>
           <th>Mode</th>
@@ -17,6 +18,7 @@
       </thead>
       <tbody>
         <tr *ngFor="let p of history">
+          <td class="type-cell">{{ p.paymentType }}</td>
           <td class="date-cell">{{ p.paymentDate | date:'dd MMM yyyy' }}</td>
           <td>
             <div class="period-range">

@@ -87,9 +87,9 @@ moveOutTenant(tenantId: string) {
   return this.http.post<void>(
     `${this.baseUrl}/${tenantId}/move-out`,{});
 }
-changeRoom(tenantId: string, newRoomId: string) {
+changeRoom(tenantId: string, payload: any) {
   return this.http.post<void>(
-    `${this.baseUrl}/${tenantId}/change-room`,{ newRoomId });
+    `${this.baseUrl}/${tenantId}/change-room`,payload);
 }
 findByAadhar(aadhar: string) {
   return this.http.get<any>(`${this.baseUrl}/findby-aadhar/${aadhar}`);

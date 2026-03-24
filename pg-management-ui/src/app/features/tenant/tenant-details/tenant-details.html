@@ -74,13 +74,17 @@
 
                 <div class="form-group">
                     <label>Status</label>
-                    <div class="form-input readonly">
+                    <div class="form-input readonly status-container">
                         <span [ngClass]="{
                             'status-active': tenant.status === 'Active',
                             'status-inactive': tenant.status === 'MovedOut'
                         }">
                             {{ tenant.status }}
                         </span>
+                        <button *ngIf="tenant?.status === 'MovedOut'" class="btn-create-stay"
+                            (click)="openCreateStay()">
+                            + Create Stay
+                        </button>
                     </div>
                 </div>
 
@@ -110,14 +114,38 @@
                 <h3 class="section-subtitle">Financial Details</h3>
 
                 <div class="financial-row">
+
+                    <!-- Has Advance -->
                     <div class="form-group">
+                        <label>Has Active Advance</label>
+                        <div class="form-input readonly">
+                            <span [ngClass]="{
+        'status-neutral': tenant.hasAdvance,
+        'status-inactive': !tenant.hasAdvance
+      }">
+                                {{ tenant.hasAdvance ? 'Yes' : 'No' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="form-group" *ngIf="tenant.hasAdvance">
                         <label>Advance Amount (₹)</label>
                         <div class="form-input readonly">
                             ₹ {{ tenant.advanceAmount }}
                         </div>
                     </div>
 
+                    <!-- Payment Mode -->
+                    <div class="form-group" *ngIf="tenant.hasAdvance">
+                        <label>Payment Mode</label>
+                        <div class="form-input readonly">
+                            {{ tenant.advancePaymentMode }}
+                        </div>
+                    </div>
+
                 </div>
+
 
                 <div class="form-group">
                     <label>Notes</label>
@@ -144,6 +172,7 @@
 
 
     </div>
+
     <div class="pending-rent-card" *ngIf="pendingRent$ | async as pending">
 
         <div class="pending-header-row">
@@ -207,10 +236,38 @@
             </table>
         </div>
     </div>
+    <div class="add-tenant-card" style="margin-top: 32px;">
+        <h3 class="section-subtitle">Stay History</h3>
+
+        <div *ngIf="stays.length === 0" style="color: #6b7280; font-size: 14px;">
+            No stay history available.
+        </div>
+
+        <div *ngFor="let stay of stays" class="stay-item" style="margin-bottom: 16px;">
+            <div class="stay-row" style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="form-group label" style="margin-bottom: 0; font-weight: 600;">
+                    Room {{ stay.roomNumber }}
+                    <span *ngIf="!stay.toDate" class="status-active"
+                        style="margin-left: 8px; font-size: 12px; background: #ecfdf5; padding: 2px 8px; border-radius: 999px;">
+                        Current
+                    </span>
+                </span>
+
+                <span class="form-input readonly" style="width: auto; padding: 6px 12px; font-size: 13px;">
+                    {{ stay.fromDate | date:'dd MMM yyyy' }}
+                    <span style="color: #9ca3af; margin: 0 8px;">→</span>
+                    {{ stay.toDate ? (stay.toDate | date:'dd MMM yyyy') : 'Present' }}
+                </span>
+            </div>
+        </div>
+    </div>
     <div class="full-width-row">
-     <app-payment-history
-    [tenantId]="tenantId">
-  </app-payment-history>
+        <app-advance-history [advances]="tenant.advances" [tenantId]="tenant.tenantId" (settled)="reload$.next()">
+        </app-advance-history>
+    </div>
+    <div class="full-width-row">
+        <app-payment-history [tenantId]="tenantId">
+        </app-payment-history>
     </div>
     <!-- ================= CHANGE ROOM MODAL ================= -->
     <div class="modal-backdrop" *ngIf="isChangeRoomOpen"></div>
@@ -225,7 +282,10 @@
         </div>
 
         <div class="modal-body">
-
+            <div class="form-group" style="margin-top: 12px;">
+                <label>Change Date</label>
+                <input type="date" class="form-input" [(ngModel)]="changeDate" />
+            </div>
             <div class="floating-select">
 
                 <select class="form-input" [(ngModel)]="selectedRoomId">
@@ -252,6 +312,83 @@
             <button class="btn-save" [disabled]="!selectedRoomId || isChangingRoom" (click)="confirmChangeRoom()">
                 Change Room
             </button>
+        </div>
+    </div>
+    <div class="modal-backdrop" *ngIf="isCreateStayOpen"></div>
+
+
+    <div class="modal" *ngIf="isCreateStayOpen">
+        <div class="modal-header">
+            <h3 class="modal-title">Create Stay</h3>
+            <button type="button" class="icon-btn modal-close" (click)="closeCreateStay()">
+                ✕
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <!-- Room Select -->
+            <div class="form-group">
+                <div class="floating-select">
+                    <select class="form-input" [(ngModel)]="selectedRoomIdForStay">
+                        <option value="" disabled hidden></option>
+                        <option *ngFor="let room of (rooms$ | async)" [value]="room.roomId">
+                            Room {{ room.roomNumber }} ({{ room.vacancies }} beds available)
+                        </option>
+                    </select>
+                    <label class="floating-label" [class.filled]="!!selectedRoomIdForStay">
+                        Select Room
+                    </label>
+                </div>
+            </div>
+
+            <!-- Date -->
+            <div class="form-group">
+                <label>Start Date</label>
+
+
+
+                <input type="date" class="form-input" [(ngModel)]="createStayDate" />
+            </div>
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button class="btn-cancel" (click)="closeCreateStay()">
+                Cancel
+            </button>
+
+
+
+            <button class="btn-save" [disabled]="!selectedRoomIdForStay || isCreatingStay"
+                (click)="confirmCreateStay()">
+
+
+                Create Stay
+            </button>
+        </div>
+    </div>
+    <div class="modal-backdrop" *ngIf="isMoveOutOpen"></div>
+
+    <div class="modal" *ngIf="isMoveOutOpen">
+        <div class="modal-header">
+            <h3 class="modal-title">Move Out Tenant</h3>
+            <button class="icon-btn modal-close" (click)="closeMoveOut()">✕</button>
+        </div>
+
+        <div class="modal-body">
+
+            <p>Are you sure you want to move out this tenant?</p>
+
+            <div *ngIf="hasActiveAdvance" style="margin-top: 12px; color: #b91c1c; font-weight: 500;">
+                This tenant has an active advance that is not settled.
+            </div>
+
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-cancel" (click)="closeMoveOut()">Cancel</button>
+            <button class="btn-save" (click)="proceedMoveOut()">Move Out</button>
         </div>
     </div>
 

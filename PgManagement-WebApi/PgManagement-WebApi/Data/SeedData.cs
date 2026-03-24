@@ -28,7 +28,8 @@ namespace PgManagement_WebApi.Data
 
                 new PaymentFrequency { Code = "MONTHLY", Description = "Monthly", RequiresUnitCount = true },
                 new PaymentFrequency { Code = "DAILY", Description = "Daily", RequiresUnitCount = true },
-                new PaymentFrequency { Code = "CUSTOM", Description = "Custom Period", RequiresUnitCount = false }
+                new PaymentFrequency { Code = "CUSTOM", Description = "Custom Period", RequiresUnitCount = false },
+                new PaymentFrequency { Code = "ONETIME", Description = "One Time", RequiresUnitCount = false }
                 };
                 await context.PaymentFrequencies.AddRangeAsync(frequencies);
                 await context.SaveChangesAsync();
@@ -45,6 +46,22 @@ namespace PgManagement_WebApi.Data
                 await context.PgRoles.AddRangeAsync(roles);
                 await context.SaveChangesAsync();
             }
+
+            //Payment Types
+            if (!await context.PaymentTypes.AnyAsync())
+            {
+                var types = new List<PaymentType>
+                {
+                    new PaymentType { Code = "RENT", Name = "Rent Payment" },
+                    new PaymentType { Code = "ADVANCE_PAYMENT", Name = "Advance Payment" },
+                    new PaymentType { Code = "ADVANCE_REFUND", Name = "Advance Refund" }
+                };
+
+                await context.PaymentTypes.AddRangeAsync(types);
+                await context.SaveChangesAsync();
+            }
+
+
             //adding admin role
             if (!await roleManager.RoleExistsAsync("Admin"))
             {

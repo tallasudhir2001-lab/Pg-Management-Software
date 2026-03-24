@@ -32,6 +32,8 @@
   
   /* Animation */
   animation: floatUpFade 2.8s ease-in-out forwards;
+  white-space: pre-line;
+
 }
 
 @keyframes floatUpFade {

@@ -1,5 +1,6 @@
 export interface PaymentHistoryDto {
   paymentId: string;
+  paymentType: string;
   paymentDate: string; // ISO date string
   tenantId: string;
   tenantName: string;

@@ -130,7 +130,6 @@
   text-align: left;
   font-size: 14px;
   color: #111827;
-  white-space: nowrap;
 }
 
 .data-table th {
@@ -619,6 +618,15 @@
   font-weight: 600;
   color: #111827;
 }
+.amount-cell,
+.data-table td:nth-child(4), /* period covered */
+.data-table td:nth-child(5), /* amount */
+.data-table td:nth-child(6), /* mode */
+.data-table td:nth-child(7), /* collected by */
+.data-table td:nth-child(8)  /* actions */ {
+  white-space: nowrap;
+}
+
 .amount-cell {
   font-weight: 700;
   color: #0f766e; /* premium teal */

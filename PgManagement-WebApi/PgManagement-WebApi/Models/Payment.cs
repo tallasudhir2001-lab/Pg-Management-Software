@@ -48,6 +48,10 @@ namespace PgManagement_WebApi.Models
         public PaymentMode PaymentMode { get; set; }
 
         [Required]
+        public string PaymentTypeCode { get; set; }
+        public PaymentType PaymentType { get; set; }
+
+        [Required]
         public string CreatedByUserId { get; set; }
         public ApplicationUser CreatedByUser { get; set; }
 

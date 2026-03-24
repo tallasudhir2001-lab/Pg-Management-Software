@@ -9,6 +9,7 @@ using PgManagement_WebApi.Helpers;
 using PgManagement_WebApi.Identity;
 using PgManagement_WebApi.Models;
 using PgManagement_WebApi.Services;
+using System.Security.Claims;
 
 namespace PgManagement_WebApi.Controllers
 {
@@ -230,10 +231,9 @@ public async Task<IActionResult> GetTenants(
                     t.Name,
                     t.ContactNumber,
                     t.AadharNumber,
-                    t.AdvanceAmount,
                     t.Notes,
 
-                    // ✅ Active stay (if any)
+                    //  Active stay (if any)
                     ActiveAssignment = context.TenantRooms
                         .Where(tr =>
                             tr.TenantId == tenantId &&
@@ -246,7 +246,7 @@ public async Task<IActionResult> GetTenants(
                         })
                         .FirstOrDefault(),
 
-                    // ✅ Last stay (for moved-out tenants)
+                    //  Last stay (for moved-out tenants)
                     LastAssignment = context.TenantRooms
                         .Where(tr =>
                             tr.TenantId == tenantId &&
@@ -265,16 +265,64 @@ public async Task<IActionResult> GetTenants(
             if (tenant == null)
                 return NotFound();
 
+            var stays = await context.TenantRooms
+                            .Where(tr => tr.TenantId == tenantId && tr.PgId == pgId)
+                            .OrderBy(tr => tr.FromDate)
+                            .Select(tr => new
+                            {
+                                tr.RoomId,
+                                RoomNumber = tr.Room.RoomNumber,
+                                tr.FromDate,
+                                tr.ToDate
+                            })
+                            .ToListAsync();
+            var advances = await context.Advances
+                            .Where(a => a.TenantId == tenantId)
+                            .OrderByDescending(a => a.PaidDate)
+                            .Select(a => new
+                            {
+                                a.AdvanceId,
+                                a.Amount,
+                                a.DeductedAmount,
+                                a.IsSettled,
+                                a.PaidDate
+                            })
+                            .ToListAsync();
+
+            var advance = await context.Advances
+                            .Where(a => a.TenantId == tenantId && !a.IsSettled)
+                            .Select(a => new
+                            {
+                                a.Amount
+                            })
+                            .FirstOrDefaultAsync();
+
+            var advancePayment = await context.Payments
+                            .Where(p =>
+                                p.TenantId == tenantId &&
+                                p.PaymentTypeCode == "ADVANCE_PAYMENT" &&
+                                !p.IsDeleted)
+                            .OrderByDescending(p => p.CreatedAt)
+                            .Select(p => new
+                            {
+                                p.PaymentModeCode
+                            })
+                            .FirstOrDefaultAsync();
+
+
             return Ok(new
             {
                 tenant.TenantId,
                 tenant.Name,
                 tenant.ContactNumber,
                 tenant.AadharNumber,
-                tenant.AdvanceAmount,
+                HasAdvance = advance != null,
+                AdvanceAmount = advance != null ? advance.Amount : (decimal?)null,
+                AdvancePaymentMode = advancePayment != null ? advancePayment.PaymentModeCode : null,
+                Advances = advances,
                 tenant.Notes,
 
-                // ✅ EF-safe conditional mapping
+                //  EF-safe conditional mapping
                 RoomNumber =
                     tenant.ActiveAssignment != null
                         ? tenant.ActiveAssignment.RoomNumber
@@ -297,7 +345,9 @@ public async Task<IActionResult> GetTenants(
 
                 Status = tenant.ActiveAssignment != null
                     ? "Active"
-                    : "MovedOut"
+                    : "MovedOut",
+
+                Stays = stays
             });
         }
 
@@ -310,7 +360,7 @@ public async Task<IActionResult> GetTenants(
                 return Unauthorized();
 
             var (success, result, statusCode) =
-                await tenantService.ChangeRoomAsync(tenantId, dto.newRoomId, pgId);
+                await tenantService.ChangeRoomAsync(tenantId, dto.newRoomId, pgId,dto.changeDate);
 
             if (!success)
                 return StatusCode(statusCode, result);
@@ -372,11 +422,12 @@ public async Task<IActionResult> GetTenants(
         public async Task<IActionResult> CreateTenant(CreateTenantDto dto)
         {
             var pgId = User.FindFirst("pgId")?.Value;
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(pgId))
                 return Unauthorized();
 
             var (success, result, statusCode) =
-                await tenantService.CreateTenantAsync(dto, pgId);
+                await tenantService.CreateTenantAsync(dto, pgId, userId);
 
             if (!success)
                 return StatusCode(statusCode, result);
@@ -400,7 +451,6 @@ public async Task<IActionResult> GetTenants(
             tenant.Name = dto.Name;
             tenant.ContactNumber = dto.ContactNumber;
             tenant.AadharNumber = dto.AadharNumber;
-            tenant.AdvanceAmount = dto.AdvanceAmount;
             tenant.Notes = dto.Notes;
             tenant.UpdatedAt = DateTime.Now;
 

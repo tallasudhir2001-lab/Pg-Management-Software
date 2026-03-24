@@ -34,6 +34,11 @@
         <table class="data-table">
             <thead>
                 <tr>
+                    <th (click)="onSort('paymentType')" style="cursor: pointer;">
+                        Type
+                        <span class="sort-arrow" [class.visible]="isSortedBy('paymentType')"
+                            [class.asc]="isSortAsc('paymentType')">▼</span>
+                    </th>
                     <th (click)="onSort('paymentDate')" style="cursor: pointer;">
                         Payment Date
                         <span class="sort-arrow" [class.visible]="isSortedBy('paymentDate')"
@@ -65,6 +70,7 @@
             </thead>
             <tbody>
                 <tr *ngFor="let payment of (payments$ | async)?.items">
+                    <td class="tenant-cell">{{ payment.paymentType }}</td>
                     <td>{{ formatDate(payment.paymentDate) }}</td>
                     <td class="tenant-cell">{{ payment.tenantName }}</td>
                     <td class="muted">{{ payment.periodCovered }}</td>

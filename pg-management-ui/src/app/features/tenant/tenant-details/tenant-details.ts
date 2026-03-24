@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TenantListDto } from '../models/tenant-list-dto';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Tenantservice } from '../services/tenantservice';
-import { TenantDetailsModel } from '../models/tenant-details.model';
+import { Stay, TenantDetailsModel } from '../models/tenant-details.model';
 import { map, Observable, startWith, Subject, switchMap, tap } from 'rxjs';
 import { UpdateTenantDto } from '../models/update-tenant-dto';
 import { Room } from '../../rooms/models/room.model';
@@ -12,11 +12,12 @@ import { Roomservice } from '../../rooms/services/roomservice';
 import { PendingRent } from '../models/pending-rent.model';
 import { ToastService } from '../../../shared/toast/toast-service';
 import { PaymentHistory } from '../payment-history/payment-history';
+import { AdvanceHistory } from '../../advances/advance-history/advance-history';
 
 @Component({
   selector: 'app-tenant-details',
   standalone : true,
-  imports: [CommonModule,FormsModule,PaymentHistory],
+  imports: [CommonModule,FormsModule,PaymentHistory,AdvanceHistory],
   templateUrl: './tenant-details.html',
   styleUrl: '../styles/tenant-form.css',
 })
@@ -25,8 +26,9 @@ export class TenantDetails implements OnInit{
   mode: 'view' | 'edit' = 'view';
 
   tenant$!: Observable<TenantDetailsModel>;
+  currentTenant!: TenantDetailsModel;
   //reload trigger
-  private reload$ = new Subject<void>();
+  reload$ = new Subject<void>();
   editableTenant!: TenantDetailsModel;
   isLoading = true;
   isSaving = false;
@@ -37,11 +39,25 @@ export class TenantDetails implements OnInit{
   selectedRoomId: string | null = null;
   //loading state
   isChangingRoom = false;
+  changeDate: string | null = null;
+
 
   //tenant pending Rent Variables
   pendingRent$!: Observable<PendingRent>;
   pendingRentLoading = true;
   pendingRentError = '';
+
+  //stays
+  stays: Stay[] = [];
+
+  isCreateStayOpen = false;
+  selectedRoomIdForStay: string | null = null;
+  createStayDate: string | null = null;
+  isCreatingStay = false;
+
+  //move out
+  isMoveOutOpen = false;
+  hasActiveAdvance = false;
 
 
 
@@ -63,13 +79,82 @@ ngOnInit(): void {
     ),
     tap(t => {
       this.editableTenant = { ...t };
+      this.stays = t.stays || [];
+      this.currentTenant = t; 
     })
   );
-  this.pendingRent$ = this.tenantService.getPendingRent(this.tenantId).pipe(
-    tap(() => this.pendingRentLoading = false),
-  );  
+ this.pendingRent$ = this.reload$.pipe(
+  startWith(void 0),
+  switchMap(() =>
+    this.tenantService.getPendingRent(this.tenantId)
+  ),
+  tap(() => this.pendingRentLoading = false)
+);
+  
+}
+confirmCreateStay(): void {
+  if (!this.selectedRoomIdForStay) return;
+
+  if (!this.createStayDate) {
+    this.toastService.showError('Please select start date');
+    return;
+  }
+
+  this.isCreatingStay = true;
+
+  const payload = {
+    tenantId: this.tenantId,
+    roomId: this.selectedRoomIdForStay,
+    fromDate: this.createStayDate
+  };
+
+  this.tenantService.createStay(payload).subscribe({
+    next: () => {
+      this.isCreatingStay = false;
+      this.isCreateStayOpen = false;
+
+      this.toastService.showSuccess('Stay created successfully');
+
+      this.reload$.next();
+    },
+    error: err => {
+      this.isCreatingStay = false;
+      this.toastService.showError(err?.error || 'Failed to create stay');
+    }
+  });
 }
 
+openCreateStay(): void {
+  this.isCreateStayOpen = true;
+  this.selectedRoomIdForStay = null;
+
+  this.createStayDate = new Date().toISOString().split('T')[0];
+
+  this.rooms$ = this.roomService.getRooms({
+    page: 1,
+    pageSize: 100
+  }).pipe(map(res => res.items));
+}
+
+closeCreateStay(): void {
+  this.isCreateStayOpen = false;
+}
+closeMoveOut(): void {
+  this.isMoveOutOpen = false;
+}
+
+proceedMoveOut(): void {
+  this.tenantService.moveOutTenant(this.tenantId).subscribe({
+    next: () => {
+      this.isMoveOutOpen = false;
+      this.toastService.showSuccess('Tenant moved out successfully');
+      this.reload$.next();
+    },
+    error: err => {
+      this.toastService.showError(err?.error || 'Failed to move out');
+    }
+  });
+}
 
 //remove later these two methods
   enableEdit(): void {
@@ -79,16 +164,7 @@ ngOnInit(): void {
   cancelEdit(): void {
     this.router.navigate(['/tenants', this.tenantId]);
   }
-  // save(): void {
-  //   this.isSaving = true;
 
-  //   this.tenantService.updateTenant(this.tenantId, this.tenant).subscribe({
-  //     next: () => {
-  //       this.isSaving = false;
-  //       this.router.navigate(['/tenants', this.tenantId]);
-  //     }
-  //   });
-  // }
   cancel(): void {
     this.router.navigate(['/tenant-list']);
   }
@@ -121,10 +197,20 @@ ngOnInit(): void {
 confirmChangeRoom(): void {
   if (!this.selectedRoomId) return;
 
+  if (!this.changeDate) {
+    this.toastService.showError('Please select change date');
+    return;
+  }
+
   this.isChangingRoom = true;
 
+  const payload = {
+    newRoomId: this.selectedRoomId,
+    changeDate: this.changeDate
+  };
+
   this.tenantService
-    .changeRoom(this.tenantId, this.selectedRoomId)
+    .changeRoom(this.tenantId, payload)
     .subscribe({
       next: () => {
         this.isChangingRoom = false;
@@ -132,6 +218,7 @@ confirmChangeRoom(): void {
 
         // reload tenant details (same mechanism)
         this.reload$.next();
+        this.toastService.showError('room change successful');
       },
       error: err => {
         this.isChangingRoom = false;
@@ -140,26 +227,11 @@ confirmChangeRoom(): void {
     });
 }
 
-  confirmMoveOut(): void {
-  const confirmed = confirm(
-    'Are you sure you want to move out this tenant? This action cannot be undone.'
-  );
-
-  if (!confirmed) return;
-
-  this.tenantService.moveOutTenant(this.tenantId).subscribe({
-    next: () => {
-      
-      this.mode = 'view';
-      this.toastService.showSuccess('Tenant Moved Out Successfully');
-      this.reload$.next();
-      // Ensure we are in view mode
-    },
-    error: err => {
-      this.toastService.showError(err?.error || 'Failed to change room');
-    }
-  });
+ confirmMoveOut(): void {
+  this.hasActiveAdvance = !!this.currentTenant?.advanceAmount;
+  this.isMoveOutOpen = true;
 }
+
 
 //action icons methods end
 
@@ -195,7 +267,6 @@ private mapToUpdateDto(
     name: tenant.name,
     contactNumber: tenant.contactNumber,
     aadharNumber: tenant.aadharNumber,
-    advanceAmount: tenant.advanceAmount,
     notes: tenant.notes
   };
 }

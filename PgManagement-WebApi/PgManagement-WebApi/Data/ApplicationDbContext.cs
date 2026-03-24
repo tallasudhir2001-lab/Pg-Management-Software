@@ -46,6 +46,9 @@ namespace PgManagement_WebApi.Data
         public DbSet<Expense> Expenses { get; set; }
         public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
         public DbSet<ExpenseAuditLog> ExpenseAuditLogs { get; set; }
+        public DbSet<Advance> Advances { get; set; }
+        public DbSet<PaymentType> PaymentTypes { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -168,13 +171,44 @@ namespace PgManagement_WebApi.Data
                 .HasForeignKey(p => p.DeletedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.PaymentType)
+                .WithMany()
+                .HasForeignKey(p => p.PaymentTypeCode)
+                .HasPrincipalKey(pt => pt.Code)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             /* ============================================================
-               Tenant Financial Fields
+               Advance
                ============================================================ */
-            modelBuilder.Entity<Tenant>()
-                .Property(t => t.AdvanceAmount)
+
+            modelBuilder.Entity<Advance>()
+                .Property(a => a.Amount)
                 .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Advance>()
+                .Property(a => a.DeductedAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Advance>()
+                .HasOne(a => a.Tenant)
+                .WithMany()
+                .HasForeignKey(a => a.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Advance>()
+                .HasOne(a => a.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(a => a.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Advance>()
+                .HasOne(a => a.SettledByUser)
+                .WithMany()
+                .HasForeignKey(a => a.SettledByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             modelBuilder.ApplyConfiguration(new ExpenseConfiguration());
             modelBuilder.ApplyConfiguration(new ExpenseCategoryConfiguration());

@@ -8,6 +8,7 @@ using PgManagement_WebApi.DTOs.Payment;
 using PgManagement_WebApi.DTOs.Payment.PendingRent;
 using PgManagement_WebApi.Helpers;
 using PgManagement_WebApi.Identity;
+using PgManagement_WebApi.Migrations;
 using PgManagement_WebApi.Models;
 using System.Security.Claims;
 
@@ -190,7 +191,7 @@ namespace PgManagement_WebApi.Controllers
 
             // 3️ Load all payments
             var payments = await context.Payments
-                .Where(p => p.TenantId == tenantId && p.PgId == pgId && !p.IsDeleted)
+                .Where(p => p.TenantId == tenantId && p.PgId == pgId && !p.IsDeleted && p.PaymentTypeCode == "RENT")
                 .ToListAsync();
 
             decimal totalPending = 0;
@@ -296,7 +297,7 @@ namespace PgManagement_WebApi.Controllers
 
             // 3️⃣ Load all payments once
             var payments = await context.Payments
-                .Where(p => p.TenantId == tenantId && p.PgId == pgId &&!p.IsDeleted)
+                .Where(p => p.TenantId == tenantId && p.PgId == pgId &&!p.IsDeleted && p.PaymentTypeCode == "RENT")
                 .ToListAsync();
 
             var pendingStays = new List<PendingStayContextDto>();
@@ -439,7 +440,7 @@ namespace PgManagement_WebApi.Controllers
             if (!tenantExists)
                 return NotFound("Tenant not found");
 
-            var payments = await context.Payments
+            var payments = await context.Payments.Include(p=>p.PaymentType)
                 .Where(p =>
                     p.TenantId == tenantId &&
                     p.PgId == pgId && !p.IsDeleted
@@ -448,6 +449,7 @@ namespace PgManagement_WebApi.Controllers
                 .Select(p => new TenantPaymentHistoryDto
                 {
                     PaymentId = p.PaymentId,
+                    PaymentType = p.PaymentType.Name,
 
                     PaymentDate = p.PaymentDate,
 
@@ -484,6 +486,7 @@ namespace PgManagement_WebApi.Controllers
                 .AsNoTracking()
                 .Include(p => p.Tenant)
                 .Include(p => p.CreatedByUser)
+                .Include(p=>p.PaymentType)
                 .Where(p => p.PgId == pgId && !p.IsDeleted);
 
             // 🔍 Search
@@ -539,6 +542,7 @@ namespace PgManagement_WebApi.Controllers
                 .Select(p => new PaymentHistoryDto
                 {
                     PaymentId = p.PaymentId,
+                    PaymentType = p.PaymentType.Name,
                     PaymentDate = p.PaymentDate,
                     TenantName = p.Tenant.Name,
                     PeriodCovered =
@@ -599,6 +603,84 @@ namespace PgManagement_WebApi.Controllers
 
             return Ok();
         }
+        [HttpGet("{paymentId}")]
+        public async Task<IActionResult> GetPayment(string paymentId)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId))
+                return Unauthorized();
 
+            var payment = await context.Payments
+                .Where(p => p.PaymentId == paymentId && p.PgId == pgId && !p.IsDeleted)
+                .Select(p => new
+                {
+                    p.PaymentId,
+                    p.TenantId,
+                    p.PaymentDate,
+                    p.PaidFrom,
+                    p.PaidUpto,
+                    p.Amount,
+                    p.PaymentModeCode,
+                    p.PaymentFrequencyCode,
+                    p.Notes
+                })
+                .FirstOrDefaultAsync();
+
+            if (payment == null)
+                return NotFound();
+
+            return Ok(payment);
+        }
+        [HttpPut("{paymentId}")]
+        public async Task<IActionResult> UpdatePayment(string paymentId, UpdatePaymentDto dto)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId))
+                return Unauthorized();
+
+            var payment = await context.Payments
+                .FirstOrDefaultAsync(p =>
+                    p.PaymentId == paymentId &&
+                    p.PgId == pgId &&
+                    !p.IsDeleted);
+
+            if (payment == null)
+                return NotFound("Payment not found");
+
+            //  Check if latest payment
+            var hasLaterPayments = await context.Payments.AnyAsync(p =>
+                p.TenantId == payment.TenantId &&
+                p.PgId == pgId &&
+                !p.IsDeleted &&
+                p.PaidFrom > payment.PaidFrom
+            );
+
+            //  If not latest → block date changes
+            if (hasLaterPayments)
+            {
+                if (dto.PaidFrom != payment.PaidFrom ||
+                    dto.PaidUpto != payment.PaidUpto)
+                {
+                    return BadRequest("Changes not saved\nYou can only modify dates for latest payment. Page Refreshed");
+                }
+            }
+
+            //  Allowed updates
+            payment.Amount = dto.Amount;
+            payment.PaymentModeCode = dto.PaymentModeCode;
+            payment.PaymentFrequencyCode = dto.PaymentFrequencyCode;
+            payment.Notes = dto.Notes;
+
+            // Only update dates if latest
+            if (!hasLaterPayments)
+            {
+                payment.PaidFrom = dto.PaidFrom;
+                payment.PaidUpto = dto.PaidUpto;
+            }
+
+            await context.SaveChangesAsync();
+
+            return Ok();
+        }
     }
 }

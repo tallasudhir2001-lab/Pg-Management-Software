@@ -1,7 +1,7 @@
 <div class="form-page-container">
   <div class="add-tenant-card">
 
-    <!-- 🔗 Reactive Form -->
+    <!--  Reactive Form -->
     <form [formGroup]="form">
 
       <div class="form-grid">
@@ -77,8 +77,39 @@
 
           <div class="financial-row">
             <div class="form-group">
-              <label>Advance Amount (₹)</label>
-              <input type="number" class="form-input" placeholder="Enter amount" formControlName="advanceAmount" />
+              <!-- Has Advance Checkbox -->
+              <div class="form-group">
+                <div class="form-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" formControlName="hasAdvance" />
+                    <span>Add Advance</span>
+                  </label>
+                </div>
+              </div>
+          
+              <!-- Show only if checked -->
+              <div *ngIf="form.get('hasAdvance')?.value">
+          
+                <div class="form-group">
+                  <label>Advance Amount (₹)</label>
+                  <input type="number" class="form-input" placeholder="Enter amount" formControlName="advanceAmount" />
+                </div>
+          
+                <div class="form-group">
+                  <label>Payment Mode</label>
+                  <select class="form-input" formControlName="paymentModeCode"
+                    [class.placeholder-selected]="!form.get('paymentModeCode')?.value">
+                
+                    <option value="" disabled hidden>Select a payment mode</option>
+                
+                    <option *ngFor="let m of (paymentModes$ | async)" [value]="m.code">
+                      {{ m.description }}
+                    </option>
+                
+                  </select>
+                </div>
+          
+              </div>
             </div>
 
           </div>

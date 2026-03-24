@@ -18,7 +18,7 @@ namespace PgManagement_WebApi.Services
         }
 
         public async Task<(bool success, object? result, int statusCode)>
-    CreateTenantAsync(CreateTenantDto dto, string pgId)
+    CreateTenantAsync(CreateTenantDto dto, string pgId, string userId)
         {
             var existingTenant = await FindByAadhaar(pgId, dto.AadharNumber);
 
@@ -52,13 +52,52 @@ namespace PgManagement_WebApi.Services
                 Name = dto.Name,
                 ContactNumber = dto.ContactNumber,
                 AadharNumber = dto.AadharNumber,
-                AdvanceAmount = dto.AdvanceAmount,
                 Notes = dto.Notes,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
 
             context.Tenants.Add(tenant);
+
+            //  ADVANCE LOGIC
+            if (dto.HasAdvance)
+            {
+                if (!dto.AdvanceAmount.HasValue || dto.AdvanceAmount <= 0)
+                    return (false, "Advance amount required", 400);
+
+                if (string.IsNullOrEmpty(dto.PaymentModeCode))
+                    return (false, "Payment mode required", 400);
+
+                var advance = new Advance
+                {
+                    AdvanceId = Guid.NewGuid().ToString(),
+                    TenantId = tenant.TenantId,
+                    Amount = dto.AdvanceAmount.Value,
+                    PaidDate = DateTime.UtcNow,
+                    IsSettled = false,
+                    CreatedByUserId = userId
+                };
+
+                context.Advances.Add(advance);
+
+                var payment = new Payment
+                {
+                    PaymentId = Guid.NewGuid().ToString(),
+                    TenantId = tenant.TenantId,
+                    PgId = pgId,
+                    Amount = dto.AdvanceAmount.Value,
+                    PaymentDate = DateTime.UtcNow,
+                    PaidFrom = DateTime.UtcNow,
+                    PaidUpto = DateTime.UtcNow,
+                    PaymentTypeCode = "ADVANCE_PAYMENT",
+                    PaymentModeCode = dto.PaymentModeCode,
+                    PaymentFrequencyCode = "ONETIME",
+                    CreatedByUserId = userId
+                };
+
+                context.Payments.Add(payment);
+            }
+
 
             var fromDate = dto.FromDate ?? DateTime.UtcNow;
 
@@ -184,7 +223,7 @@ namespace PgManagement_WebApi.Services
         public async Task<(bool success, object? result, int statusCode)> ChangeRoomAsync(
     string tenantId,
     string newRoomId,
-    string pgId)
+    string pgId, DateTime changeDate)
         {
             // 1️⃣ Get active stay
             var activeAssignment = await context.TenantRooms
@@ -199,10 +238,16 @@ namespace PgManagement_WebApi.Services
             if (activeAssignment.RoomId == newRoomId)
                 return (false, "Tenant is already in this room.", 400);
 
+            var roomChangeDate = changeDate.Date;
+            var previousDay = roomChangeDate.AddDays(-1);
+            var currentStayStart = activeAssignment.FromDate.Date;
+
+            if (roomChangeDate < currentStayStart)
+                return (false, "Change date cannot be before current stay start date.", 400);
+
             using var tx = await context.Database.BeginTransactionAsync();
 
-            var today = DateTime.UtcNow.Date;
-            var previousDay = today.AddDays(-1);
+            
 
             // 2️⃣ Close old stay
             activeAssignment.ToDate = previousDay;
@@ -222,7 +267,7 @@ namespace PgManagement_WebApi.Services
             var (ok, error, status) = await CreateStayInternal(
                 tenantId,
                 newRoomId,
-                today,
+                roomChangeDate,
                 pgId
             );
 
@@ -238,7 +283,7 @@ namespace PgManagement_WebApi.Services
 
             if (tenant != null)
             {
-                tenant.UpdatedAt = today;
+                tenant.UpdatedAt = DateTime.Now;
             }
 
             await context.SaveChangesAsync();

@@ -10,10 +10,12 @@ namespace PgManagement_WebApi.DTOs.Tenant
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
         [Required]
-        public string RoomId { get; set; }         // initial room
+        public string RoomId { get; set; }       
         public string ContactNumber { get; set; }
         public string AadharNumber { get; set; }
+        public bool HasAdvance { get; set; } 
         public decimal? AdvanceAmount { get; set; }
+        public string? PaymentModeCode { get; set; }
         public string Notes { get; set; }
     }
 }

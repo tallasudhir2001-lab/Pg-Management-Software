@@ -3,5 +3,6 @@
     public class ChangeRoomDto
     {
         public string newRoomId { get; set; }
+        public DateTime changeDate { get; set; }
     }
 }

@@ -9,6 +9,7 @@ import { Tenantservice } from '../services/tenantservice';
 import { ToastService } from '../../../shared/toast/toast-service';
 import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { PaymentService } from '../../payments/services/payment-service';
 
 
 @Component({
@@ -25,6 +26,7 @@ export class AddTenant implements OnInit {
     private roomService: Roomservice,
     private router: Router,
     private tenantService: Tenantservice,
+    private paymentService: PaymentService,
     private toastService:ToastService
   ) {}
 
@@ -32,6 +34,7 @@ export class AddTenant implements OnInit {
 
   // 🔹 Rooms for dropdown
   rooms$!: Observable<Room[]>;
+  paymentModes$!: Observable<any[]>;
   error= '';
 
   existingTenant: any = null;
@@ -49,10 +52,13 @@ export class AddTenant implements OnInit {
     ],
     roomId: ['', Validators.required], 
     fromDate: [null],
+    hasAdvance: [false],
     advanceAmount: [null],
+    paymentModeCode: [null],
     notes: ['']
   });
     this.loadAvailableRooms();
+    this.paymentModes$ = this.paymentService.getPaymentModes();
     this.form.get('aadharNumber')?.valueChanges
   .pipe(
     debounceTime(400),
@@ -98,8 +104,31 @@ export class AddTenant implements OnInit {
       return;
     }
 
-    const payload = this.form.value;
+    const formValue = this.form.value;
 
+    const payload = {
+      name: formValue.name,
+      contactNumber: formValue.contactNumber,
+      aadharNumber: formValue.aadharNumber,
+      roomId: formValue.roomId,
+      fromDate: formValue.fromDate,
+      notes: formValue.notes,
+
+      hasAdvance: formValue.hasAdvance,
+      advanceAmount: formValue.hasAdvance ? formValue.advanceAmount : null,
+      paymentModeCode: formValue.hasAdvance ? formValue.paymentModeCode : null
+    };
+    if (payload.hasAdvance) {
+      if (payload.advanceAmount && payload.advanceAmount <= 0) {
+        this.toastService.showError('Enter valid advance amount');
+        return;
+      }
+
+      if (!payload.paymentModeCode) {
+        this.toastService.showError('Select payment mode');
+        return;
+      }
+    }
     this.tenantService.createTenant(payload).subscribe({
     next: () => {
       this.toastService.showSuccess('Created Tenant Successfully.');
@@ -142,7 +171,7 @@ createStayForExisting() {
     },
     error: (err) => {
 
-      this.toastService.showError(err.error);
+      this.toastService.showError(err.error); 
 
     }
   });

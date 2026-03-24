@@ -1,0 +1,37 @@
+/* payment-details.css
+   Only overrides / additions beyond payment-shared.css
+   Import order in component: payment-shared.css, then this file.
+*/
+
+/* Edit toggle button in sidebar */
+.summary-actions {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn-edit {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-edit:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Disable visual cue for view-mode inputs */
+.form-input:disabled,
+.form-input[disabled] {
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: default;
+  border-color: #e5e7eb;
+}

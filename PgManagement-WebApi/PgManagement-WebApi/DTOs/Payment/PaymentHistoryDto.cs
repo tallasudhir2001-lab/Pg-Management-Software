@@ -3,6 +3,7 @@
     public class PaymentHistoryDto
     {
         public string PaymentId { get; set; } = default!;
+        public string PaymentType { get; set; }
         public DateTime PaymentDate { get; set; }
         public string TenantName { get; set; } = default!;
         public string PeriodCovered { get; set; } = default!;

@@ -5,4 +5,8 @@ static ToLocalDateString(date: Date): string {
   const day = date.getDate().toString().padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+static formatDateForInput(date: string): string {
+  return date.substring(0, 10);
+}
+
 }

@@ -1,5 +1,6 @@
 export interface TenantPaymentHistory {
   paymentId: string;
+  paymentType:string;
   paymentDate: string;
   paidFrom: string;
   paidUpto: string;

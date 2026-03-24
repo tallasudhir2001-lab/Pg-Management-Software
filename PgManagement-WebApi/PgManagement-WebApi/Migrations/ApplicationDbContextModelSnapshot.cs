@@ -225,6 +225,70 @@ namespace PgManagement_WebApi.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("PgManagement_WebApi.Models.Advance", b =>
+                {
+                    b.Property<string>("AdvanceId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal?>("DeductedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSettled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTime>("PaidDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SettledByUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("SettledDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("AdvanceId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("SettledByUserId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("Advances");
+                });
+
             modelBuilder.Entity("PgManagement_WebApi.Models.Expense", b =>
                 {
                     b.Property<string>("Id")
@@ -436,6 +500,10 @@ namespace PgManagement_WebApi.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("PaymentTypeCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("PgId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -453,6 +521,8 @@ namespace PgManagement_WebApi.Migrations
                     b.HasIndex("PaymentFrequencyCode");
 
                     b.HasIndex("PaymentModeCode");
+
+                    b.HasIndex("PaymentTypeCode");
 
                     b.HasIndex("PgId");
 
@@ -494,6 +564,22 @@ namespace PgManagement_WebApi.Migrations
                     b.HasKey("Code");
 
                     b.ToTable("PaymentModes");
+                });
+
+            modelBuilder.Entity("PgManagement_WebApi.Models.PaymentType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("PaymentTypes");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.PgRole", b =>
@@ -578,10 +664,6 @@ namespace PgManagement_WebApi.Migrations
                     b.Property<string>("AadharNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("AdvanceAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ContactNumber")
                         .IsRequired()
@@ -763,6 +845,32 @@ namespace PgManagement_WebApi.Migrations
                         .HasForeignKey("PgId");
                 });
 
+            modelBuilder.Entity("PgManagement_WebApi.Models.Advance", b =>
+                {
+                    b.HasOne("PgManagement_WebApi.Identity.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PgManagement_WebApi.Identity.ApplicationUser", "SettledByUser")
+                        .WithMany()
+                        .HasForeignKey("SettledByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PgManagement_WebApi.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("SettledByUser");
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("PgManagement_WebApi.Models.Expense", b =>
                 {
                     b.HasOne("PgManagement_WebApi.Models.ExpenseCategory", "Category")
@@ -825,6 +933,12 @@ namespace PgManagement_WebApi.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("PgManagement_WebApi.Models.PaymentType", "PaymentType")
+                        .WithMany()
+                        .HasForeignKey("PaymentTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("PgManagement_WebApi.Models.PG", "PG")
                         .WithMany()
                         .HasForeignKey("PgId")
@@ -846,6 +960,8 @@ namespace PgManagement_WebApi.Migrations
                     b.Navigation("PaymentFrequency");
 
                     b.Navigation("PaymentMode");
+
+                    b.Navigation("PaymentType");
 
                     b.Navigation("Tenant");
                 });

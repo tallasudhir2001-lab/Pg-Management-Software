@@ -7,7 +7,7 @@ namespace PgManagement_WebApi.Services
     {
         Task<(bool success, object? result, int statusCode)> CreateTenantAsync(
         CreateTenantDto dto,
-        string pgId);
+        string pgId, string userId);
 
         Task<bool> TenantHasActiveStay(string tenantId, string pgId);
 
@@ -24,6 +24,6 @@ namespace PgManagement_WebApi.Services
         Task<(bool success, object? result, int statusCode)> ChangeRoomAsync(
     string tenantId,
     string newRoomId,
-    string pgId);
+    string pgId,DateTime changeDate);
     }
 }

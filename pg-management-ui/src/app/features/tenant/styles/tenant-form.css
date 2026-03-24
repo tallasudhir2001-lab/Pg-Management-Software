@@ -557,3 +557,66 @@
   color: #dc2626;   /* red */
   font-weight: 600;
 }
+
+
+/* button style inside input */
+.status-action {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.status-action:hover {
+  text-decoration: underline;
+}
+/* ================= CREATE STAY INLINE BUTTON ================= */
+
+/* Update the container to ensure items don't stretch unnecessarily */
+/* Update the container to stop children from stretching */
+.status-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Keeps items to the left */
+  gap: 12px;
+  /* Parent remains full width naturally via .form-input class */
+}
+
+/* Refine the button to wrap only its text */
+.btn-create-stay {
+  background-color: #0F1041;
+  color: white;
+  border: none;
+  padding: 5px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  
+  /* Critical changes */
+  width: max-content; /* Adjusts width to text content */
+  flex: 0 0 auto;     /* Prevents the button from growing to fill space */
+}
+
+.btn-create-stay:hover {
+  background-color: #1a1b5c;
+}
+.status-neutral {
+    color: #6b7280; /* gray-500 */
+    font-weight: 600;
+}
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
