@@ -58,6 +58,7 @@ export class TenantDetails implements OnInit{
   //move out
   isMoveOutOpen = false;
   hasActiveAdvance = false;
+  moveOutDate: string = new Date().toISOString().split('T')[0];
 
 
 
@@ -144,7 +145,12 @@ closeMoveOut(): void {
 }
 
 proceedMoveOut(): void {
-  this.tenantService.moveOutTenant(this.tenantId).subscribe({
+  if (!this.moveOutDate) {
+    this.toastService.showError('Please select a move-out date.');
+    return;
+  }
+
+  this.tenantService.moveOutTenant(this.tenantId, this.moveOutDate).subscribe({
     next: () => {
       this.isMoveOutOpen = false;
       this.toastService.showSuccess('Tenant moved out successfully');
@@ -229,6 +235,7 @@ confirmChangeRoom(): void {
 
  confirmMoveOut(): void {
   this.hasActiveAdvance = !!this.currentTenant?.advanceAmount;
+  this.moveOutDate = new Date().toISOString().split('T')[0];
   this.isMoveOutOpen = true;
 }
 

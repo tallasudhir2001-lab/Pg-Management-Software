@@ -8,20 +8,20 @@
   <!-- Search + Actions Row -->
   <div class="tenant-actions">
 
-    <!-- Search -->
-    <input type="text" class="search-input" placeholder=" 🔍 Search by name or mobile number" [ngModel]="searchText"
+    <input type="text" class="search-input" placeholder="Search by name or mobile number" [ngModel]="searchText"
       (ngModelChange)="onSearchChange($event)" />
 
     <div class="action-buttons">
-      <button class="btn btn-secondary" (click)="showFilters = true">
-        Filters
-      </button>
-      <button class="icon-btn clear-filters-btn" title="Clear Filters" (click)="clearFilters()">
+      <!-- ✅ Clear button only shown when filters are active -->
+      <button
+        *ngIf="filterStatus || selectedRoomId || filterRentPending || sortBy !== 'updated' || sortDir !== 'desc'"
+        class="clear-filters-btn" (click)="clearFilters()" title="Clear all filters">
         <img src="assets/icons/clear-filters.svg" alt="Clear Filters" />
       </button>
-      <button class="btn btn-primary" routerLink="/tenants/add">
-        + Add Tenant
-      </button>
+
+      <button class="btn btn-secondary" (click)="showFilters = true">Filters</button>
+
+      <button class="btn btn-primary" routerLink="/tenants/add">+ Add Tenant</button>
     </div>
 
   </div>
@@ -31,186 +31,177 @@
     <table class="data-table">
       <thead>
         <tr>
-          <th class="sortable" [class.active-sort]="isSortedBy('name')" (click)="onSort('name')">
+          <!-- odd → bold black -->
+          <th (click)="onSort('name')" style="cursor: pointer;">
             Tenant Name
-            <span class="sort-arrow" [class.visible]="isSortedBy('name')" [class.asc]="isSortAsc('name')">
-              ▲
-            </span>
+            <span class="sort-arrow" [class.visible]="isSortedBy('name')" [class.asc]="isSortAsc('name')">▼</span>
           </th>
-
-
-          <th class="sortable" [class.active-sort]="isSortedBy('room')" (click)="onSort('room')">
+          <!-- even → bold grey -->
+          <th (click)="onSort('room')" style="cursor: pointer;">
             Room
-            <span class="sort-arrow" [class.visible]="isSortedBy('room')" [class.asc]="isSortAsc('room')">
-              ▲
-            </span>
+            <span class="sort-arrow" [class.visible]="isSortedBy('room')" [class.asc]="isSortAsc('room')">▼</span>
           </th>
-          <th>Status</th>
+          <!-- odd → bold black -->
           <th>Contact</th>
-          
-          <th>Rent</th>
-          <th class="sortable" [class.active-sort]="isSortedBy('checkedin')" (click)="onSort('checkedin')">
+          <!-- even → bold grey -->
+          <th (click)="onSort('checkedin')" style="cursor: pointer;">
             Checked In
-            <span class="sort-arrow" [class.visible]="isSortedBy('checkedin')" [class.asc]="isSortAsc('checkedin')">
-              ▲
-            </span>
+            <span class="sort-arrow" [class.visible]="isSortedBy('checkedin')" [class.asc]="isSortAsc('checkedin')">▼</span>
           </th>
-
+          <!-- last 3: fixed -->
+          <th>Status</th>
+          <th>Rent</th>
           <th>Actions</th>
         </tr>
       </thead>
 
       <tbody>
         <tr *ngFor="let t of (tenants$ | async)?.items">
-          <td>{{ t.name }}</td>
-          <td>{{ t.roomNumber ?? '—' }}</td>
+          <!-- col 1 odd: bold black -->
+          <td class="cell-primary">{{ t.name }}</td>
+          <!-- col 2 even: bold grey -->
+          <td class="cell-secondary">{{ t.roomNumber ?? '—' }}</td>
+          <!-- col 3 odd: bold black -->
+          <td class="cell-primary">{{ t.contactNumber }}</td>
+          <!-- col 4 even: bold grey -->
+          <td class="cell-secondary">{{ t.checkedInAt | date: 'MMM d, y' }}</td>
+          <!-- col 5: status pill -->
           <td>
-            <span class="status-pill" [class.active]="t.status === 'Active'" [class.inactive]="t.status === 'MovedOut'">
+            <span class="status-pill"
+              [class.active]="t.status === 'ACTIVE'"
+              [class.inactive]="t.status === 'MOVED OUT'"
+              [class.no-stay]="t.status === 'NO STAY'">
               {{ t.status }}
             </span>
           </td>
-          <td>{{ t.contactNumber }}</td>
-
-          
+          <!-- col 6: rent — N/A for no-stay tenants -->
+          <td class="rent-text"
+            [class.rent-pending]="t.status !== 'NO STAY' && t.isRentPending"
+            [class.rent-paid]="t.status !== 'NO STAY' && !t.isRentPending"
+            [style.color]="t.status === 'NO STAY' ? '#9ca3af' : ''">
+            {{ t.status === 'NO STAY' ? '—' : (t.isRentPending ? 'Pending' : 'Paid') }}
+          </td>
           <td>
-  <span
-    class="rent-pill"
-    [class.pending]="t.isRentPending"
-    [class.paid]="!t.isRentPending"
-    [title]="t.isRentPending ? 'Tenant has pending rent' : 'No rent due'">
-    {{ t.isRentPending ? 'Pending' : 'Paid' }}
-  </span>
-</td>
-
-
-          <td>{{ t.checkedInAt | date }}</td>
-
-          <td>
-            <div class="action-buttons-wrapper">
-              <button class="action-btn" title="View" (click)="onAction('view', t)">
-                <img src="assets/icons/info.svg" alt="Info" />
-              </button>
-
-              <button class="action-btn" title="Edit" (click)="onAction('edit', t)">
-                <img src="assets/icons/edit.svg" alt="Edit" />
-              </button>
-
-              <button class="action-btn danger" title="Delete" (click)="onAction('delete', t)">
-                <img src="assets/icons/delete.svg" alt="Delete" />
-              </button>
-            </div>
+            <button class="action-btn" title="View" (click)="onAction('view', t)">
+              <img src="assets/icons/info.svg" alt="Info" />
+            </button>
+            <button class="action-btn" title="Edit" (click)="onAction('edit', t)">
+              <img src="assets/icons/edit.svg" alt="Edit" />
+            </button>
+            <button class="action-btn danger" title="Delete" (click)="onAction('delete', t)">
+              <img src="assets/icons/delete.svg" alt="Delete" />
+            </button>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
-  <div class="pagination">
+
+  <!-- Pagination Info -->
+  <div class="pagination-info" [class.empty]="totalCount === 0">
+    <ng-container *ngIf="totalCount > 0; else noResults">
+      Showing
+      <span class="count-strong">{{ startItem }}</span>
+      –
+      <span class="count-strong">{{ endItem }}</span>
+      of
+      <span class="count-strong">{{ totalCount }}</span>
+      tenants
+    </ng-container>
+    <ng-template #noResults>No tenants found</ng-template>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div class="pagination" *ngIf="totalPages > 1">
     <div class="pagination-inner">
-      <button class="page-btn prev" (click)="prevPage()" [disabled]="currentPage === 1">
-        Prev
-      </button>
-
+      <button class="page-btn prev" (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
       <button *ngFor="let page of pages" class="page-btn page-number" [class.active]="page === currentPage"
-        (click)="goToPage(page)">
-        {{ page }}
-      </button>
-
-      <button class="page-btn next" (click)="nextPage()" [disabled]="currentPage === totalPages">
-        Next
-      </button>
+        (click)="goToPage(page)">{{ page }}</button>
+      <button class="page-btn next" (click)="nextPage()" [disabled]="currentPage === totalPages">Next</button>
     </div>
-  </div>
-  <div class="pagination-info" *ngIf="totalCount > 0">
-    Showing
-    <span class="count-strong">{{ startItem }}</span>–
-    <span class="count-strong">{{ endItem }}</span>
-    of
-    <span class="count-strong">{{ totalCount }}</span>
-    tenants
-  </div>
-
-
-  <div class="pagination-info empty" *ngIf="totalCount === 0">
-    No tenants found
   </div>
 
 </div>
 
-<!-- ================= FILTER DRAWER (UI ONLY) ================= -->
-<div class="filter-backdrop" *ngIf="showFilters" (click)="showFilters = false"></div>
+<!-- Filter Drawer -->
+<div *ngIf="showFilters">
+  <div class="filter-backdrop" (click)="showFilters = false"></div>
 
-<div class="filter-drawer" *ngIf="showFilters">
-  <div class="filter-header">
-    <h3 class="filter-title">Filters</h3>
-    <button class="filter-close-btn" (click)="showFilters = false">&times;</button>
-  </div>
-
-  <div class="filter-body">
-
-    <div class="filter-card">
-      <p class="filter-section-title">Occupancy Status</p>
-      <div class="filter-radio-group">
-        <label class="filter-option">
-          <input type="radio" name="status" value="" [(ngModel)]="filterStatus" />
-          <span class="filter-radio-label">All Tenants</span>
-        </label>
-
-        <label class="filter-option">
-          <input type="radio" name="status" value="active" [(ngModel)]="filterStatus" />
-          <span class="filter-radio-label">Active</span>
-        </label>
-
-        <label class="filter-option">
-          <input type="radio" name="status" value="movedout" [(ngModel)]="filterStatus" />
-          <span class="filter-radio-label">Moved Out</span>
-        </label>
-      </div>
+  <aside class="filter-drawer">
+    <div class="filter-header">
+      <h3 class="filter-title">Filters</h3>
+      <button class="filter-close-btn" (click)="showFilters = false">&times;</button>
     </div>
 
-    <div class="filter-card">
-      <p class="filter-section-title">Room Assignment</p>
-      <div class="searchable-dropdown">
-        <input type="text" class="form-input" placeholder="Search room number..."
-          [value]="selectedRoomLabel || roomSearchText" (focus)="isRoomDropdownOpen = true"
-          (input)="onRoomInput($event.target.value)" />
+    <div class="filter-body">
 
-        <!-- Dropdown List -->
-        <div class="dropdown-list" *ngIf=" isRoomDropdownOpen && filteredRooms.length > 0">
-          <div class="dropdown-item" *ngFor="let room of filteredRooms" (click)="selectRoom(room)">
-            Room {{ room.roomNumber }}
+      <!-- Occupancy Status + Rent Status — side by side -->
+      <div class="filter-cards-row">
+
+        <!-- Occupancy Status -->
+        <div class="filter-card">
+          <p class="filter-section-title">Occupancy Status</p>
+          <label class="filter-option">
+            <input type="radio" name="status" value="" [(ngModel)]="filterStatus" />
+            <span class="filter-radio-label">All Tenants</span>
+          </label>
+          <label class="filter-option">
+            <input type="radio" name="status" value="active" [(ngModel)]="filterStatus" />
+            <span class="filter-radio-label">Active</span>
+          </label>
+          <label class="filter-option">
+            <input type="radio" name="status" value="movedout" [(ngModel)]="filterStatus" />
+            <span class="filter-radio-label">Moved Out</span>
+          </label>
+          <label class="filter-option">
+            <input type="radio" name="status" value="nostay" [(ngModel)]="filterStatus" />
+            <span class="filter-radio-label">No Stay</span>
+          </label>
+        </div>
+
+        <!-- Rent Status -->
+        <div class="filter-card">
+          <p class="filter-section-title">Rent Status</p>
+          <label class="filter-option">
+            <input type="radio" name="rentPending" value="" [(ngModel)]="filterRentPending" />
+            <span class="filter-radio-label">All</span>
+          </label>
+          <label class="filter-option">
+            <input type="radio" name="rentPending" value="true" [(ngModel)]="filterRentPending" />
+            <span class="filter-radio-label">Pending</span>
+          </label>
+          <label class="filter-option">
+            <input type="radio" name="rentPending" value="false" [(ngModel)]="filterRentPending" />
+            <span class="filter-radio-label">Paid</span>
+          </label>
+        </div>
+
+      </div>
+
+      <!-- Room Assignment -->
+      <div class="filter-card">
+        <p class="filter-section-title">Room Assignment</p>
+        <div class="searchable-dropdown">
+          <input type="text" class="form-input" placeholder="Search room number..."
+            [value]="selectedRoomLabel || roomSearchText"
+            (focus)="isRoomDropdownOpen = true"
+            (input)="onRoomInput($any($event.target).value)" />
+          <div class="dropdown-list" *ngIf="isRoomDropdownOpen && filteredRooms.length > 0">
+            <div class="dropdown-item" *ngFor="let room of filteredRooms" (click)="selectRoom(room)">
+              Room {{ room.roomNumber }}
+            </div>
           </div>
+          <p class="dropdown-empty" *ngIf="isRoomDropdownOpen && filteredRooms.length === 0">No rooms found</p>
         </div>
-
-        <div class="dropdown-empty" *ngIf="filteredRooms.length === 0">
-          No rooms found
-        </div>
+        <p class="filter-hint" *ngIf="selectedRoomLabel">Selected: {{ selectedRoomLabel }}</p>
       </div>
+
+
     </div>
 
-    <div class="filter-card">
-      <p class="filter-section-title">Rent Status</p>
-      <div class="filter-radio-group">
-        <label class="filter-option">
-          <input type="radio" name="rentPending" value="" [(ngModel)]="filterRentPending" />
-          <span class="filter-radio-label">All</span>
-        </label>
-
-        <label class="filter-option">
-          <input type="radio" name="rentPending" value="true" [(ngModel)]="filterRentPending" />
-          <span class="filter-radio-label">Pending</span>
-        </label>
-
-        <label class="filter-option">
-          <input type="radio" name="rentPending" value="false" [(ngModel)]="filterRentPending" />
-          <span class="filter-radio-label">Paid</span>
-        </label>
-      </div>
+    <div class="filter-footer">
+      <button class="filter-btn filter-btn-secondary" (click)="clearFilters()">Clear</button>
+      <button class="filter-btn filter-btn-primary" (click)="applyFilters()">Apply</button>
     </div>
-
-  </div>
-
-  <div class="filter-footer">
-    <button class="filter-btn filter-btn-secondary" (click)="showFilters = false">Cancel</button>
-    <button class="filter-btn filter-btn-primary" (click)="applyFilters()">Apply Filters</button>
-  </div>
+  </aside>
 </div>

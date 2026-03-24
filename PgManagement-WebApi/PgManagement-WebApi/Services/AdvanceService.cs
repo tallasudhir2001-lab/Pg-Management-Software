@@ -65,7 +65,7 @@ namespace PgManagement_WebApi.Services
                         PaymentModeCode = dto.PaymentModeCode,
                         PaymentFrequencyCode = "ONETIME",
                         CreatedByUserId = userId,
-                        Notes = $"Advance refund for AdvanceId: {advanceId}"
+                        Notes = $"Advance refund to Tenant"
                     };
 
                     _context.Payments.Add(payment);

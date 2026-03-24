@@ -20,7 +20,7 @@
                 <img *ngIf="mode === 'edit'" src="assets/icons/view-tenant.svg" alt="View Tenant" />
             </button>
 
-            <div class="header-actions" *ngIf="mode === 'view' && tenant.status ==='Active'">
+            <div class="header-actions" *ngIf="mode === 'view' && tenant.status === 'ACTIVE'">
 
                 <!-- Change Room -->
                 <button type="button" class="icon-btn change-room-btn" title="Change Room" (click)="openChangeRoom()">
@@ -76,13 +76,14 @@
                     <label>Status</label>
                     <div class="form-input readonly status-container">
                         <span [ngClass]="{
-                            'status-active': tenant.status === 'Active',
-                            'status-inactive': tenant.status === 'MovedOut'
+                            'status-active':   tenant.status === 'ACTIVE',
+                            'status-inactive': tenant.status === 'MOVED OUT',
+                            'status-no-stay':  tenant.status === 'NO STAY'
                         }">
                             {{ tenant.status }}
                         </span>
-                        <button *ngIf="tenant?.status === 'MovedOut'" class="btn-create-stay"
-                            (click)="openCreateStay()">
+                        <button *ngIf="tenant?.status === 'MOVED OUT' || tenant?.status === 'NO STAY'"
+                            class="btn-create-stay" (click)="openCreateStay()">
                             + Create Stay
                         </button>
                     </div>
@@ -378,10 +379,13 @@
 
         <div class="modal-body">
 
-            <p>Are you sure you want to move out this tenant?</p>
+            <div class="form-group">
+                <label>Move Out Date</label>
+                <input type="date" class="form-input" [(ngModel)]="moveOutDate" />
+            </div>
 
-            <div *ngIf="hasActiveAdvance" style="margin-top: 12px; color: #b91c1c; font-weight: 500;">
-                This tenant has an active advance that is not settled.
+            <div *ngIf="hasActiveAdvance" style="margin-top: 4px; color: #b91c1c; font-weight: 500; font-size: 14px;">
+                ⚠️ This tenant has an active advance that is not settled.
             </div>
 
         </div>

@@ -1,3 +1,22 @@
+<!-- No Room Confirmation Modal -->
+<div *ngIf="showNoRoomConfirm" class="confirm-backdrop">
+  <div class="confirm-dialog">
+    <h3 class="confirm-title">No Room Selected</h3>
+    <p class="confirm-message">
+      You haven't selected a room. The tenant will be created <strong>without an active stay</strong>. Do you want to proceed?
+    </p>
+    <div class="confirm-actions">
+      <button type="button" class="confirm-btn confirm-btn-secondary" (click)="showNoRoomConfirm = false">
+        Go Back
+      </button>
+      <button type="button" class="confirm-btn confirm-btn-primary" (click)="confirmSaveWithoutRoom()">
+        Yes, Proceed
+      </button>
+    </div>
+  </div>
+</div>
+
+
 <div class="form-page-container">
   <div class="add-tenant-card">
 
@@ -129,7 +148,7 @@
         </button>
 
         <button *ngIf="!existingTenant" type="button" class="btn-save" (click)="save()"
-          [disabled]="form.invalid || checkingAadhar">
+          [disabled]="checkingAadhar">
           Save Tenant
         </button>
       </div>

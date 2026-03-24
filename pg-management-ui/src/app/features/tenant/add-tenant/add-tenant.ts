@@ -50,7 +50,7 @@ export class AddTenant implements OnInit {
         Validators.pattern(/^\d{12}$/)
       ]
     ],
-    roomId: ['', Validators.required], 
+    roomId: [''],
     fromDate: [null],
     hasAdvance: [false],
     advanceAmount: [null],
@@ -98,48 +98,79 @@ export class AddTenant implements OnInit {
       map(res => res.items)
     );
   }
+  showNoRoomConfirm = false;
+
   save(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+    this.form.markAllAsTouched();
+
+    const formValue = this.form.value;
+
+    // Field-level validation toasts
+    if (!formValue.name?.trim()) {
+      this.toastService.showError('Tenant name is required.');
       return;
     }
 
+    if (!formValue.contactNumber?.trim()) {
+      this.toastService.showError('Mobile number is required.');
+      return;
+    }
+
+    if (formValue.aadharNumber && !/^\d{12}$/.test(formValue.aadharNumber)) {
+      this.toastService.showError('Aadhaar number must be exactly 12 digits.');
+      return;
+    }
+
+    if (formValue.hasAdvance) {
+      if (!formValue.advanceAmount || formValue.advanceAmount <= 0) {
+        this.toastService.showError('Enter a valid advance amount.');
+        return;
+      }
+      if (!formValue.paymentModeCode) {
+        this.toastService.showError('Select a payment mode for advance.');
+        return;
+      }
+    }
+
+    // No room selected — ask user to confirm
+    if (!formValue.roomId) {
+      this.showNoRoomConfirm = true;
+      return;
+    }
+
+    this.submitTenant();
+  }
+
+  confirmSaveWithoutRoom(): void {
+    this.showNoRoomConfirm = false;
+    this.submitTenant();
+  }
+
+  private submitTenant(): void {
     const formValue = this.form.value;
 
     const payload = {
       name: formValue.name,
       contactNumber: formValue.contactNumber,
       aadharNumber: formValue.aadharNumber,
-      roomId: formValue.roomId,
+      roomId: formValue.roomId || null,
       fromDate: formValue.fromDate,
       notes: formValue.notes,
-
       hasAdvance: formValue.hasAdvance,
       advanceAmount: formValue.hasAdvance ? formValue.advanceAmount : null,
       paymentModeCode: formValue.hasAdvance ? formValue.paymentModeCode : null
     };
-    if (payload.hasAdvance) {
-      if (payload.advanceAmount && payload.advanceAmount <= 0) {
-        this.toastService.showError('Enter valid advance amount');
-        return;
-      }
 
-      if (!payload.paymentModeCode) {
-        this.toastService.showError('Select payment mode');
-        return;
-      }
-    }
     this.tenantService.createTenant(payload).subscribe({
-    next: () => {
-      this.toastService.showSuccess('Created Tenant Successfully.');
-      // Navigate back to tenant list
-      this.router.navigate(['/tenant-list']);
-    },
-    error: err => {
-      this.error = err.error || 'Failed to save tenant';
-      this.toastService.showError(this.error);
-    }
-  });
+      next: () => {
+        this.toastService.showSuccess('Created Tenant Successfully.');
+        this.router.navigate(['/tenant-list']);
+      },
+      error: err => {
+        this.error = err.error || 'Failed to save tenant';
+        this.toastService.showError(this.error);
+      }
+    });
   }
   cancel(): void {
     this.router.navigate(['/tenant-list']);

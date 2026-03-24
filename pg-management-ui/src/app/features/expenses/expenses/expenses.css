@@ -261,6 +261,18 @@
   font-size: 0.85rem;
 }
 
+/* Odd columns — bold black */
+.cell-odd {
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Even columns — normal grey */
+.cell-even {
+  font-weight: 400;
+  color: #6b7280;
+}
+
 /* ==============================
    Payment Mode Pills
 ================================ */

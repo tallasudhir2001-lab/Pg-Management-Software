@@ -83,9 +83,11 @@ getPendingRent(tenantId: string) {
 updateTenant(tenantId: string,dto: UpdateTenantDto) {
   return this.http.put<void>(`${this.baseUrl}/${tenantId}`, dto);
 }
-moveOutTenant(tenantId: string) {
+moveOutTenant(tenantId: string, moveOutDate: string) {
   return this.http.post<void>(
-    `${this.baseUrl}/${tenantId}/move-out`,{});
+    `${this.baseUrl}/${tenantId}/move-out`,
+    { moveOutDate } 
+  );
 }
 changeRoom(tenantId: string, payload: any) {
   return this.http.post<void>(

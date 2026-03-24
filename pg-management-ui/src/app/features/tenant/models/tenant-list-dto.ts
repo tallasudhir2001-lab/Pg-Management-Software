@@ -6,7 +6,7 @@ export interface TenantListDto {
   roomNumber?: string | null;
 
   contactNumber: string;
-  status: 'Active' | 'MovedOut';
+  status: 'ACTIVE' | 'MOVED OUT' | 'NO STAY';
   checkedInAt?: string | null;
   isRentPending: boolean;
 }

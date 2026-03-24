@@ -20,6 +20,7 @@
   font-weight: 600;
   color: #111827;
   margin: 0;
+  text-align: left; /* was centered — matches payment history */
 }
 
 /* ==============================
@@ -34,7 +35,6 @@
   flex-wrap: wrap;
 }
 
-/* Search Input */
 .search-input {
   flex: 1;
   max-width: 360px;
@@ -58,7 +58,6 @@
     0 0 0 4px rgba(15, 16, 65, 0.15);
 }
 
-/* Action Buttons Wrapper */
 .action-buttons {
   display: flex;
   gap: 10px;
@@ -71,23 +70,24 @@
   border: none;
   border-radius: 999px;
   padding: 11px 20px;
-  font-size: 15px;   
+  font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  width: auto;
+  min-width: unset;
+  flex: 0 0 auto;
 }
 
-/* Primary Button */
 .btn-primary {
-  background-color: #2563eb;
+  background-color: var(--primary);
   color: #ffffff;
 }
 
 .btn-primary:hover {
-  background-color: #1d4ed8;
+  background-color: var(--primary-light);
 }
 
-/* Secondary Button */
 .btn-secondary {
   background-color: #e5e7eb;
   color: #111827;
@@ -112,42 +112,90 @@
 ================================ */
 .data-table {
   width: 100%;
-  border-collapse: collapse;
-  min-width: 800px;
+  /* ✅ KEY CHANGE: separate + spacing gives the card-row look */
+  border-collapse: separate;
+  border-spacing: 0 8px;
 }
 
-.data-table thead {
+/* ==============================
+   Table Head — uppercase muted style matching payment history
+================================ */
+.data-table thead th {
+  text-align: left;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
   background-color: #f3f4f6;
 }
 
-.data-table th,
-.data-table td {
-  padding: 12px 14px;
-  text-align: left;
-  font-size: 14px;
-  color: #111827;
-  white-space: nowrap;
+/* ==============================
+   Table Body — card rows with shadow
+================================ */
+.data-table tbody tr {
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
 }
 
-.data-table th {
-  font-weight: 600;
-  color: #374151;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-/* Row Divider */
-.data-table td {
-  border-bottom: 1px solid #f1f5f9;
-}
-
-/* Hover Effect */
 .data-table tbody tr:hover {
   background-color: #f9fafb;
 }
 
+.data-table tbody td {
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  color: #111827;
+  border-bottom: 1px solid #f1f5f9;
+  white-space: nowrap;
+}
+
+/* Rounded corners on first and last cell of each row */
+.data-table tbody tr td:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.data-table tbody tr td:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
 /* ==============================
-   Status Pills
+   Table Cell Typography — alternating bold black / bold grey
 ================================ */
+
+/* Bold black — tenant name, primary identity columns */
+.cell-primary {
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Lighter grey — supporting info columns (room, contact, date) */
+.cell-secondary {
+  font-weight: 400;
+  color: #9ca3af;
+}
+
+/* ==============================
+   Rent Status — plain text, no pill
+================================ */
+.rent-text {
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.data-table tbody td.rent-pending {
+  color: #dc2626; /* red-600 */
+}
+
+.data-table tbody td.rent-paid {
+  color: var(--primary);
+}
 .status-pill {
   display: inline-block;
   padding: 4px 10px;
@@ -155,6 +203,7 @@
   font-weight: 700;
   border-radius: 999px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .status-pill.active {
@@ -163,83 +212,193 @@
 }
 
 .status-pill.inactive {
-  background-color: #eef8ff;
-  color: #2395ce;
+  background-color: #f1f5f9;
+  color: #64748b;
 }
+
+.status-pill.no-stay {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
+
+
 
 /* ==============================
    Actions Column
 ================================ */
 .data-table td:last-child {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-start;
+  gap: 8px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.action-btn {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.action-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  display: block;
+}
+
+.action-btn:hover              { background-color: #e5e7eb; }
+.action-btn.danger:hover       { background-color: #fee2e2; }
+.action-btn[title="View"]:hover{ background-color: rgba(15, 16, 65, 0.1); }
+.action-btn[title="Edit"]:hover{ background-color: rgba(37, 99, 235, 0.1); }
+
+/* ==============================
+   Clear Filters Button
+================================ */
+.clear-filters-btn {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.clear-filters-btn img { width: 18px; height: 18px; opacity: 0.7; }
+.clear-filters-btn:hover { background-color: #f1f5f9; }
+.clear-filters-btn:hover img { opacity: 1; }
+
+/* ==============================
+   Sort Arrow
+================================ */
+.sort-arrow {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--primary);
+  opacity: 0;
+  transform: rotate(180deg);
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.sort-arrow.visible { opacity: 1; }
+.sort-arrow.asc     { transform: rotate(0deg); }
+
+/* ==============================
+   Pagination
+================================ */
+.pagination {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 32px 0;
+}
+
+.pagination-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-btn {
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #0F1041;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-btn.prev,
+.page-btn.next    { width: 96px; height: 40px; font-size: 15px; font-weight: 600; }
+.page-btn.page-number { width: 48px; height: 40px; font-size: 14px; }
+.page-btn.active  { background-color: #0F1041; color: white; border-color: #0F1041; }
+.page-btn:hover:not(:disabled) { background-color: #0F1041; color: white; }
+.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ==============================
+   Pagination Info
+================================ */
+.pagination-info {
+  margin-top: 12px;
   text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.pagination-info.empty { color: #9ca3af; }
+.count-strong { font-weight: 700; color: #0f1041; }
+
+/* ==============================
+   Side-by-side filter cards row
+================================ */
+.filter-cards-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.filter-cards-row .filter-card {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0; /* row handles the bottom gap */
 }
 
 /* ==============================
-   Responsive Adjustments
+   Filter Drawer
 ================================ */
-@media (max-width: 768px) {
-  .tenant-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-input {
-    max-width: 100%;
-  }
-
-  .action-buttons {
-    justify-content: flex-end;
-  }
-}
-/* Fix Add Tenant button size */
-.btn {
-  width: auto;
-  min-width: unset;
-  flex: 0 0 auto;
+.filter-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 16, 65, 0.2);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
 }
 
-/* Use theme primary color instead of hardcoded blue */
-.btn-primary {
-  background-color: var(--primary);
-  color: #ffffff;
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-light);
-}
-/* Drawer Container & Curve */
+/* ✅ Widened to 480px — matches payment history fix */
 .filter-drawer {
   position: fixed;
-  top: 15px; /* Small gap from top */
-  right: 15px; /* Small gap from right */
-  width: 340px;
-  height: calc(100vh - 30px); /* Height minus gaps */
-  background: #f8f9fa; /* Slightly off-white body */
+  top: 15px;
+  right: 15px;
+  width: 480px;
+  height: calc(100vh - 30px);
+  background: #f8f9fa;
   box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
   z-index: 1001;
   display: flex;
   flex-direction: column;
-  border-radius: 20px; /* Curved edges for the whole drawer */
+  border-radius: 20px;
   overflow: hidden;
   border: 1px solid #e5e7eb;
 }
 
-/* Header Styling */
 .filter-header {
-  padding: 20px;
+  padding: 20px 24px;
   background: #ffffff;
   border-bottom: 1px solid #eee;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
 }
 
-.filter-title {
-  color: #0F1041;
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-}
+.filter-title { color: #0F1041; font-size: 20px; font-weight: 700; margin: 0; }
 
 .filter-close-btn {
   background: none;
@@ -250,17 +409,23 @@
   line-height: 1;
 }
 
-/* Body & Cards */
+/* Body scrolls, header+footer stay pinned */
 .filter-body {
-  padding: 20px;
+  padding: 20px 24px;
   flex: 1;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
 }
+
+.filter-body::-webkit-scrollbar { width: 4px; }
+.filter-body::-webkit-scrollbar-track { background: transparent; }
+.filter-body::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 4px; }
 
 .filter-card {
   background: #ffffff;
-  padding: 16px;
-  border-radius: 15px; /* Curved edges for cards */
+  padding: 16px 20px;
+  border-radius: 15px;
   margin-bottom: 16px;
   border: 1px solid #edf2f7;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
@@ -269,105 +434,43 @@
 .filter-section-title {
   color: #0F1041;
   font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 12px;
+  font-size: 13px;
+  margin: 0 0 12px 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-/* Radio Option Styling */
 .filter-option {
   display: flex;
   align-items: center;
-  padding: 8px 0;
+  padding: 7px 0;
   cursor: pointer;
   gap: 10px;
 }
 
-.filter-option input[type="radio"] {
+.filter-option input[type="radio"],
+.filter-option input[type="checkbox"] {
   accent-color: #0F1041;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
 }
 
-.filter-radio-label {
-  font-size: 15px;
-  color: #4b5563;
-}
+.filter-radio-label { font-size: 14px; color: #4b5563; line-height: 1.4; }
 
-/* Search Dropdown / Input */
-.filter-form-input {
+/* Search Dropdown */
+.filter-form-input,
+.form-input {
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid #d1d5db;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
-.filter-searchable-dropdown {
-  position: relative;
-}
-
-.filter-search-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  color: #9ca3af;
-}
-
-.filter-hint {
-  font-size: 12px;
-  color: #9ca3af;
-  margin-top: 8px;
-  font-style: italic;
-}
-
-/* Footer & Buttons */
-.filter-footer {
-  padding: 20px;
-  background: #ffffff;
-  border-top: 1px solid #eee;
-  display: flex;
-  gap: 12px;
-}
-
-.filter-btn {
-  flex: 1;
-  padding: 12px;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
-  border: none;
-}
-
-.filter-btn-primary {
-  background: #0F1041;
-  color: white;
-}
-
-.filter-btn-primary:hover {
-  background: #1a1b5c;
-}
-
-.filter-btn-secondary {
-  background: #f3f4f6;
-  color: #4b5563;
-}
-
-.filter-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 16, 65, 0.2); /* Tinted backdrop with brand color */
-  backdrop-filter: blur(2px); /* Modern blur effect */
-  z-index: 1000;
-}
-.searchable-dropdown {
-  position: relative;
-}
+.searchable-dropdown { position: relative; }
 
 .dropdown-list {
   position: absolute;
@@ -383,234 +486,41 @@
   z-index: 10;
 }
 
-.dropdown-item {
-  padding: 10px 12px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #374151;
-}
+.dropdown-item { padding: 10px 12px; cursor: pointer; font-size: 14px; color: #374151; }
+.dropdown-item:hover { background: #f3f4f6; }
+.dropdown-empty { margin-top: 6px; font-size: 12px; color: #9ca3af; }
+.filter-hint { font-size: 12px; color: #9ca3af; margin-top: 8px; font-style: italic; }
 
-.dropdown-item:hover {
-  background: #f3f4f6;
-}
-
-.dropdown-empty {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-/* Arrow base */
-.sort-arrow {
-  display: inline-block;
-  margin-left: 6px;
-  font-size: 11px;
-  color: var(--primary);
-  opacity: 0;
-  transform: rotate(180deg);
-  transition:
-    transform 0.25s ease,
-    opacity 0.2s ease;
-}
-
-/* Show arrow only on active column */
-.sort-arrow.visible {
-  opacity: 1;
-}
-
-/* Ascending = arrow up */
-.sort-arrow.asc {
-  transform: rotate(0deg);
-}
-/* Full-width container, centers the group */
-.pagination {
-  width: 100%;
+/* Footer — pinned */
+.filter-footer {
+  padding: 20px 24px;
+  background: #ffffff;
+  border-top: 1px solid #eee;
   display: flex;
-  justify-content: center;
-  margin: 32px 0;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
-/* The actual pagination row (content width only) */
-.pagination-inner {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: transparent;
-}
-
-/* Base button */
-.page-btn {
-  border: 1px solid #e5e7eb;
-  background: white;
-  color: #0F1041;
-  cursor: pointer;
-  border-radius: 10px;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Prev / Next → size = 2 */
-.page-btn.prev,
-.page-btn.next {
-  width: 96px;
-  height: 40px;
-  font-size: 15px;
+.filter-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
   font-weight: 600;
-}
-
-/* Page numbers → size = 1 (half of prev/next) */
-.page-btn.page-number {
-  width: 48px;
-  height: 40px;
-  font-size: 14px;
-}
-
-/* Active */
-.page-btn.active {
-  background-color: #0F1041;
-  color: white;
-  border-color: #0F1041;
-}
-
-/* Hover */
-.page-btn:hover:not(:disabled) {
-  background-color: #0F1041;
-  color: white;
-}
-
-/* Disabled */
-.page-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-/* ==============================
-   Action Buttons Cell Fix
-================================ */
-
-/* Ensure the cell doesn't stretch */
-/* ==============================
-   Action Buttons Cell Fix
-================================ */
-
-/* This forces the buttons to stay in a single horizontal line */
-.data-table td:last-child {
-  display: flex !important;
-  flex-direction: row !important; /* Forces side-by-side */
-  justify-content: flex-start;    /* Aligns them to the left of the cell */
-  gap: 8px;                       /* Space between icons */
-  vertical-align: middle;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-/* Base style for the small square buttons */
-.action-btn {
-  background: transparent; 
+  cursor: pointer;
+  transition: 0.2s;
   border: none;
-  border-radius: 8px;
-  width: 32px;  /* Fixed width */
-  height: 32px; /* Fixed height */
-  display: inline-flex; /* Ensures they don't take full width */
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 0;
-  flex-shrink: 0; /* Prevents icons from squishing */
 }
 
-/* Icon size constraint */
-.action-btn img {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
-  display: block;
-}
-
-/* Hover effects */
-.action-btn:hover {
-  background-color: #e5e7eb;
-}
-
-.action-btn.danger:hover {
-  background-color: #fee2e2;
-}
-
-/* Info/View Button Hover */
-.action-btn[title="View"]:hover {
-  background-color: rgba(15, 16, 65, 0.1);
-}
-
-/* Edit Button Hover */
-.action-btn[title="Edit"]:hover {
-  background-color: rgba(37, 99, 235, 0.1);
-}
-
-/* ===== Clear Filters Icon Button (Ghost Style) ===== */
-
-.clear-filters-btn {
-  background: transparent;     /* 🔑 remove background */
-  border: none;                /* 🔑 remove border */
-  padding: 8px;                /* clickable area */
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.clear-filters-btn img {
-  width: 18px;
-  height: 18px;
-  opacity: 0.7;                /* subtle by default */
-}
-
-.clear-filters-btn:hover {
-  background-color: #f1f5f9;   /* very light hover */
-}
-
-.clear-filters-btn:hover img {
-  opacity: 1;
-}
-.pagination-info {
-  margin-top: 12px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 500;
-  color: #1f2937; /* gray-800 */
-}
-
-
-.pagination-info.empty {
-  color: #9ca3af;
-}
-
-.count-strong {
-  font-weight: 700;
-  color: #0f1041; /* same as active page button */
-}
+.filter-btn-primary { background: #0F1041; color: white; }
+.filter-btn-primary:hover { background: #1a1b5c; }
+.filter-btn-secondary { background: #f3f4f6; color: #4b5563; }
 
 /* ==============================
-   Rent Status Pills
+   Responsive
 ================================ */
-.rent-pill {
-  display: inline-block;
-  padding: 4px 10px;          /* same as status-pill */
-  font-size: 12px;
-  font-weight: 700;           /* match status-pill */
-  border-radius: 999px;
-  text-align: center;
-  white-space: nowrap;
-}
-
-/* 🔴 Pending Rent */
-.rent-pill.pending {
-  background-color: #fee2e2;  /* same family as inactive status */
-  color: #991b1b;             /* deep red text */
-}
-/* 🟢 Rent Paid */
-.rent-pill.paid {
-  background-color: #dcfce7;  /* same as active status */
-  color: #166534;             /* deep green text */
+@media (max-width: 768px) {
+  .tenant-actions { flex-direction: column; align-items: stretch; }
+  .search-input   { max-width: 100%; }
+  .action-buttons { justify-content: flex-end; }
+  .filter-drawer  { width: calc(100vw - 24px); top: 12px; right: 12px; height: calc(100vh - 24px); }
 }

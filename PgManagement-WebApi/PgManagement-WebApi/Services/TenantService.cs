@@ -98,19 +98,21 @@ namespace PgManagement_WebApi.Services
                 context.Payments.Add(payment);
             }
 
+            if (!string.IsNullOrEmpty(dto.RoomId))
+            {
 
-            var fromDate = dto.FromDate ?? DateTime.UtcNow;
+                var fromDate = dto.FromDate ?? DateTime.UtcNow;
 
-            var (ok, error, status) = await CreateStayInternal(
-                tenant.TenantId,
-                dto.RoomId,
-                fromDate,
-                pgId
-            );
+                var (ok, error, status) = await CreateStayInternal(
+                    tenant.TenantId,
+                    dto.RoomId,
+                    fromDate,
+                    pgId
+                );
 
-            if (!ok)
-                return (false, error, status);
-
+                if (!ok)
+                    return (false, error, status);
+            }
             await context.SaveChangesAsync();
             await tx.CommitAsync();
 

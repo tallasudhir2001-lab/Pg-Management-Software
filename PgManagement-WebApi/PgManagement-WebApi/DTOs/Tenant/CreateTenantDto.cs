@@ -9,8 +9,7 @@ namespace PgManagement_WebApi.DTOs.Tenant
         public string Name { get; set; }
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
-        [Required]
-        public string RoomId { get; set; }       
+        public string? RoomId { get; set; }       
         public string ContactNumber { get; set; }
         public string AadharNumber { get; set; }
         public bool HasAdvance { get; set; } 

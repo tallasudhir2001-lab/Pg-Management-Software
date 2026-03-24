@@ -29,101 +29,97 @@ namespace PgManagement_WebApi.Controllers
             this.configuration = configuration;
             this.tenantService = tenantService;
         }
-       [HttpGet]
-public async Task<IActionResult> GetTenants(
-    int page = 1,
-    int pageSize = 10,
-    string? search = null,
-    string? status = null,
-    string? roomId = null,
-    bool? rentPending = null,
-    string sortBy = "updated",
-    string sortDir = "desc")
-{
-    var today = DateTime.UtcNow.Date;
-
-    var pgId = User.FindFirst("pgId")?.Value;
-    if (string.IsNullOrEmpty(pgId))
-        return Unauthorized();
-
-    // 1️⃣ Base Query
-    IQueryable<Tenant> query = context.Tenants
-        .AsNoTracking()
-        .Where(t => t.PgId == pgId && !t.isDeleted);
-
-    // 🔎 Search
-    if (!string.IsNullOrEmpty(search))
-    {
-        query = query.Where(t =>
-            t.Name.Contains(search) ||
-            t.ContactNumber.Contains(search));
-    }
-
-    // 📊 Sorting
-    query = (sortBy.ToLower(), sortDir.ToLower()) switch
-    {
-        ("updated", "desc") => query.OrderByDescending(t => t.UpdatedAt ?? t.CreatedAt),
-        ("updated", "asc") => query.OrderBy(t => t.UpdatedAt ?? t.CreatedAt),
-        ("name", "desc") => query.OrderByDescending(t => t.Name),
-        ("name", "asc") => query.OrderBy(t => t.Name),
-        _ => query.OrderBy(t => t.Name)
-    };
-
-    var totalCount = await query.CountAsync();
-
-    // 2️⃣ Pagination
-    var tenants = await query
-        .Skip((page - 1) * pageSize)
-        .Take(pageSize)
-        .Select(t => new
+        [HttpGet]
+        public async Task<IActionResult> GetTenants(
+     int page = 1,
+     int pageSize = 10,
+     string? search = null,
+     string? status = null,
+     string? roomId = null,
+     bool? rentPending = null,
+     string sortBy = "updated",
+     string sortDir = "desc")
         {
-            t.TenantId,
-            t.Name,
-            t.ContactNumber
-        })
-        .ToListAsync();
+            var today = DateTime.UtcNow.Date;
 
-    var tenantIds = tenants.Select(t => t.TenantId).ToList();
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId))
+                return Unauthorized();
 
-    // 3️⃣ Fetch related data (optimized)
-    var tenantRooms = await context.TenantRooms
-        .AsNoTracking()
-        .Where(tr => tenantIds.Contains(tr.TenantId))
-        .Select(tr => new TenantRoomDto
-        {
-            TenantId = tr.TenantId,
-            RoomId = tr.RoomId,
-            FromDate = tr.FromDate,
-            ToDate = tr.ToDate,
-            RoomNumber = tr.Room.RoomNumber
-        })
-        .ToListAsync();
+            // 1️⃣ Base Query
+            IQueryable<Tenant> query = context.Tenants
+                .AsNoTracking()
+                .Where(t => t.PgId == pgId && !t.isDeleted);
 
-    var payments = await context.Payments
-        .AsNoTracking()
-        .Where(p => tenantIds.Contains(p.TenantId) && !p.IsDeleted)
-        .Select(p => new
-        {
-            p.TenantId,
-            PaidFrom = p.PaidFrom.Date,
-            PaidUpto = p.PaidUpto.Date
-        })
-        .ToListAsync();
+            //  Search
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(t =>
+                    t.Name.Contains(search) ||
+                    t.ContactNumber.Contains(search));
+            }
 
-    // 4️⃣ Group for O(1) lookup
-    var roomsLookup = tenantRooms
-        .GroupBy(tr => tr.TenantId)
-        .ToDictionary(g => g.Key, g => g.ToList());
+            //  Sorting
+            query = (sortBy.ToLower(), sortDir.ToLower()) switch
+            {
+                ("updated", "desc") => query.OrderByDescending(t => t.UpdatedAt ?? t.CreatedAt),
+                ("updated", "asc") => query.OrderBy(t => t.UpdatedAt ?? t.CreatedAt),
+                ("name", "desc") => query.OrderByDescending(t => t.Name),
+                ("name", "asc") => query.OrderBy(t => t.Name),
+                _ => query.OrderBy(t => t.Name)
+            };
 
-    var paymentsLookup = payments
-        .GroupBy(p => p.TenantId)
-        .ToDictionary(g => g.Key, g => g.ToList());
+            // 2️⃣ Fetch ALL matching tenants (pagination applied after filtering)
+            var tenants = await query
+                .Select(t => new
+                {
+                    t.TenantId,
+                    t.Name,
+                    t.ContactNumber
+                })
+                .ToListAsync();
 
-    var result = new List<TenantListDto>();
+            var tenantIds = tenants.Select(t => t.TenantId).ToList();
 
-    // 5️⃣ Process each tenant
-    foreach (var tenant in tenants)
-    {
+            // 3️ Fetch related data (optimized)
+            var tenantRooms = await context.TenantRooms
+                .AsNoTracking()
+                .Where(tr => tenantIds.Contains(tr.TenantId))
+                .Select(tr => new TenantRoomDto
+                {
+                    TenantId = tr.TenantId,
+                    RoomId = tr.RoomId,
+                    FromDate = tr.FromDate,
+                    ToDate = tr.ToDate,
+                    RoomNumber = tr.Room.RoomNumber
+                })
+                .ToListAsync();
+
+            var payments = await context.Payments
+                .AsNoTracking()
+                .Where(p => tenantIds.Contains(p.TenantId) && !p.IsDeleted)
+                .Select(p => new
+                {
+                    p.TenantId,
+                    PaidFrom = p.PaidFrom.Date,
+                    PaidUpto = p.PaidUpto.Date
+                })
+                .ToListAsync();
+
+            // 4️ Group for O(1) lookup
+            var roomsLookup = tenantRooms
+                .GroupBy(tr => tr.TenantId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var paymentsLookup = payments
+                .GroupBy(p => p.TenantId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var result = new List<TenantListDto>();
+
+            // 5️ Process each tenant
+            foreach (var tenant in tenants)
+            {
                 var stays = roomsLookup.ContainsKey(tenant.TenantId)
              ? roomsLookup[tenant.TenantId]
              : new List<TenantRoomDto>();
@@ -131,86 +127,98 @@ public async Task<IActionResult> GetTenants(
 
                 var activeStay = stays.FirstOrDefault(s => s.ToDate == null);
 
-        var lastStay = stays
-            .Where(s => s.ToDate != null)
-            .OrderByDescending(s => s.ToDate)
-            .FirstOrDefault();
+                var lastStay = stays
+                    .Where(s => s.ToDate != null)
+                    .OrderByDescending(s => s.ToDate)
+                    .FirstOrDefault();
 
-        var tenantPayments = paymentsLookup.ContainsKey(tenant.TenantId)
-            ? paymentsLookup[tenant.TenantId]
-                .Select(p => (p.PaidFrom, p.PaidUpto))
-            : Enumerable.Empty<(DateTime, DateTime)>();
+                var tenantPayments = paymentsLookup.ContainsKey(tenant.TenantId)
+                    ? paymentsLookup[tenant.TenantId]
+                        .Select(p => (p.PaidFrom, p.PaidUpto))
+                    : Enumerable.Empty<(DateTime, DateTime)>();
 
-        bool hasPending = false;
+                bool hasPending = false;
 
-        foreach (var stay in stays)
-        {
-            var stayFrom = stay.FromDate.Date;
-            var stayTo = stay.ToDate ?? today;
+                foreach (var stay in stays)
+                {
+                    var stayFrom = stay.FromDate.Date;
+                    var stayTo = stay.ToDate ?? today;
 
-            var unpaid = DateRangeHelper.Subtract(
-                stayFrom,
-                stayTo,
-                tenantPayments
-            );
+                    var unpaid = DateRangeHelper.Subtract(
+                        stayFrom,
+                        stayTo,
+                        tenantPayments
+                    );
 
-            if (unpaid.Any())
-            {
-                hasPending = true;
-                break;
+                    if (unpaid.Any())
+                    {
+                        hasPending = true;
+                        break;
+                    }
+                }
+
+                var roomIdValue = activeStay?.RoomId ?? lastStay?.RoomId;
+
+                var roomNumber = activeStay != null
+                    ? activeStay.RoomNumber
+                    : lastStay != null
+                        ? lastStay.RoomNumber + " (ex)"
+                        : null;
+
+                var checkedInAt = activeStay?.FromDate ?? lastStay?.FromDate;
+
+                result.Add(new TenantListDto
+                {
+                    TenantId = tenant.TenantId,
+                    Name = tenant.Name,
+                    ContactNumber = tenant.ContactNumber,
+                    RoomId = roomIdValue,
+                    RoomNumber = roomNumber,
+                    CheckedInAt = checkedInAt,
+                    Status = activeStay != null ? "ACTIVE"
+                           : stays.Any() ? "MOVED OUT"
+                           : "NO STAY",
+                    IsRentPending = activeStay != null || stays.Any() ? hasPending : false
+                });
             }
+
+            // 6️⃣ Filters — applied before pagination
+            if (!string.IsNullOrEmpty(status))
+            {
+                result = status.ToLower() switch
+                {
+                    "active" => result.Where(x => x.Status == "ACTIVE").ToList(),
+                    "movedout" => result.Where(x => x.Status == "MOVED OUT").ToList(),
+                    "nostay" => result.Where(x => x.Status == "NO STAY").ToList(),
+                    _ => result
+                };
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                result = result.Where(x => x.RoomId == roomId).ToList();
+            }
+
+            if (rentPending.HasValue)
+            {
+                result = result.Where(x => x.IsRentPending == rentPending.Value).ToList();
+            }
+
+            // 7️⃣ totalCount is now post-filter for accurate pagination
+            var totalCount = result.Count;
+
+            // 8️⃣ Paginate after filtering
+            var pagedResult = result
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return Ok(new PageResultsDto<TenantListDto>
+            {
+                Items = pagedResult,
+                TotalCount = totalCount
+            });
         }
-
-        var roomIdValue = activeStay?.RoomId ?? lastStay?.RoomId;
-
-        var roomNumber = activeStay != null
-            ? activeStay.RoomNumber
-            : lastStay != null
-                ? lastStay.RoomNumber + " (ex)"
-                : null;
-
-        var checkedInAt = activeStay?.FromDate ?? lastStay?.FromDate;
-
-        result.Add(new TenantListDto
-        {
-            TenantId = tenant.TenantId,
-            Name = tenant.Name,
-            ContactNumber = tenant.ContactNumber,
-            RoomId = roomIdValue,
-            RoomNumber = roomNumber,
-            CheckedInAt = checkedInAt,
-            Status = activeStay == null ? "MovedOut" : "Active",
-            IsRentPending = hasPending
-        });
-    }
-
-    // 6️⃣ Filters (post-processing)
-    if (!string.IsNullOrEmpty(status))
-    {
-        result = status.ToLower() switch
-        {
-            "active" => result.Where(x => x.Status == "Active").ToList(),
-            "movedout" => result.Where(x => x.Status == "MovedOut").ToList(),
-            _ => result
-        };
-    }
-
-    if (!string.IsNullOrEmpty(roomId))
-    {
-        result = result.Where(x => x.RoomId == roomId).ToList();
-    }
-
-    if (rentPending.HasValue)
-    {
-        result = result.Where(x => x.IsRentPending == rentPending.Value).ToList();
-    }
-
-    return Ok(new PageResultsDto<TenantListDto>
-    {
-        Items = result,
-        TotalCount = totalCount
-    });
-}
 
 
         [HttpGet("{tenantId}")]
@@ -344,8 +352,10 @@ public async Task<IActionResult> GetTenants(
 
 
                 Status = tenant.ActiveAssignment != null
-                    ? "Active"
-                    : "MovedOut",
+                    ? "ACTIVE"
+                    : tenant.LastAssignment != null
+                        ? "MOVED OUT"
+                        : "NO STAY",
 
                 Stays = stays
             });
@@ -360,7 +370,7 @@ public async Task<IActionResult> GetTenants(
                 return Unauthorized();
 
             var (success, result, statusCode) =
-                await tenantService.ChangeRoomAsync(tenantId, dto.newRoomId, pgId,dto.changeDate);
+                await tenantService.ChangeRoomAsync(tenantId, dto.newRoomId, pgId, dto.changeDate);
 
             if (!success)
                 return StatusCode(statusCode, result);
@@ -369,11 +379,13 @@ public async Task<IActionResult> GetTenants(
         }
 
         [HttpPost("{tenantId}/move-out")]
-        public async Task<IActionResult> MoveOutTenant(string tenantId)
+        public async Task<IActionResult> MoveOutTenant(string tenantId, [FromBody] MoveOutDto dto)
         {
             var pgId = User.FindFirst("pgId")?.Value;
             if (string.IsNullOrEmpty(pgId))
                 return Unauthorized();
+
+            var moveOutDate = dto.MoveOutDate.Date;
 
             using var tx = await context.Database.BeginTransactionAsync();
 
@@ -387,9 +399,19 @@ public async Task<IActionResult> GetTenants(
             if (activeRoom == null)
                 return BadRequest("Tenant does not have an active room.");
 
-            activeRoom.ToDate = DateTime.UtcNow;
+            // 2️⃣ Validate move-out date against latest payment's PaidUpto
+            var latestPayment = await context.Payments
+                .Where(p => p.TenantId == tenantId && !p.IsDeleted)
+                .OrderByDescending(p => p.PaidUpto)
+                .FirstOrDefaultAsync();
 
-            // 2️⃣ Close active rent history
+            if (latestPayment != null && latestPayment.PaidUpto.Date > moveOutDate)
+                return BadRequest(
+                    $"Move-out date cannot be before the latest payment's paid-up date ({latestPayment.PaidUpto:dd MMM yyyy}). Please select a date on or after that.");
+
+            activeRoom.ToDate = moveOutDate;
+
+            // 3️⃣ Close active rent history
             var activeRent = await context.TenantRentHistories
                 .FirstOrDefaultAsync(trh =>
                     trh.TenantId == tenantId &&
@@ -397,10 +419,10 @@ public async Task<IActionResult> GetTenants(
 
             if (activeRent != null)
             {
-                activeRent.ToDate = DateTime.UtcNow;
+                activeRent.ToDate = moveOutDate;
             }
 
-            // 3️ Update tenant metadata (optional but recommended)
+            // 4️⃣ Update tenant metadata
             var tenant = await context.Tenants
                 .FirstOrDefaultAsync(t =>
                     t.TenantId == tenantId &&

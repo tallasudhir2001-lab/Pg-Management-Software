@@ -89,24 +89,24 @@
                               [class.asc]="isSortAsc('expenseDate')">▼</span>
                     </th>
                     <th>Category</th>
-                    <th>Description</th>
                     <th (click)="onSort('amount')" style="cursor: pointer;">
                         Amount
                         <span class="sort-arrow" 
                               [class.visible]="isSortedBy('amount')"
                               [class.asc]="isSortAsc('amount')">▼</span>
                     </th>
+                    <th>Description</th>
                     <th>Payment Mode</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <tr *ngFor="let expense of (expenses$ | async)?.items">
-                    <td class="muted">{{ formatDate(expense.expenseDate) }}</td>
-                    <td class="category-cell">{{ expense.category }}</td>
-                    <td>{{ expense.description }}</td>
-                    <td class="amount-cell">{{ formatCurrency(expense.amount) }}</td>
-                    <td>
+                    <td class="cell-odd muted">{{ formatDate(expense.expenseDate) }}</td>
+                    <td class="cell-even category-cell">{{ expense.category }}</td>
+                    <td class="cell-odd amount-cell">{{ formatCurrency(expense.amount) }}</td>
+                    <td class="cell-even">{{ expense.description }}</td>
+                    <td class="cell-odd">
                         <span class="payment-mode-pill" [attr.data-mode]="expense.paymentMode.toLowerCase()">
                             {{ formatPaymentMode(expense.paymentModeLabel) }}
                         </span>
@@ -279,4 +279,3 @@
         </div>
     </aside>
 </div>
-

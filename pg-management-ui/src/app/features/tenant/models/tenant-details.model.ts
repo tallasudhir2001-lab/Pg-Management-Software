@@ -21,11 +21,11 @@ export interface TenantDetailsModel {
   movedOutAt: string | null;
 
   // Derived state
-  status: 'Active' | 'MovedOut';
+  status: 'ACTIVE' | 'MOVED OUT' | 'NO STAY';
 
   //stays
   stays: Stay[];
-  
+
   advances: Advance[];
 }
 export interface Stay {
