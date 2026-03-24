@@ -36,7 +36,7 @@ export class TenantList implements OnInit{
   selectedRoomId: string | null = null;
   isRoomDropdownOpen = false;
   selectedRoomLabel = '';
-  filterStatus: '' | 'active' | 'movedout' = '';
+  filterStatus: '' | 'ACTIVE' | 'MOVED OUT' = '';
   filterRentPending: '' | 'true' | 'false' = '';
 
   //sorting
