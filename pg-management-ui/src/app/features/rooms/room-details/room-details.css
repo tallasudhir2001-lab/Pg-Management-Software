@@ -304,3 +304,99 @@
   height: 18px;
   display: block;
 }
+
+/* Booking status badges */
+.badge-active     { background: #d1fae5; color: #065f46; }
+.badge-cancelled  { background: #fee2e2; color: #991b1b; }
+.badge-terminated { background: #fef3c7; color: #92400e; }
+
+/* Cancel confirm modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 16, 65, 0.35);
+  backdrop-filter: blur(3px);
+  z-index: 100;
+}
+
+.confirm-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 28px 24px;
+  box-shadow: 0 20px 60px rgba(15, 16, 65, 0.18);
+  z-index: 101;
+  box-sizing: border-box;
+}
+
+.confirm-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.confirm-modal-header h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: #f1f5f9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-close-btn:hover { background: #e2e8f0; }
+
+.confirm-modal-body {
+  margin-bottom: 24px;
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+}
+.confirm-modal-body p { margin: 0; }
+
+.confirm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-discard {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-discard:hover { background: #e5e7eb; }
+
+.btn-confirm {
+  background: #0f1041;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-confirm:hover { background: #1a1c5e; }

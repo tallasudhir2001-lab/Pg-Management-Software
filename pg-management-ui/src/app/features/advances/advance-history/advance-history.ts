@@ -7,11 +7,12 @@ import { ToastService } from '../../../shared/toast/toast-service';
 import { PaymentService } from '../../payments/services/payment-service';
 import { PaymentMode } from '../../payments/models/payment-mode.model';
 import { Observable } from 'rxjs';
+import { SettleAdvanceModal } from '../settle-advance-modal/settle-advance-modal';
 
 @Component({
   selector: 'app-advance-history',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SettleAdvanceModal],
   templateUrl: './advance-history.html',
   styleUrls: ['./advance-history.css']
 })
@@ -26,74 +27,35 @@ export class AdvanceHistory {
   selectedAdvance: Advance | null = null;
   isModalOpen = false;
 
-  deductedAmount: number = 0;
-  paymentModeCode: string = '';
-
   isAddModalOpen = false;
 
   newAmount: number = 0;
   newPaymentMode: string = '';
 
-  loading = false;
-
   constructor(
     private advanceService: AdvanceService,
     private toastService: ToastService,
-    private paymentService:PaymentService
-  ) {
-  }
+    private paymentService: PaymentService
+  ) {}
+
   ngOnInit() {
-  this.paymentModes$ = this.paymentService.getPaymentModes();
-}
-  //  Open modal
+    this.paymentModes$ = this.paymentService.getPaymentModes();
+  }
+
   openSettleModal(a: Advance) {
     this.selectedAdvance = a;
-    this.deductedAmount = 0;
-    this.paymentModeCode = '';
     this.isModalOpen = true;
   }
 
-  closeModal() {
+  onAdvanceSettled() {
     this.isModalOpen = false;
     this.selectedAdvance = null;
+    this.settled.emit();
   }
 
-  //  Submit settlement
-  settle() {
-    if (!this.selectedAdvance) return;
-
-    if (this.deductedAmount < 0) {
-      this.toastService.showError('Deduction cannot be negative');
-      return;
-    }
-
-    if (this.deductedAmount > this.selectedAdvance.amount) {
-      this.toastService.showError('Deduction cannot exceed advance');
-      return;
-    }
-
-    if (!this.paymentModeCode && (this.selectedAdvance.amount - this.deductedAmount) > 0) {
-      this.toastService.showError('Select payment mode for refund');
-      return;
-    }
-
-    this.loading = true;
-
-    this.advanceService.settleAdvance(this.selectedAdvance.advanceId, {
-      deductedAmount: this.deductedAmount,
-      paymentModeCode: this.paymentModeCode
-    }).subscribe({
-      next: () => {
-        this.loading = false;
-        this.toastService.showSuccess('Advance settled successfully');
-        this.closeModal();
-        this.settled.emit(); //  notify parent
-      },
-      error: err => {
-        this.loading = false;
-        this.toastService.showError(err?.error || 'Failed to settle advance');
-      }
-    });
+  onSettleModalClosed() {
+    this.isModalOpen = false;
+    this.selectedAdvance = null;
   }
   createAdvance() {
 

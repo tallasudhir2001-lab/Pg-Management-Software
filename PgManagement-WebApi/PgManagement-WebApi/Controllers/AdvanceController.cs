@@ -17,6 +17,22 @@ namespace PgManagement_WebApi.Controllers
             this.advanceService = advanceService;
         }
 
+        [HttpGet("tenant/{tenantId}")]
+        public async Task<IActionResult> GetAdvancesByTenant(string tenantId)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId))
+                return Unauthorized();
+
+            var (success, result, statusCode) =
+                await advanceService.GetAdvancesByTenantAsync(tenantId, pgId);
+
+            if (!success)
+                return StatusCode(statusCode, result);
+
+            return Ok(result);
+        }
+
         [HttpPost("{advanceId}/settle")]
         public async Task<IActionResult> SettleAdvance(string advanceId, SettleAdvanceDto dto)
         {

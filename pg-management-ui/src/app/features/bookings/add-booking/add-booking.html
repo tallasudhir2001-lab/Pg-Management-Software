@@ -1,0 +1,112 @@
+<div class="form-page-container">
+  <div class="add-tenant-card">
+
+    <form [formGroup]="form">
+
+      <div class="form-grid">
+
+        <!-- LEFT SECTION -->
+        <div class="form-section section-left">
+          <h3 class="section-subtitle">Tenant Details</h3>
+
+          <div class="form-group">
+            <label>Aadhaar Number</label>
+            <input type="text" maxlength="12" inputmode="numeric" pattern="[0-9]*" class="form-input"
+              placeholder="Enter Aadhaar number" formControlName="aadharNumber" />
+          </div>
+
+          <!-- Existing tenant found -->
+          <div *ngIf="existingTenant && !hasActiveBooking" class="existing-tenant-info">
+            <p>Tenant <span class="existing-tenant-name">{{ existingTenant.name }}</span> found. Details auto-filled.</p>
+          </div>
+
+          <!-- Existing tenant with active booking — blocked -->
+          <div *ngIf="existingTenant && hasActiveBooking" class="existing-tenant-warning">
+            <p>
+              Tenant <span class="existing-tenant-name">{{ existingTenant.name }}</span> already has an active booking.
+            </p>
+          </div>
+
+          <div class="form-group">
+            <label>Tenant Name</label>
+            <input type="text" class="form-input" placeholder="Enter tenant name" formControlName="name"
+              [readOnly]="existingTenant !== null" />
+          </div>
+
+          <div class="form-group">
+            <label>Mobile Number</label>
+            <input type="text" class="form-input" placeholder="Enter mobile number" formControlName="contactNumber" />
+          </div>
+        </div>
+
+        <!-- RIGHT SECTION -->
+        <div class="form-section section-right">
+          <h3 class="section-subtitle">Room & Date</h3>
+
+          <div class="form-group">
+            <label>Room</label>
+            <select class="form-input" formControlName="roomId">
+              <option value="">Select room</option>
+              <option *ngFor="let room of rooms$ | async" [value]="room.roomId">
+                Room {{ room.roomNumber }} - available beds -> ({{ room.vacancies }})
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Scheduled Check-in Date</label>
+            <input type="date" class="form-input" formControlName="scheduledCheckInDate" />
+          </div>
+        </div>
+
+        <!-- BOTTOM SECTION -->
+        <div class="form-section section-bottom">
+          <h3 class="section-subtitle">Financial Details</h3>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="hasAdvance" />
+              <span>Add Advance</span>
+            </label>
+          </div>
+
+          <div *ngIf="form.get('hasAdvance')?.value" class="financial-row">
+            <div class="form-group">
+              <label>Advance Amount (₹)</label>
+              <input type="number" class="form-input" placeholder="Enter amount"
+                formControlName="advanceAmount" />
+            </div>
+
+            <div class="form-group">
+              <label>Payment Mode</label>
+              <select class="form-input" formControlName="paymentModeCode"
+                [class.placeholder-selected]="!form.get('paymentModeCode')?.value">
+                <option value="" disabled hidden>Select a payment mode</option>
+                <option *ngFor="let m of (paymentModes$ | async)" [value]="m.code">
+                  {{ m.description }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea rows="3" class="form-input" placeholder="Additional notes (optional)"
+              formControlName="notes"></textarea>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="actions">
+        <button type="button" class="btn-cancel" (click)="cancel()">Cancel</button>
+        <button type="button" class="btn-save" (click)="save()"
+          [disabled]="checkingAadhar || hasActiveBooking">
+          Create Booking
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

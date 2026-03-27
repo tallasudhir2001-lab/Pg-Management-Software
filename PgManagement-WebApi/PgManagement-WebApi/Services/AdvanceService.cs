@@ -171,5 +171,25 @@ namespace PgManagement_WebApi.Services
             }
         }
 
+        public async Task<(bool success, object result, int statusCode)> GetAdvancesByTenantAsync(
+    string tenantId,
+    string pgId)
+        {
+            var advances = await _context.Advances
+                .Include(a => a.Tenant)
+                .Where(a => a.TenantId == tenantId && a.Tenant.PgId == pgId)
+                .OrderByDescending(a => a.PaidDate)
+                .Select(a => new
+                {
+                    a.AdvanceId,
+                    a.Amount,
+                    a.DeductedAmount,
+                    a.IsSettled,
+                    a.PaidDate
+                })
+                .ToListAsync();
+
+            return (true, advances, 200);
+        }
     }
 }

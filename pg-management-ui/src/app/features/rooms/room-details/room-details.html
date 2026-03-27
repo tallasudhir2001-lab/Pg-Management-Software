@@ -99,4 +99,80 @@
   </table>
 </section>
 
+<!-- Bookings Section -->
+<section class="section">
+  <h3>Bookings for this Room</h3>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Tenant</th>
+        <th>Check-in Date</th>
+        <th>Status</th>
+        <th>Advance</th>
+        <th class="text-right">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let b of bookings">
+        <td>{{ b.tenantName }}</td>
+        <td>{{ b.scheduledCheckInDate | date:'dd MMM yyyy' }}</td>
+        <td>
+          <span class="badge" [ngClass]="getStatusClass(b.status)">{{ b.status }}</span>
+        </td>
+        <td>{{ formatCurrency(b.advanceAmount) }}</td>
+        <td class="text-right">
+          <button class="icon-btn" title="View Booking" (click)="viewBooking(b.bookingId)">
+            <img src="assets/icons/info.svg" alt="View" />
+          </button>
+          <button class="icon-btn" title="Edit Booking" (click)="editBooking(b.bookingId)">
+            <img src="assets/icons/edit.svg" alt="Edit" />
+          </button>
+          <button class="icon-btn danger" title="Cancel Booking"
+            *ngIf="b.status === 'Active'"
+            (click)="requestCancelBooking(b)">
+            <img src="assets/icons/delete.svg" alt="Cancel" />
+          </button>
+        </td>
+      </tr>
+
+      <tr *ngIf="bookings.length === 0">
+        <td colspan="5" class="empty">
+          No bookings for this room
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
 </div>
+
+<!-- Cancel Confirm Dialog -->
+<ng-container *ngIf="showCancelConfirm">
+  <div class="modal-backdrop" (click)="showCancelConfirm = false"></div>
+  <div class="confirm-modal">
+    <div class="confirm-modal-header">
+      <h3>Unsettled Advance</h3>
+      <button class="modal-close-btn" (click)="showCancelConfirm = false">✕</button>
+    </div>
+    <div class="confirm-modal-body">
+      <p>This booking has an unsettled advance of
+        <strong>{{ formatCurrency(pendingCancelAdvanceAmount) }}</strong>.
+        Would you like to settle it before cancelling?
+      </p>
+    </div>
+    <div class="confirm-modal-actions">
+      <button class="btn-discard" (click)="skipAndCancel()">Skip &amp; Cancel</button>
+      <button class="btn-confirm" (click)="openSettleBeforeCancel()">Settle Advance</button>
+    </div>
+  </div>
+</ng-container>
+
+<!-- Settle Advance Modal -->
+<app-settle-advance-modal
+  [advance]="advanceToSettle"
+  [show]="showSettleModal"
+  (settled)="onAdvanceSettled()"
+  (closed)="onSettleModalClosed()">
+</app-settle-advance-modal>

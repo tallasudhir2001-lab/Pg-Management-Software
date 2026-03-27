@@ -18,6 +18,9 @@ import { AddPaymentContainer } from './features/payments/add-payment-container/a
 import { PaymentsHistory } from './features/payments/payments-history/payments-history';
 import { Expenses } from './features/expenses/expenses/expenses';
 import { PaymentDetails } from './features/payments/payment-details/payment-details';
+import { BookingList } from './features/bookings/booking-list/booking-list';
+import { AddBooking } from './features/bookings/add-booking/add-booking';
+import { BookingDetails } from './features/bookings/booking-details/booking-details';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -47,7 +50,11 @@ export const routes: Routes = [
                     { path: ':paymentId/edit', component: PaymentDetails }
                 ]
             },
-            {path: 'expenses', component: Expenses}
+            { path: 'bookings', component: BookingList },
+            { path: 'bookings/add', component: AddBooking },
+            { path: 'bookings/:id', component: BookingDetails, data: { mode: 'view' } },
+            { path: 'bookings/:id/edit', component: BookingDetails, data: { mode: 'edit' } },
+            { path: 'expenses', component: Expenses}
 
         ]
     },

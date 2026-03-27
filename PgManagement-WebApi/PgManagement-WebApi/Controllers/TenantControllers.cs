@@ -535,7 +535,8 @@ namespace PgManagement_WebApi.Controllers
                 .Select(t => new
                 {
                     tenantId = t.TenantId,
-                    name = t.Name
+                    name = t.Name,
+                    contactNumber = t.ContactNumber
                 })
                 .FirstOrDefaultAsync();
 

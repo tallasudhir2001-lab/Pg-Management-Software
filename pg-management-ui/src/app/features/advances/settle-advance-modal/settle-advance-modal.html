@@ -1,0 +1,44 @@
+<ng-container *ngIf="show && advance">
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Settle Advance</h3>
+      <button class="modal-close" (click)="close()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <p>Advance Amount: ₹ {{ advance.amount | number:'1.2-2' }}</p>
+
+      <div class="form-group">
+        <label>Deducted Amount</label>
+        <input type="number" [(ngModel)]="deductedAmount" class="form-input" placeholder="Enter deduction" />
+
+        <div class="return-hint" *ngIf="deductedAmount > 0">
+          <span class="return-hint-icon">↩</span>
+          Make sure to return
+          <strong>₹ {{ (advance.amount - deductedAmount) | number:'1.2-2' }}</strong>
+          to the tenant after confirming this settlement.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Payment Mode</label>
+        <select class="form-input" [(ngModel)]="paymentModeCode"
+          [class.placeholder-selected]="!paymentModeCode">
+          <option value="" disabled hidden>Select a payment mode</option>
+          <option *ngFor="let m of (paymentModes$ | async)" [value]="m.code">
+            {{ m.description }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="close()">Cancel</button>
+      <button class="btn-save" (click)="settle()" [disabled]="loading">
+        {{ loading ? 'Processing...' : 'Confirm' }}
+      </button>
+    </div>
+  </div>
+</ng-container>

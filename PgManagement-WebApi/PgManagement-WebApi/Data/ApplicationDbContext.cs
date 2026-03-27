@@ -48,6 +48,8 @@ namespace PgManagement_WebApi.Data
         public DbSet<ExpenseAuditLog> ExpenseAuditLogs { get; set; }
         public DbSet<Advance> Advances { get; set; }
         public DbSet<PaymentType> PaymentTypes { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
+
 
 
 
@@ -208,6 +210,31 @@ namespace PgManagement_WebApi.Data
                 .WithMany()
                 .HasForeignKey(a => a.SettledByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            /* ============================================================
+   Booking
+   ============================================================ */
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.Tenant)
+                .WithMany(t => t.Bookings)
+                .HasForeignKey(b => b.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.Room)
+                .WithMany()
+                .HasForeignKey(b => b.RoomId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.PG)
+                .WithMany()
+                .HasForeignKey(b => b.PgId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Booking>()
+                .Property(b => b.AdvanceAmount)
+                .HasPrecision(18, 2);
 
 
             modelBuilder.ApplyConfiguration(new ExpenseConfiguration());

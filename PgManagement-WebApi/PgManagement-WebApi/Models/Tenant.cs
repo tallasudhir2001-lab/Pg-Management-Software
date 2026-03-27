@@ -23,7 +23,7 @@ namespace PgManagement_WebApi.Models
         [RegularExpression(@"^\d{12}$",
             ErrorMessage = "Aadhaar must be 12 digits")]
         public string AadharNumber { get; set; }
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
@@ -36,5 +36,6 @@ namespace PgManagement_WebApi.Models
 
 
         public ICollection<Payment> Payments { get; set; }
+        public ICollection<Booking> Bookings { get; set; }
     }
 }

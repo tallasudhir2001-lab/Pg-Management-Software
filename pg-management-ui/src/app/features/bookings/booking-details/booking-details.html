@@ -1,0 +1,177 @@
+<div class="booking-page" *ngIf="booking$ | async as booking; else loadingTpl">
+
+  <!-- Back Nav -->
+  <div class="back-nav" routerLink="/bookings">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="back-icon">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+    </svg>
+    <span>Back to Bookings</span>
+  </div>
+
+  <h2 class="page-title">{{ isEditMode ? 'Edit Booking' : 'Booking Details' }}</h2>
+
+  <div class="booking-card">
+
+    <!-- Card Header: info strip + action buttons -->
+    <div class="card-header-row">
+      <div class="info-strip">
+        <div class="info-item">
+          <span class="info-label">Tenant</span>
+          <span class="info-value">{{ booking.tenantName }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Contact</span>
+          <span class="info-value">{{ booking.tenantContact }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Status</span>
+          <span class="status-pill" [ngClass]="getStatusClass(booking.status)">{{ booking.status }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Created On</span>
+          <span class="info-value">{{ booking.createdAt | date:'dd MMM yyyy' }}</span>
+        </div>
+      </div>
+
+      <div class="header-actions" *ngIf="booking.status === 'Active' && !isEditMode">
+        <button type="button" class="btn-action btn-edit-action" (click)="enableEdit()" title="Edit Booking">Edit</button>
+        <button type="button" class="btn-action btn-checkin-action" (click)="checkIn(booking)" [disabled]="checkingIn" title="Check In Tenant">
+          {{ checkingIn ? 'Checking In...' : 'Check In' }}
+        </button>
+        <button type="button" class="btn-action btn-terminate-action" (click)="requestTerminate(booking)" [disabled]="terminatingBooking" title="Terminate Booking">
+          {{ terminatingBooking ? 'Terminating...' : 'Terminate' }}
+        </button>
+        <button type="button" class="btn-action btn-cancel-action" (click)="requestCancel(booking)" [disabled]="cancellingBooking" title="Cancel Booking">
+          {{ cancellingBooking ? 'Cancelling...' : 'Cancel' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="strip-divider"></div>
+
+    <!-- Form -->
+    <form [formGroup]="form">
+      <div class="form-grid">
+
+        <div class="form-group full-width">
+          <label>Room</label>
+          <ng-container *ngIf="isEditMode; else roomReadOnly">
+            <select class="form-input" formControlName="roomId"
+              [class.placeholder-selected]="!form.get('roomId')?.value">
+              <option value="" disabled hidden>Select a room</option>
+              <option *ngFor="let room of (rooms$ | async)" [value]="room.roomId">
+                Room {{ room.roomNumber }}
+              </option>
+            </select>
+          </ng-container>
+          <ng-template #roomReadOnly>
+            <input type="text" class="form-input" [value]="'Room ' + booking.roomNumber" disabled />
+          </ng-template>
+        </div>
+
+        <div class="form-group">
+          <label>Check-in Date</label>
+          <input type="date" class="form-input" formControlName="scheduledCheckInDate" />
+        </div>
+
+        <div class="form-group">
+          <label>Advance Amount (₹)</label>
+          <input type="number" class="form-input amount-input" formControlName="advanceAmount" placeholder="0" min="0" />
+        </div>
+
+        <div class="form-group full-width">
+          <label>Notes</label>
+          <textarea class="form-input" formControlName="notes" placeholder="Notes..." rows="3"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Save row (edit mode only) -->
+      <div class="save-row" *ngIf="isEditMode">
+        <button type="button" class="btn-discard" (click)="mode = 'view'; form.disable()">Discard</button>
+        <button type="button" class="btn-save-action" (click)="save(booking)" [disabled]="saving">
+          {{ saving ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="booking-loading">Loading booking details...</div>
+</ng-template>
+
+<!-- Check In Date Modal -->
+<ng-container *ngIf="showCheckInModal">
+  <div class="modal-backdrop" (click)="cancelCheckIn()"></div>
+  <div class="confirm-modal">
+    <div class="confirm-modal-header">
+      <h3>Check In Tenant</h3>
+      <button class="modal-close-btn" (click)="cancelCheckIn()">✕</button>
+    </div>
+    <div class="confirm-modal-body">
+      <p style="margin-bottom: 14px;">Select the actual check-in date for this tenant.</p>
+      <div class="form-group" style="margin: 0;">
+        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Check-in Date</label>
+        <input type="date" class="form-input" [(ngModel)]="checkInDate" />
+      </div>
+    </div>
+    <div class="confirm-modal-actions">
+      <button class="btn-discard" (click)="cancelCheckIn()">Cancel</button>
+      <button class="btn-save-action" (click)="confirmCheckIn()" [disabled]="!checkInDate || checkingIn">
+        {{ checkingIn ? 'Checking In...' : 'Confirm Check In' }}
+      </button>
+    </div>
+  </div>
+</ng-container>
+
+<!-- Cancel Confirm Dialog -->
+<ng-container *ngIf="showCancelConfirm">
+  <div class="modal-backdrop" (click)="showCancelConfirm = false"></div>
+  <div class="confirm-modal">
+    <div class="confirm-modal-header">
+      <h3>Unsettled Advance</h3>
+      <button class="modal-close-btn" (click)="showCancelConfirm = false">✕</button>
+    </div>
+    <div class="confirm-modal-body">
+      <p>This booking has an unsettled advance of
+        <strong>{{ formatCurrency(advanceToSettle?.amount ?? 0) }}</strong>.
+        Would you like to settle it before cancelling?
+      </p>
+    </div>
+    <div class="confirm-modal-actions">
+      <button class="btn-discard" (click)="skipAndProceed()">Skip &amp; Cancel</button>
+      <button class="btn-save-action" (click)="openSettleBeforeAction()">Settle Advance</button>
+    </div>
+  </div>
+</ng-container>
+
+<!-- Terminate Confirm Dialog -->
+<ng-container *ngIf="showTerminateConfirm">
+  <div class="modal-backdrop" (click)="showTerminateConfirm = false"></div>
+  <div class="confirm-modal">
+    <div class="confirm-modal-header">
+      <h3>Unsettled Advance</h3>
+      <button class="modal-close-btn" (click)="showTerminateConfirm = false">✕</button>
+    </div>
+    <div class="confirm-modal-body">
+      <p>This booking has an unsettled advance of
+        <strong>{{ formatCurrency(advanceToSettle?.amount ?? 0) }}</strong>.
+        Would you like to settle it before terminating?
+      </p>
+    </div>
+    <div class="confirm-modal-actions">
+      <button class="btn-discard" (click)="skipAndProceed()">Skip &amp; Terminate</button>
+      <button class="btn-save-action" (click)="openSettleBeforeAction()">Settle Advance</button>
+    </div>
+  </div>
+</ng-container>
+
+<!-- Settle Advance Modal (reusable) -->
+<app-settle-advance-modal
+  [advance]="advanceToSettle"
+  [show]="showSettleModal"
+  (settled)="onAdvanceSettled()"
+  (closed)="onSettleModalClosed()">
+</app-settle-advance-modal>

@@ -1,0 +1,207 @@
+<div class="payment-history-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">Bookings</h1>
+  </div>
+
+  <!-- Actions Row -->
+  <div class="payment-actions">
+    <div></div>
+    <div class="action-buttons">
+      <button *ngIf="hasActiveFilters" class="clear-filters-btn" (click)="clearFilters()" title="Clear all filters">
+        <img src="/assets/icons/clear-filters.svg" alt="Clear" />
+      </button>
+      <button class="btn btn-secondary" (click)="openFilters()">Filters</button>
+      <button class="btn btn-primary" routerLink="/bookings/add">+ New Booking</button>
+    </div>
+  </div>
+
+  <!-- Table Container -->
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th (click)="onSort('tenantName')" style="cursor: pointer;">
+            Tenant
+            <span class="sort-arrow" [class.visible]="isSortedBy('tenantName')"
+              [class.asc]="isSortAsc('tenantName')">▼</span>
+          </th>
+          <th>Room</th>
+          <th (click)="onSort('checkindate')" style="cursor: pointer;">
+            Check-in Date
+            <span class="sort-arrow" [class.visible]="isSortedBy('checkindate')"
+              [class.asc]="isSortAsc('checkindate')">▼</span>
+          </th>
+          <th>Status</th>
+          <th (click)="onSort('advanceamount')" style="cursor: pointer;">
+            Advance
+            <span class="sort-arrow" [class.visible]="isSortedBy('advanceamount')"
+              [class.asc]="isSortAsc('advanceamount')">▼</span>
+          </th>
+          <th>Notes</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let booking of (bookings$ | async)?.items">
+          <td class="tenant-cell">
+            <a [routerLink]="['/bookings', booking.bookingId]" class="tenant-link">{{ booking.tenantName }}</a>
+          </td>
+          <td>Room {{ booking.roomNumber }}</td>
+          <td>{{ formatDate(booking.scheduledCheckInDate) }}</td>
+          <td>
+            <span class="status-pill" [ngClass]="getStatusClass(booking.status)">
+              {{ booking.status }}
+            </span>
+          </td>
+          <td class="amount-cell">{{ booking.advanceAmount > 0 ? formatCurrency(booking.advanceAmount) : '—' }}</td>
+          <td class="muted">{{ booking.notes || '—' }}</td>
+          <td>
+            <a [routerLink]="['/bookings', booking.bookingId]" class="action-btn" title="View Booking">
+              <img src="/assets/icons/view-tenant.svg" alt="View" />
+            </a>
+            <button *ngIf="booking.status === 'Active'" class="action-btn terminate" (click)="terminateBooking(booking)"
+              title="Terminate Booking">
+              <img src="/assets/icons/delete.svg" alt="Terminate" />
+            </button>
+            <button *ngIf="booking.status === 'Active'" class="action-btn danger" (click)="cancelBooking(booking)"
+              title="Cancel Booking">
+              <img src="/assets/icons/cancel.svg" alt="Cancel" />
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Info -->
+  <div class="pagination-info" [class.empty]="totalCount === 0">
+    <ng-container *ngIf="totalCount > 0; else noResults">
+      Showing <span class="count-strong">{{ startItem }}</span> – <span class="count-strong">{{ endItem }}</span>
+      of <span class="count-strong">{{ totalCount }}</span> bookings
+    </ng-container>
+    <ng-template #noResults>No bookings found</ng-template>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <div class="pagination-inner">
+      <button class="page-btn prev" (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
+      <button *ngFor="let page of pages" class="page-btn page-number" [class.active]="page === currentPage"
+        (click)="goToPage(page)">{{ page }}</button>
+      <button class="page-btn next" (click)="nextPage()" [disabled]="currentPage === totalPages">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel Confirm Dialog -->
+<ng-container *ngIf="showCancelConfirm">
+  <div class="filter-backdrop" (click)="showCancelConfirm = false"></div>
+  <div class="confirm-modal">
+    <div class="confirm-modal-header">
+      <h3>Unsettled Advance</h3>
+      <button class="filter-close-btn" (click)="showCancelConfirm = false">&times;</button>
+    </div>
+    <div class="confirm-modal-body">
+      <p>This booking has an unsettled advance of
+        <strong>₹{{ pendingCancelAdvanceAmount | number }}</strong>.
+        Would you like to settle it before cancelling?
+      </p>
+    </div>
+    <div class="confirm-modal-actions">
+      <button class="btn btn-secondary" (click)="skipAndProceed()">Skip &amp; Cancel</button>
+      <button class="btn btn-primary" (click)="openSettleBeforeAction()">Settle Advance</button>
+    </div>
+  </div>
+</ng-container>
+
+<!-- Terminate Confirm Dialog -->
+<ng-container *ngIf="showTerminateConfirm">
+  <div class="filter-backdrop" (click)="showTerminateConfirm = false"></div>
+  <div class="confirm-modal">
+    <div class="confirm-modal-header">
+      <h3>Unsettled Advance</h3>
+      <button class="filter-close-btn" (click)="showTerminateConfirm = false">&times;</button>
+    </div>
+    <div class="confirm-modal-body">
+      <p>This booking has an unsettled advance of
+        <strong>₹{{ pendingCancelAdvanceAmount | number }}</strong>.
+        Would you like to settle it before terminating?
+      </p>
+    </div>
+    <div class="confirm-modal-actions">
+      <button class="btn btn-secondary" (click)="skipAndProceed()">Skip &amp; Terminate</button>
+      <button class="btn btn-primary" (click)="openSettleBeforeAction()">Settle Advance</button>
+    </div>
+  </div>
+</ng-container>
+
+<!-- Settle Advance Modal -->
+<app-settle-advance-modal
+  [advance]="advanceToSettle"
+  [show]="showSettleModal"
+  (settled)="onAdvanceSettled()"
+  (closed)="onSettleModalClosed()">
+</app-settle-advance-modal>
+
+<!-- Filter Drawer -->
+<div *ngIf="showFilters">
+  <div class="filter-backdrop" (click)="showFilters = false"></div>
+
+  <aside class="filter-drawer">
+    <div class="filter-header">
+      <h3 class="filter-title">Filters</h3>
+      <button class="filter-close-btn" (click)="showFilters = false">&times;</button>
+    </div>
+
+    <div class="filter-body">
+
+      <!-- Status Filter -->
+      <div class="filter-card">
+        <p class="filter-section-title">Status</p>
+        <label class="filter-option">
+          <input type="radio" name="status" [checked]="filterStatus === ''" (change)="filterStatus = ''" />
+          <span class="filter-radio-label">All</span>
+        </label>
+        <label class="filter-option">
+          <input type="radio" name="status" [checked]="filterStatus === 'Active'"
+            (change)="filterStatus = 'Active'" />
+          <span class="filter-radio-label">Active</span>
+        </label>
+        <label class="filter-option">
+          <input type="radio" name="status" [checked]="filterStatus === 'Cancelled'"
+            (change)="filterStatus = 'Cancelled'" />
+          <span class="filter-radio-label">Cancelled</span>
+        </label>
+        <label class="filter-option">
+          <input type="radio" name="status" [checked]="filterStatus === 'Terminated'"
+            (change)="filterStatus = 'Terminated'" />
+          <span class="filter-radio-label">Terminated</span>
+        </label>
+      </div>
+
+      <!-- Date Range Filter -->
+      <div class="filter-card">
+        <p class="filter-section-title">Check-in Date Range</p>
+        <div class="date-range-row">
+          <div class="date-field">
+            <label class="date-label">From</label>
+            <input type="date" class="filter-form-input" [value]="filterFromDate"
+              (change)="filterFromDate = $any($event.target).value" />
+          </div>
+          <div class="date-field">
+            <label class="date-label">To</label>
+            <input type="date" class="filter-form-input" [value]="filterToDate"
+              (change)="filterToDate = $any($event.target).value" />
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="filter-footer">
+      <button class="filter-btn filter-btn-secondary" (click)="clearFilters()">Clear</button>
+      <button class="filter-btn filter-btn-primary" (click)="applyFilters()">Apply</button>
+    </div>
+  </aside>
+</div>

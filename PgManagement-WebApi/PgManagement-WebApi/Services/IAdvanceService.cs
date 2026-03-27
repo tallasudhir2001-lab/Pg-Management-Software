@@ -12,5 +12,8 @@ namespace PgManagement_WebApi.Services
     CreateAdvanceDto dto,
     string pgId,
     string userId);
+        Task<(bool success, object result, int statusCode)> GetAdvancesByTenantAsync(
+    string tenantId,
+    string pgId);
     }
 }
