@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PgManagement_WebApi.Attributes;
 using PgManagement_WebApi.DTOs.Booking;
 using PgManagement_WebApi.Services;
 using System.Security.Claims;
@@ -16,6 +17,7 @@ namespace PgManagement_WebApi.Controllers
             _bookingService = bookingService;
         }
 
+        [AccessPoint("Booking", "View All Bookings")]
         [HttpGet]
         public async Task<IActionResult> GetBookings([FromQuery] BookingListQueryDto query)
         {
@@ -27,6 +29,7 @@ namespace PgManagement_WebApi.Controllers
             return Ok(result);
         }
 
+        [AccessPoint("Booking", "View Booking Details")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
@@ -46,6 +49,7 @@ namespace PgManagement_WebApi.Controllers
             return Ok(new { hasActiveBooking = hasActive });
         }
 
+        [AccessPoint("Booking", "Create Booking")]
         [HttpPost("create-booking")]
         public async Task<IActionResult> CreateBooking([FromBody] CreateBookingDto dto)
         {
@@ -59,6 +63,7 @@ namespace PgManagement_WebApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id }, null);
         }
 
+        [AccessPoint("Booking", "Update Booking")]
         [HttpPut("update-booking/{id}")]
         public async Task<IActionResult> UpdateBooking(string id, [FromBody] UpdateBookingDto dto)
         {
@@ -70,6 +75,7 @@ namespace PgManagement_WebApi.Controllers
             return NoContent();
         }
 
+        [AccessPoint("Booking", "Cancel Booking")]
         [HttpPatch("cancel-booking/{id}")]
         public async Task<IActionResult> CancelBooking(string id)
         {
@@ -81,6 +87,7 @@ namespace PgManagement_WebApi.Controllers
             return NoContent();
         }
 
+        [AccessPoint("Booking", "Terminate Booking")]
         [HttpPatch("terminate-booking/{id}")]
         public async Task<IActionResult> TerminateBooking(string id)
         {
@@ -92,6 +99,7 @@ namespace PgManagement_WebApi.Controllers
             return NoContent();
         }
 
+        [AccessPoint("Booking", "Terminate No-Show Bookings")]
         [HttpPost("terminate-no-shows")]
         public async Task<IActionResult> TerminateNoShows()
         {

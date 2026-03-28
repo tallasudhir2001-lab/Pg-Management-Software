@@ -50,6 +50,7 @@ export class AddTenant implements OnInit {
         Validators.pattern(/^\d{12}$/)
       ]
     ],
+    email: ['', [Validators.email]],
     roomId: [''],
     fromDate: [null],
     hasAdvance: [false],
@@ -153,6 +154,7 @@ export class AddTenant implements OnInit {
       name: formValue.name,
       contactNumber: formValue.contactNumber,
       aadharNumber: formValue.aadharNumber,
+      email: formValue.email || null,
       roomId: formValue.roomId || null,
       fromDate: formValue.fromDate,
       notes: formValue.notes,

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using PgManagement_WebApi.Attributes;
 using Microsoft.EntityFrameworkCore;
 using PgManagement_WebApi.Data;
 using PgManagement_WebApi.DTOs.Pagination;
@@ -25,6 +26,7 @@ namespace PgManagement_WebApi.Controllers
             this.userManager = userManager;
             this.configuration = configuration;
         }
+        [AccessPoint("Room", "View All Rooms")]
         [HttpGet]
         public async Task<IActionResult> GetRooms(
     int page = 1,
@@ -179,6 +181,7 @@ namespace PgManagement_WebApi.Controllers
 
 
 
+        [AccessPoint("Room", "View Room Details")]
         [HttpGet("{roomId}")]
         public async Task<IActionResult> GetRoomById(string roomId)
         {
@@ -237,6 +240,7 @@ namespace PgManagement_WebApi.Controllers
         }
 
 
+        [AccessPoint("Room", "Create Room")]
         [HttpPost("add-room")]
         public async Task<IActionResult> CreateRoom([FromBody] CreateRoomDto dto)
         {
@@ -282,6 +286,7 @@ namespace PgManagement_WebApi.Controllers
             return CreatedAtAction(nameof(GetRooms), new { }, null);
         }
 
+        [AccessPoint("Room", "Update Room")]
         [HttpPut("{roomId}")]
         public async Task<IActionResult> UpdateRoom(string roomId, [FromBody] UpdateRoomDto dto)
         {
@@ -371,6 +376,7 @@ namespace PgManagement_WebApi.Controllers
             return NoContent();
         }
 
+        [AccessPoint("Room", "Delete Room")]
         [HttpDelete("{roomId}")]
         public async Task<IActionResult> DeleteRoom(string roomId)
         {

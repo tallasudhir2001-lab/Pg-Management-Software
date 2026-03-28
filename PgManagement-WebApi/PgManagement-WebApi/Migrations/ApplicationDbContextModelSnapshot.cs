@@ -225,6 +225,50 @@ namespace PgManagement_WebApi.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("PgManagement_WebApi.Models.AccessPoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("HttpMethod")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Route")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("AccessPoints");
+                });
+
             modelBuilder.Entity("PgManagement_WebApi.Models.Advance", b =>
                 {
                     b.Property<string>("AdvanceId")
@@ -639,22 +683,57 @@ namespace PgManagement_WebApi.Migrations
                     b.ToTable("PaymentTypes");
                 });
 
-            modelBuilder.Entity("PgManagement_WebApi.Models.PgRole", b =>
+            modelBuilder.Entity("PgManagement_WebApi.Models.RefreshToken", b =>
                 {
-                    b.Property<int>("RoleId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoleId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PgId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Token")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("RoleId");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                    b.ToTable("PgRoles");
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("PgManagement_WebApi.Models.RoleAccessPoint", b =>
+                {
+                    b.Property<string>("RoleId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessPointId")
+                        .HasColumnType("int");
+
+                    b.HasKey("RoleId", "AccessPointId");
+
+                    b.HasIndex("AccessPointId");
+
+                    b.ToTable("RoleAccessPoints");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.Room", b =>
@@ -732,6 +811,10 @@ namespace PgManagement_WebApi.Migrations
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -831,14 +914,9 @@ namespace PgManagement_WebApi.Migrations
                     b.Property<string>("PgId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
                     b.HasKey("UserId", "PgId");
 
                     b.HasIndex("PgId");
-
-                    b.HasIndex("RoleId");
 
                     b.ToTable("UserPgs");
                 });
@@ -1049,6 +1127,36 @@ namespace PgManagement_WebApi.Migrations
                     b.Navigation("Tenant");
                 });
 
+            modelBuilder.Entity("PgManagement_WebApi.Models.RefreshToken", b =>
+                {
+                    b.HasOne("PgManagement_WebApi.Identity.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PgManagement_WebApi.Models.RoleAccessPoint", b =>
+                {
+                    b.HasOne("PgManagement_WebApi.Models.AccessPoint", "AccessPoint")
+                        .WithMany("RoleAccessPoints")
+                        .HasForeignKey("AccessPointId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AccessPoint");
+
+                    b.Navigation("Role");
+                });
+
             modelBuilder.Entity("PgManagement_WebApi.Models.Room", b =>
                 {
                     b.HasOne("PgManagement_WebApi.Models.PG", "PG")
@@ -1132,12 +1240,6 @@ namespace PgManagement_WebApi.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PgManagement_WebApi.Models.PgRole", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("PgManagement_WebApi.Identity.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -1146,9 +1248,12 @@ namespace PgManagement_WebApi.Migrations
 
                     b.Navigation("PG");
 
-                    b.Navigation("Role");
-
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PgManagement_WebApi.Models.AccessPoint", b =>
+                {
+                    b.Navigation("RoleAccessPoints");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.Expense", b =>

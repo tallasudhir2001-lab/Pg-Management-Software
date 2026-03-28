@@ -44,12 +44,12 @@
     </div>
 
     <div class="actions">
-      <button class="btn-delete" (click)="delete()">
+      <button *hasAccess="'Room.DeleteRoom'" class="btn-delete" (click)="delete()">
         Delete Room
       </button>
-      <button 
-        class="btn-save" 
-        (click)="save()" 
+      <button *hasAccess="'Room.UpdateRoom'"
+        class="btn-save"
+        (click)="save()"
         [disabled]="isSaving"
       >
         {{ isSaving ? 'Saving...' : 'Save Changes' }}
@@ -126,14 +126,16 @@
           <button class="icon-btn" title="View Booking" (click)="viewBooking(b.bookingId)">
             <img src="assets/icons/info.svg" alt="View" />
           </button>
-          <button class="icon-btn" title="Edit Booking" (click)="editBooking(b.bookingId)">
+          <button *hasAccess="'Booking.UpdateBooking'" class="icon-btn" title="Edit Booking" (click)="editBooking(b.bookingId)">
             <img src="assets/icons/edit.svg" alt="Edit" />
           </button>
-          <button class="icon-btn danger" title="Cancel Booking"
-            *ngIf="b.status === 'Active'"
-            (click)="requestCancelBooking(b)">
-            <img src="assets/icons/delete.svg" alt="Cancel" />
-          </button>
+          <ng-container *hasAccess="'Booking.CancelBooking'">
+            <button class="icon-btn danger" title="Cancel Booking"
+              *ngIf="b.status === 'Active'"
+              (click)="requestCancelBooking(b)">
+              <img src="assets/icons/delete.svg" alt="Cancel" />
+            </button>
+          </ng-container>
         </td>
       </tr>
 

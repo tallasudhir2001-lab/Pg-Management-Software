@@ -16,5 +16,6 @@ namespace PgManagement_WebApi.DTOs.Tenant
         public decimal? AdvanceAmount { get; set; }
         public string? PaymentModeCode { get; set; }
         public string Notes { get; set; }
+        public string? Email { get; set; }
     }
 }

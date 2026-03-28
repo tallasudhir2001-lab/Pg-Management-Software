@@ -25,6 +25,10 @@
         </div>
       </div>
       <a routerLink="/expenses" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Expenses</a>
+      <a routerLink="/reports" routerLinkActive="active">Reports</a>
+      @if (isOwner) {
+        <a routerLink="/pg-users" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Manage Users</a>
+      }
     </nav>
 
     <button class="logout-btn" (click)="logout()">Logout</button>

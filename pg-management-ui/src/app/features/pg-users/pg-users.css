@@ -1,0 +1,212 @@
+.pgu-page {
+  padding: 32px 40px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.pgu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.pgu-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f1041;
+  margin: 0;
+}
+
+.btn-add {
+  background: #0f1041;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-add:hover { background: #1a1c5e; }
+
+/* Add form */
+.pgu-add-form {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.form-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f1041;
+  margin: 0 0 20px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-input {
+  padding: 9px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: #0f1041; box-shadow: 0 0 0 3px rgba(15,16,65,0.08); }
+
+.form-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-save {
+  background: #0f1041;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-save:hover:not(:disabled) { background: #1a1c5e; }
+.btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Table */
+.pgu-state {
+  padding: 48px;
+  text-align: center;
+  color: #9ca3af;
+}
+
+.pgu-table-wrap {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.pgu-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.pgu-table th {
+  background: #f9fafb;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pgu-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+}
+
+.pgu-table tr:last-child td { border-bottom: none; }
+
+.pgu-name { font-weight: 600; color: #0f1041; }
+.pgu-empty { text-align: center; color: #9ca3af; padding: 32px; }
+
+.pgu-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Role badges */
+.role-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge-owner   { background: #ede9fe; color: #5b21b6; }
+.badge-manager { background: #dbeafe; color: #1e40af; }
+.badge-staff   { background: #d1fae5; color: #065f46; }
+
+.role-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-select {
+  padding: 5px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+}
+
+/* Buttons */
+.btn-sm {
+  border: none;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-edit    { background: #f3f4f6; color: #374151; }
+.btn-edit:hover { background: #e5e7eb; }
+.btn-remove  { background: #fee2e2; color: #991b1b; }
+.btn-remove:hover { background: #fecaca; }
+.btn-confirm { background: #d1fae5; color: #065f46; }
+.btn-discard { background: #f3f4f6; color: #374151; }
+
+/* Confirm modal */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 100;
+}
+.confirm-modal {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 14px;
+  padding: 28px;
+  width: 400px;
+  z-index: 101;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+.confirm-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.confirm-modal-header h3 { margin: 0; font-size: 18px; color: #0f1041; }
+.modal-close-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: #6b7280; }
+.confirm-modal-body p { margin: 0 0 20px; color: #374151; line-height: 1.5; }
+.confirm-modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+.btn-danger { background: #dc2626; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.btn-danger:hover { background: #b91c1c; }

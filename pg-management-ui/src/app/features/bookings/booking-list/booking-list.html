@@ -12,7 +12,7 @@
         <img src="/assets/icons/clear-filters.svg" alt="Clear" />
       </button>
       <button class="btn btn-secondary" (click)="openFilters()">Filters</button>
-      <button class="btn btn-primary" routerLink="/bookings/add">+ New Booking</button>
+      <button *hasAccess="'Booking.CreateBooking'" class="btn btn-primary" routerLink="/bookings/add">+ New Booking</button>
     </div>
   </div>
 
@@ -60,14 +60,18 @@
             <a [routerLink]="['/bookings', booking.bookingId]" class="action-btn" title="View Booking">
               <img src="/assets/icons/view-tenant.svg" alt="View" />
             </a>
-            <button *ngIf="booking.status === 'Active'" class="action-btn terminate" (click)="terminateBooking(booking)"
-              title="Terminate Booking">
-              <img src="/assets/icons/delete.svg" alt="Terminate" />
-            </button>
-            <button *ngIf="booking.status === 'Active'" class="action-btn danger" (click)="cancelBooking(booking)"
-              title="Cancel Booking">
-              <img src="/assets/icons/cancel.svg" alt="Cancel" />
-            </button>
+            <ng-container *hasAccess="'Booking.TerminateBooking'">
+              <button *ngIf="booking.status === 'Active'" class="action-btn terminate" (click)="terminateBooking(booking)"
+                title="Terminate Booking">
+                <img src="/assets/icons/delete.svg" alt="Terminate" />
+              </button>
+            </ng-container>
+            <ng-container *hasAccess="'Booking.CancelBooking'">
+              <button *ngIf="booking.status === 'Active'" class="action-btn danger" (click)="cancelBooking(booking)"
+                title="Cancel Booking">
+                <img src="/assets/icons/cancel.svg" alt="Cancel" />
+              </button>
+            </ng-container>
           </td>
         </tr>
       </tbody>

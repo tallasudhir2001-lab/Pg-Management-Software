@@ -1,0 +1,36 @@
+<div class="landing-page">
+  <h2 class="page-title">Reports</h2>
+  <p class="page-subtitle">Generate, preview and download reports, or send them directly to your inbox.</p>
+
+  <section class="report-group">
+    <h3 class="group-label">Financial</h3>
+    <div class="card-grid">
+      <a *ngFor="let card of financial" [routerLink]="card.route" class="report-card">
+        <span class="card-icon">{{ card.icon }}</span>
+        <div class="card-body">
+          <div class="card-title">{{ card.title }}</div>
+          <div class="card-desc">{{ card.description }}</div>
+        </div>
+        <svg class="card-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </a>
+    </div>
+  </section>
+
+  <section class="report-group">
+    <h3 class="group-label">Operational</h3>
+    <div class="card-grid">
+      <a *ngFor="let card of operational" [routerLink]="card.route" class="report-card">
+        <span class="card-icon">{{ card.icon }}</span>
+        <div class="card-body">
+          <div class="card-title">{{ card.title }}</div>
+          <div class="card-desc">{{ card.description }}</div>
+        </div>
+        <svg class="card-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </a>
+    </div>
+  </section>
+</div>

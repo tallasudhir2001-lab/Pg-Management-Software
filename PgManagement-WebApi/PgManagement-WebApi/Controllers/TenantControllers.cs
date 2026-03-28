@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using PgManagement_WebApi.Attributes;
 using Microsoft.EntityFrameworkCore;
 using PgManagement_WebApi.Data;
 using PgManagement_WebApi.DTOs.Pagination;
@@ -29,6 +30,7 @@ namespace PgManagement_WebApi.Controllers
             this.configuration = configuration;
             this.tenantService = tenantService;
         }
+        [AccessPoint("Tenant", "View All Tenants")]
         [HttpGet]
         public async Task<IActionResult> GetTenants(
      int page = 1,
@@ -221,6 +223,7 @@ namespace PgManagement_WebApi.Controllers
         }
 
 
+        [AccessPoint("Tenant", "View Tenant Details")]
         [HttpGet("{tenantId}")]
         public async Task<IActionResult> GetTenantById(string tenantId)
         {
@@ -240,6 +243,7 @@ namespace PgManagement_WebApi.Controllers
                     t.ContactNumber,
                     t.AadharNumber,
                     t.Notes,
+                    t.Email,
 
                     //  Active stay (if any)
                     ActiveAssignment = context.TenantRooms
@@ -324,6 +328,7 @@ namespace PgManagement_WebApi.Controllers
                 tenant.Name,
                 tenant.ContactNumber,
                 tenant.AadharNumber,
+                tenant.Email,
                 HasAdvance = advance != null,
                 AdvanceAmount = advance != null ? advance.Amount : (decimal?)null,
                 AdvancePaymentMode = advancePayment != null ? advancePayment.PaymentModeCode : null,
@@ -362,6 +367,7 @@ namespace PgManagement_WebApi.Controllers
         }
 
 
+        [AccessPoint("Tenant", "Change Tenant Room")]
         [HttpPost("{tenantId}/change-room")]
         public async Task<IActionResult> ChangeRoom(string tenantId, ChangeRoomDto dto)
         {
@@ -378,6 +384,7 @@ namespace PgManagement_WebApi.Controllers
             return NoContent();
         }
 
+        [AccessPoint("Tenant", "Move Out Tenant")]
         [HttpPost("{tenantId}/move-out")]
         public async Task<IActionResult> MoveOutTenant(string tenantId, [FromBody] MoveOutDto dto)
         {
@@ -440,6 +447,7 @@ namespace PgManagement_WebApi.Controllers
             return NoContent();
         }
 
+        [AccessPoint("Tenant", "Create Tenant")]
         [HttpPost("create-tenant")]
         public async Task<IActionResult> CreateTenant(CreateTenantDto dto)
         {
@@ -459,6 +467,7 @@ namespace PgManagement_WebApi.Controllers
 
 
 
+        [AccessPoint("Tenant", "Update Tenant")]
         [HttpPut("{tenantId}")]
         public async Task<IActionResult> UpdateTenant(string tenantId, UpdateTenantDto dto)
         {
@@ -474,12 +483,14 @@ namespace PgManagement_WebApi.Controllers
             tenant.ContactNumber = dto.ContactNumber;
             tenant.AadharNumber = dto.AadharNumber;
             tenant.Notes = dto.Notes;
+            tenant.Email = dto.Email;
             tenant.UpdatedAt = DateTime.Now;
 
             await context.SaveChangesAsync();
 
             return NoContent();
         }
+        [AccessPoint("Tenant", "Delete Tenant")]
         [HttpDelete("{tenantId}")]
         public async Task<IActionResult> DeleteTenant(string tenantId)
         {
@@ -545,6 +556,7 @@ namespace PgManagement_WebApi.Controllers
 
             return Ok(tenant);
         }
+        [AccessPoint("Tenant", "Check In Tenant")]
         [HttpPost("{tenantId}/create-stay")]
         public async Task<IActionResult> CreateStay(string tenantId, CreateStayDto dto)
         {

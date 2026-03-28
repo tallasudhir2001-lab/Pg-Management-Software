@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PgManagement_WebApi.Data;
+using PgManagement_WebApi.DTOs.Admin;
 using PgManagement_WebApi.DTOs.Auth;
 using PgManagement_WebApi.Identity;
 using PgManagement_WebApi.Models;
@@ -23,6 +23,45 @@ namespace PgManagement_WebApi.Controllers
             this.context = context;
             this.userManager = userManager;
             this.configuration = configuration;
+        }
+
+        [HttpGet("pgs")]
+        public async Task<IActionResult> GetPgs()
+        {
+            var pgs = await context.PGs.ToListAsync();
+            var result = new List<PgListDto>();
+
+            foreach (var pg in pgs)
+            {
+                var userPgs = await context.UserPgs
+                    .Where(up => up.PgId == pg.PgId)
+                    .Include(up => up.User)
+                    .ToListAsync();
+
+                string ownerName = string.Empty, ownerEmail = string.Empty;
+                foreach (var up in userPgs)
+                {
+                    if (await userManager.IsInRoleAsync(up.User, "Owner"))
+                    {
+                        ownerName = up.User.UserName ?? string.Empty;
+                        ownerEmail = up.User.Email ?? string.Empty;
+                        break;
+                    }
+                }
+
+                result.Add(new PgListDto
+                {
+                    PgId = pg.PgId,
+                    Name = pg.Name,
+                    Address = pg.Address,
+                    ContactNumber = pg.ContactNumber,
+                    OwnerName = ownerName,
+                    OwnerEmail = ownerEmail,
+                    UserCount = userPgs.Count
+                });
+            }
+
+            return Ok(result);
         }
         [HttpPost]
         [Route("register-pg")]
@@ -53,13 +92,13 @@ namespace PgManagement_WebApi.Controllers
             };
             context.PGs.Add(pg);
 
-            var ownerRole = await context.PgRoles
-                .FirstAsync(r => r.Name == "Owner");
+            if (!await userManager.IsInRoleAsync(user, "Owner"))
+                await userManager.AddToRoleAsync(user, "Owner");
+
             var userPg = new UserPg
             {
                 UserId = user.Id,
-                PgId = pg.PgId,
-                RoleId = ownerRole.RoleId
+                PgId = pg.PgId
             };
             context.UserPgs.Add(userPg);
             await context.SaveChangesAsync();

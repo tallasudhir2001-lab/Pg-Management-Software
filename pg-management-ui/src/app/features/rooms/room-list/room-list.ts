@@ -7,11 +7,12 @@ import { Roomservice } from '../services/roomservice';
 import { Observable, distinctUntilChanged, switchMap, tap, map } from 'rxjs';
 import { PagedResults } from '../../../shared/models/page-results.model';
 import { ActivatedRoute } from '@angular/router';
+import { HasAccessDirective } from '../../../shared/directives/has-access.directive';
 
 @Component({
   selector: 'app-room-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HasAccessDirective],
   templateUrl: './room-list.html',
   styleUrl: './room-list.css',
 })

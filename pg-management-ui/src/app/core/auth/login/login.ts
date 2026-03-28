@@ -27,20 +27,18 @@ export class Login {
     }).subscribe({
       next: res => {
         if (res.isAdmin) {
-          this.auth.saveToken(res.token);
+          this.auth.saveToken(res.token, res.refreshToken);
           this.router.navigate(['/admin']);
-        return;
+          return;
         }
-        // CASE 1: Multiple PGs → temp token
+        // CASE 1: Multiple PGs → temp token (no refresh token yet, issued after SelectPg)
         if (res.requirespgSelection) {
           this.auth.saveToken(res.tempToken);
-          this.router.navigate(['/select-pg'], {
-            state: { pgs: res.pgs }
-          });
+          this.router.navigate(['/select-pg'], { state: { pgs: res.pgs } });
         }
         // CASE 2: Single PG → tenant token
         else {
-          this.auth.saveToken(res.token);
+          this.auth.saveToken(res.token, res.refreshToken);
           this.router.navigate(['/dashboard']);
         }
       },

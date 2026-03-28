@@ -12,7 +12,7 @@
     <div class="add-tenant-card">
 
         <div class="card-header">
-            <button type="button" class="icon-btn" (click)="toggleMode()"
+            <button *hasAccess="'Tenant.UpdateTenant'" type="button" class="icon-btn" (click)="toggleMode()"
                 [title]="mode === 'view' ? 'Edit Tenant' : 'View Mode'">
 
                 <img *ngIf="mode === 'view'" src="assets/icons/edit-tenant.svg" alt="Edit Tenant" />
@@ -23,12 +23,12 @@
             <div class="header-actions" *ngIf="mode === 'view' && tenant.status === 'ACTIVE'">
 
                 <!-- Change Room -->
-                <button type="button" class="icon-btn change-room-btn" title="Change Room" (click)="openChangeRoom()">
+                <button *hasAccess="'Tenant.ChangeRoom'" type="button" class="icon-btn change-room-btn" title="Change Room" (click)="openChangeRoom()">
                     <img src="assets/icons/change-room.svg" alt="Change Room" />
                 </button>
 
                 <!-- Move Out -->
-                <button type="button" class="icon-btn move-out-btn" title="Move Out Tenant" (click)="confirmMoveOut()">
+                <button *hasAccess="'Tenant.MoveOutTenant'" type="button" class="icon-btn move-out-btn" title="Move Out Tenant" (click)="confirmMoveOut()">
                     <img src="assets/icons/move-out.svg" alt="Move Out" />
                 </button>
 
@@ -66,6 +66,15 @@
                     <input *ngIf="mode === 'edit'" type="text" class="form-input"
                         [(ngModel)]="editableTenant.aadharNumber" />
                 </div>
+
+                <div class="form-group">
+                    <label>Email <span *ngIf="mode === 'view'" style="color: #9ca3af; font-weight: 400;">(optional)</span></label>
+                    <div class="form-input readonly" *ngIf="mode === 'view'">
+                        {{ tenant.email || '—' }}
+                    </div>
+                    <input *ngIf="mode === 'edit'" type="email" class="form-input" placeholder="tenant@example.com"
+                        [(ngModel)]="editableTenant.email" />
+                </div>
             </div>
 
             <!-- ================= RIGHT SECTION ================= -->
@@ -82,10 +91,12 @@
                         }">
                             {{ tenant.status }}
                         </span>
-                        <button *ngIf="tenant?.status === 'MOVED OUT' || tenant?.status === 'NO STAY'"
-                            class="btn-create-stay" (click)="openCreateStay()">
-                            + Create Stay
-                        </button>
+                        <ng-container *hasAccess="'Tenant.CreateStay'">
+                          <button *ngIf="tenant?.status === 'MOVED OUT' || tenant?.status === 'NO STAY'"
+                              class="btn-create-stay" (click)="openCreateStay()">
+                              + Create Stay
+                          </button>
+                        </ng-container>
                     </div>
                 </div>
 
@@ -189,7 +200,7 @@
                 </div>
             </div>
 
-            <button class="btn-add-payment-pill" [disabled]="pending.totalPendingAmount === 0" (click)="addPayment()">
+            <button *hasAccess="'Payment.CreatePayment'" class="btn-add-payment-pill" [disabled]="pending.totalPendingAmount === 0" (click)="addPayment()">
                 Add Payment
             </button>
         </div>
@@ -266,9 +277,18 @@
         <app-advance-history [advances]="tenant.advances" [tenantId]="tenant.tenantId" (settled)="reload$.next()">
         </app-advance-history>
     </div>
-    <div class="full-width-row">
-        <app-payment-history [tenantId]="tenantId">
-        </app-payment-history>
+    <div class="collapsible-card">
+        <div class="collapsible-header" (click)="paymentHistoryExpanded = !paymentHistoryExpanded">
+            <span class="collapsible-title">Payment History</span>
+            <svg class="chevron-icon" [class.expanded]="paymentHistoryExpanded"
+                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+        </div>
+        <div class="collapsible-body" *ngIf="paymentHistoryExpanded">
+            <app-payment-history [tenantId]="tenantId"></app-payment-history>
+        </div>
     </div>
     <!-- ================= CHANGE ROOM MODAL ================= -->
     <div class="modal-backdrop" *ngIf="isChangeRoomOpen"></div>

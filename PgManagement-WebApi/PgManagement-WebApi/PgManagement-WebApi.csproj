@@ -16,6 +16,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="QuestPDF" Version="2024.3.4" />
+    <PackageReference Include="MailKit" Version="4.6.0" />
+    <PackageReference Include="MimeKit" Version="4.6.0" />
+    <PackageReference Include="AWSSDK.SimpleEmail" Version="3.7.400.69" />
   </ItemGroup>
 
 </Project>

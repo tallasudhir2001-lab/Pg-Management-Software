@@ -12,6 +12,7 @@ import { BookingListItem } from '../../bookings/models/booking.model';
 import { AdvanceService } from '../../advances/services/advance-service';
 import { Advance } from '../../advances/models/advance.model';
 import { SettleAdvanceModal } from '../../advances/settle-advance-modal/settle-advance-modal';
+import { HasAccessDirective } from '../../../shared/directives/has-access.directive';
 
 function extractErrorMessage(err: any, fallback: string): string {
   const body = err?.error;
@@ -27,7 +28,7 @@ function extractErrorMessage(err: any, fallback: string): string {
 @Component({
   selector: 'app-room-details',
   standalone: true,
-  imports: [CommonModule, FormsModule, SettleAdvanceModal],
+  imports: [CommonModule, FormsModule, SettleAdvanceModal, HasAccessDirective],
   templateUrl: './room-details.html',
   styleUrl: './room-details.css',
 })

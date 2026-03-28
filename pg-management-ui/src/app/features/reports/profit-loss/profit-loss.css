@@ -1,0 +1,76 @@
+@import '../styles/report-page.css';
+
+.pl-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.pl-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 640px) {
+  .pl-layout { grid-template-columns: 1fr; }
+}
+
+.pl-section {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.pl-section-header {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+.revenue-section .pl-section-header { background: #ecfdf5; color: #065f46; }
+.expense-section .pl-section-header { background: #fef2f2; color: #991b1b; }
+
+.total-revenue { color: #065f46; font-size: 15px; }
+.total-expense { color: #991b1b; font-size: 15px; }
+
+.net-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-radius: 12px;
+  border: 2px solid;
+}
+
+.net-card.profit {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+}
+
+.net-card.loss {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.net-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.net-amount {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.net-card.profit .net-amount { color: #065f46; }
+.net-card.loss .net-amount { color: #991b1b; }

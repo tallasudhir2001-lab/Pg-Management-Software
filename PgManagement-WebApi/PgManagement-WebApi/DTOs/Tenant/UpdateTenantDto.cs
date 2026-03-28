@@ -13,5 +13,6 @@ namespace PgManagement_WebApi.DTOs.Tenant
         public string AadharNumber { get; set; }
         public decimal? AdvanceAmount { get; set; }
         public string Notes { get; set; }
+        public string? Email { get; set; }
     }
 }

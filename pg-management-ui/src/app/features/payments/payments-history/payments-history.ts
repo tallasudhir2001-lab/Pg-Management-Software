@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HasAccessDirective } from '../../../shared/directives/has-access.directive';
 import { PaymentHistoryDto } from '../models/paymets-history-dto';
 import { PaymentType } from '../models/Payment type.model';
 import { PaymentService } from '../services/payment-service';
@@ -18,6 +19,7 @@ import {
 import { Tenantservice } from '../../tenant/services/tenantservice';
 import { ToastService } from '../../../shared/toast/toast-service';
 import { UserService } from '../../../shared/services/user-service';
+import { ReceiptDrawer } from '../receipt-drawer/receipt-drawer';
 
 export const PAYMENT_MODES: PaymentModeOption[] = [
   { code: 'cash', label: 'Cash' },
@@ -29,7 +31,7 @@ export const PAYMENT_MODES: PaymentModeOption[] = [
 @Component({
   selector: 'app-payment-history',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, HasAccessDirective, ReceiptDrawer],
   templateUrl: './payments-history.html',
   styleUrl: './payments-history.css',
 })
@@ -77,6 +79,9 @@ export class PaymentsHistory implements OnInit {
   sortBy = 'paymentDate';
   sortDir: 'asc' | 'desc' = 'desc';
   totalCount = 0;
+
+  // Receipt drawer
+  activeReceiptPaymentId: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -338,6 +343,16 @@ export class PaymentsHistory implements OnInit {
   }
   isSortedBy(column: string): boolean { return this.sortBy === column; }
   isSortAsc(column: string): boolean  { return this.sortBy === column && this.sortDir === 'asc'; }
+
+  // ─── Receipt drawer ─────────────────────────────────────────────────────────
+
+  openReceipt(payment: PaymentHistoryDto): void {
+    this.activeReceiptPaymentId = payment.paymentId;
+  }
+
+  closeReceipt(): void {
+    this.activeReceiptPaymentId = null;
+  }
 
   // ─── Row actions ───────────────────────────────────────────────────────────
 

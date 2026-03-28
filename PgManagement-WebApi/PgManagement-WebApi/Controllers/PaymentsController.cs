@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using PgManagement_WebApi.Attributes;
 using Microsoft.EntityFrameworkCore;
 using PgManagement_WebApi.Data;
 using PgManagement_WebApi.DTOs.Pagination;
@@ -10,7 +11,16 @@ using PgManagement_WebApi.Helpers;
 using PgManagement_WebApi.Identity;
 using PgManagement_WebApi.Migrations;
 using PgManagement_WebApi.Models;
+using PgManagement_WebApi.Services;
 using System.Security.Claims;
+
+namespace PgManagement_WebApi.DTOs.Payment
+{
+    public class SendReceiptDto
+    {
+        public string RecipientEmail { get; set; } = "";
+    }
+}
 
 namespace PgManagement_WebApi.Controllers
 {
@@ -21,17 +31,56 @@ namespace PgManagement_WebApi.Controllers
         private readonly ApplicationDbContext context;
         private readonly UserManager<ApplicationUser> userManager;
         private readonly IConfiguration configuration;
+        private readonly IReportService reportService;
+        private readonly IEmailNotificationService emailService;
 
-        public PaymentsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IConfiguration configuration)
+        public PaymentsController(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            IConfiguration configuration,
+            IReportService reportService,
+            IEmailNotificationService emailService)
         {
             this.context = context;
             this.userManager = userManager;
             this.configuration = configuration;
+            this.reportService = reportService;
+            this.emailService = emailService;
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // GET {paymentId}/receipt  — returns PDF receipt
+        // ─────────────────────────────────────────────────────────────────────
+        [HttpGet("{paymentId}/receipt")]
+        public async Task<IActionResult> GetReceipt(string paymentId)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId)) return Unauthorized();
+
+            var pdf = await reportService.GenerateReceiptAsync(paymentId, pgId);
+            return File(pdf, "application/pdf", $"Receipt_{paymentId[^6..].ToUpper()}.pdf");
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // POST {paymentId}/send-receipt  — sends receipt to tenant email
+        // ─────────────────────────────────────────────────────────────────────
+        [HttpPost("{paymentId}/send-receipt")]
+        public async Task<IActionResult> SendReceipt(string paymentId, [FromBody] SendReceiptDto dto)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId)) return Unauthorized();
+
+            if (string.IsNullOrEmpty(dto?.RecipientEmail))
+                return BadRequest("Recipient email is required.");
+
+            await emailService.SendPaymentReceiptAsync(paymentId, pgId, dto.RecipientEmail);
+            return Ok(new { message = $"Receipt sent to {dto.RecipientEmail}" });
         }
 
         // ─────────────────────────────────────────────────────────────────────
         // POST create-payment  — ORIGINAL, fully intact
         // ─────────────────────────────────────────────────────────────────────
+        [AccessPoint("Payment", "Create Payment")]
         [HttpPost("create-payment")]
         public async Task<IActionResult> CreatePayment(CreatePaymentDto dto)
         {
@@ -473,6 +522,7 @@ namespace PgManagement_WebApi.Controllers
         // ─────────────────────────────────────────────────────────────────────
         // GET history  — ✅ CHANGED: multi-select mode + types filter + paymenttype sort
         // ─────────────────────────────────────────────────────────────────────
+        [AccessPoint("Payment", "View Payment History")]
         [HttpGet("history")]
         public async Task<IActionResult> GetPaymentHistory(
             [FromQuery] int page = 1,
@@ -596,6 +646,7 @@ namespace PgManagement_WebApi.Controllers
         // ─────────────────────────────────────────────────────────────────────
         // DELETE {paymentId}  — ORIGINAL, fully intact
         // ─────────────────────────────────────────────────────────────────────
+        [AccessPoint("Payment", "Delete Payment")]
         [HttpDelete("{paymentId}")]
         public async Task<IActionResult> DeletePayment(string paymentId)
         {
@@ -640,6 +691,7 @@ namespace PgManagement_WebApi.Controllers
         // ─────────────────────────────────────────────────────────────────────
         // GET {paymentId}  — ORIGINAL, fully intact
         // ─────────────────────────────────────────────────────────────────────
+        [AccessPoint("Payment", "View Payment")]
         [HttpGet("{paymentId}")]
         public async Task<IActionResult> GetPayment(string paymentId)
         {
@@ -672,6 +724,7 @@ namespace PgManagement_WebApi.Controllers
         // ─────────────────────────────────────────────────────────────────────
         // PUT {paymentId}  — ORIGINAL, fully intact
         // ─────────────────────────────────────────────────────────────────────
+        [AccessPoint("Payment", "Update Payment")]
         [HttpPut("{paymentId}")]
         public async Task<IActionResult> UpdatePayment(string paymentId, UpdatePaymentDto dto)
         {

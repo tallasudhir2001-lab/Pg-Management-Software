@@ -8,11 +8,12 @@ import { PagedResults } from '../../../shared/models/page-results.model';
 import { distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
 import { Roomservice } from '../../rooms/services/roomservice';
 import { ToastService } from '../../../shared/toast/toast-service';
+import { HasAccessDirective } from '../../../shared/directives/has-access.directive';
 
 @Component({
   selector: 'app-tenant-list',
   standalone:true,
-  imports: [CommonModule,FormsModule,RouterLink],
+  imports: [CommonModule,FormsModule,RouterLink,HasAccessDirective],
   templateUrl: './tenant-list.html',
   styleUrl: './tenant-list.css',
 })

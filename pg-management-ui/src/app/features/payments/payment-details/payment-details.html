@@ -41,10 +41,13 @@
         </p>
       </div>
 
-      <!-- View-mode action: switch to edit -->
+      <!-- View-mode actions -->
       <div class="summary-actions" *ngIf="!isEditMode">
         <button type="button" class="btn-edit" (click)="enableEdit()">
           ✏️ Edit Payment
+        </button>
+        <button type="button" class="btn-receipt" (click)="showReceipt = true">
+          🧾 View Receipt
         </button>
       </div>
     </section>
@@ -111,3 +114,9 @@
 <ng-template #loading>
   <div class="loading-state">Loading payment details...</div>
 </ng-template>
+
+<app-receipt-drawer
+  *ngIf="showReceipt && paymentId"
+  [paymentId]="paymentId"
+  (closed)="showReceipt = false">
+</app-receipt-drawer>

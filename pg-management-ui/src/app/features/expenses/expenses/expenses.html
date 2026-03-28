@@ -63,7 +63,7 @@
             More Filters
         </button>
 
-        <button class="btn btn-primary" (click)="openAddExpense()">
+        <button *hasAccess="'Expense.CreateExpense'" class="btn btn-primary" (click)="openAddExpense()">
             + Add Expense
         </button>
     </div>
@@ -118,12 +118,12 @@
                         </button>
 
                         <!-- Edit -->
-                        <button class="action-btn" (click)="onAction('edit', expense)" title="Edit">
+                        <button *hasAccess="'Expense.UpdateExpense'" class="action-btn" (click)="onAction('edit', expense)" title="Edit">
                             <img src="/assets/icons/edit.svg" alt="Edit" />
                         </button>
 
                         <!-- Delete -->
-                        <button class="action-btn danger" (click)="onAction('delete', expense)" title="Delete">
+                        <button *hasAccess="'Expense.DeleteExpense'" class="action-btn danger" (click)="onAction('delete', expense)" title="Delete">
                             <img src="/assets/icons/delete.svg" alt="Delete" />
                         </button>
                     </td>

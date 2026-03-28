@@ -21,7 +21,7 @@
 
       <button class="btn btn-secondary" (click)="showFilters = true">Filters</button>
 
-      <button class="btn btn-primary" routerLink="/tenants/add">+ Add Tenant</button>
+      <button *hasAccess="'Tenant.CreateTenant'" class="btn btn-primary" routerLink="/tenants/add">+ Add Tenant</button>
     </div>
 
   </div>
@@ -85,10 +85,10 @@
             <button class="action-btn" title="View" (click)="onAction('view', t)">
               <img src="assets/icons/info.svg" alt="Info" />
             </button>
-            <button class="action-btn" title="Edit" (click)="onAction('edit', t)">
+            <button *hasAccess="'Tenant.UpdateTenant'" class="action-btn" title="Edit" (click)="onAction('edit', t)">
               <img src="assets/icons/edit.svg" alt="Edit" />
             </button>
-            <button class="action-btn danger" title="Delete" (click)="onAction('delete', t)">
+            <button *hasAccess="'Tenant.DeleteTenant'" class="action-btn danger" title="Delete" (click)="onAction('delete', t)">
               <img src="assets/icons/delete.svg" alt="Delete" />
             </button>
           </td>

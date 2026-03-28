@@ -14,4 +14,8 @@ export class Adminservice {
   registerPg(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/register-pg`, data);
   }
+
+  getPgs(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/pgs`);
+  }
 }

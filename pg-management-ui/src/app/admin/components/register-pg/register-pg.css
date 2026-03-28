@@ -1,0 +1,103 @@
+.rp-page {
+  padding: 32px 40px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.rp-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f1041;
+  margin: 0 0 24px;
+}
+
+.rp-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 28px 32px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.rp-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.rp-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.rp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rp-full {
+  grid-column: 1 / -1;
+}
+
+.rp-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.required { color: #dc2626; }
+
+/* Override global input styles */
+.rp-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 13px;
+  margin: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: white;
+}
+.rp-input:focus {
+  border-color: #0f1041;
+  box-shadow: 0 0 0 3px rgba(15,16,65,0.08);
+}
+.rp-input::placeholder { color: #9ca3af; }
+
+.rp-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 24px 0;
+}
+
+.rp-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Override global button styles */
+.rp-btn {
+  width: auto;
+  background: #0f1041;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 36px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.rp-btn:hover:not(:disabled) { background: #1a1c5e; }
+.rp-btn:disabled { opacity: 0.5; cursor: not-allowed; }

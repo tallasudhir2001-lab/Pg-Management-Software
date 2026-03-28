@@ -702,3 +702,52 @@
   color: #d97706;   /* amber */
   font-weight: 600;
 }
+
+/* ================= COLLAPSIBLE CARD ================= */
+
+.collapsible-card {
+  width: 100%;
+  max-width: 750px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.collapsible-header:hover {
+  background: #f9fafb;
+}
+
+.collapsible-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f1041;
+}
+
+.chevron-icon {
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chevron-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.collapsible-body {
+  border-top: 1px solid #f3f4f6;
+}

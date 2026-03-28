@@ -12,6 +12,7 @@ import { AdvanceService } from '../../advances/services/advance-service';
 import { Advance } from '../../advances/models/advance.model';
 import { Tenantservice } from '../../tenant/services/tenantservice';
 import { SettleAdvanceModal } from '../../advances/settle-advance-modal/settle-advance-modal';
+import { HasAccessDirective } from '../../../shared/directives/has-access.directive';
 
 function extractErrorMessage(err: any, fallback: string): string {
   const body = err?.error;
@@ -27,7 +28,7 @@ function extractErrorMessage(err: any, fallback: string): string {
 @Component({
   selector: 'app-booking-details',
   standalone: true,
-  imports: [CommonModule, DatePipe, ReactiveFormsModule, FormsModule, RouterLink, SettleAdvanceModal],
+  imports: [CommonModule, DatePipe, ReactiveFormsModule, FormsModule, RouterLink, SettleAdvanceModal, HasAccessDirective],
   templateUrl: './booking-details.html',
   styleUrls: ['./booking-details.css'],
 })

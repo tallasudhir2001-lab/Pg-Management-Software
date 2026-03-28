@@ -1,30 +1,45 @@
-<div class="page">
-  <h2>Register New PG</h2>
+<div class="rp-page">
+  <h1 class="rp-title">Register New PG</h1>
 
-  <label>PG Name</label>
-  <input [(ngModel)]="pgName" />
+  <div class="rp-card">
+    <div class="rp-section-label">PG Details</div>
+    <div class="rp-form-grid">
+      <div class="rp-field">
+        <label>PG Name <span class="required">*</span></label>
+        <input type="text" [(ngModel)]="pgName" placeholder="e.g. Sunrise PG" class="rp-input" />
+      </div>
+      <div class="rp-field">
+        <label>Contact Number <span class="required">*</span></label>
+        <input type="text" [(ngModel)]="contactNumber" placeholder="9876543210" class="rp-input" />
+      </div>
+      <div class="rp-field rp-full">
+        <label>Address <span class="required">*</span></label>
+        <input type="text" [(ngModel)]="address" placeholder="Full address" class="rp-input" />
+      </div>
+    </div>
 
-  <label>Address</label>
-  <input [(ngModel)]="address" />
+    <div class="rp-divider"></div>
 
-  <label>Contact Number</label>
-  <input [(ngModel)]="contactNumber" />
+    <div class="rp-section-label">Owner Account</div>
+    <div class="rp-form-grid">
+      <div class="rp-field">
+        <label>Owner Name <span class="required">*</span></label>
+        <input type="text" [(ngModel)]="ownerName" placeholder="Full name" class="rp-input" />
+      </div>
+      <div class="rp-field">
+        <label>Email <span class="required">*</span></label>
+        <input type="email" [(ngModel)]="ownerEmail" placeholder="owner@example.com" class="rp-input" />
+      </div>
+      <div class="rp-field">
+        <label>Password <span class="required">*</span></label>
+        <input type="password" [(ngModel)]="password" placeholder="Minimum 8 characters" class="rp-input" />
+      </div>
+    </div>
 
-  <hr style="margin: 20px 0" />
-
-  <label>Owner Name</label>
-  <input [(ngModel)]="ownerName" />
-
-  <label>Owner Email</label>
-  <input type="email" [(ngModel)]="ownerEmail" />
-
-  <label>Owner Password</label>
-  <input type="password" [(ngModel)]="password" />
-
-  <button (click)="registerPg()">Create PG</button>
-
-  <p class="error" *ngIf="error">{{ error }}</p>
-  <p style="color:green;text-align:center" *ngIf="success">
-    {{ success }}
-  </p>
+    <div class="rp-footer">
+      <button class="rp-btn" (click)="registerPg()" [disabled]="!isValid || saving">
+        {{ saving ? 'Registering...' : 'Register PG' }}
+      </button>
+    </div>
+  </div>
 </div>

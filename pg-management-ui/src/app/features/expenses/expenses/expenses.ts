@@ -8,11 +8,12 @@ import { ToastService } from '../../../shared/toast/toast-service';
 import { ExpenseListItemDto, ExpensesService, ExpenseSummaryDto,CategoryFilterItem } from '../services/expenses-service';
 import { TimeHelper } from '../../../shared/utils/time.helper';
 import { ExpenseDrawer } from '../expense-drawer/expense-drawer';
+import { HasAccessDirective } from '../../../shared/directives/has-access.directive';
 
 @Component({
   selector: 'app-expenses',
   standalone:true,
-  imports: [CommonModule, FormsModule,ExpenseDrawer],
+  imports: [CommonModule, FormsModule, ExpenseDrawer, HasAccessDirective],
   templateUrl: './expenses.html',
   styleUrl: './expenses.css',
 })

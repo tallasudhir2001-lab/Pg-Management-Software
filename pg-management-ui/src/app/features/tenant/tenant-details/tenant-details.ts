@@ -13,11 +13,12 @@ import { PendingRent } from '../models/pending-rent.model';
 import { ToastService } from '../../../shared/toast/toast-service';
 import { PaymentHistory } from '../payment-history/payment-history';
 import { AdvanceHistory } from '../../advances/advance-history/advance-history';
+import { HasAccessDirective } from '../../../shared/directives/has-access.directive';
 
 @Component({
   selector: 'app-tenant-details',
   standalone : true,
-  imports: [CommonModule,FormsModule,PaymentHistory,AdvanceHistory],
+  imports: [CommonModule,FormsModule,PaymentHistory,AdvanceHistory,HasAccessDirective],
   templateUrl: './tenant-details.html',
   styleUrl: '../styles/tenant-form.css',
 })
@@ -59,6 +60,9 @@ export class TenantDetails implements OnInit{
   isMoveOutOpen = false;
   hasActiveAdvance = false;
   moveOutDate: string = new Date().toISOString().split('T')[0];
+
+  // payment history collapsible
+  paymentHistoryExpanded = false;
 
 
 
@@ -274,7 +278,8 @@ private mapToUpdateDto(
     name: tenant.name,
     contactNumber: tenant.contactNumber,
     aadharNumber: tenant.aadharNumber,
-    notes: tenant.notes
+    notes: tenant.notes,
+    email: tenant.email
   };
 }
 

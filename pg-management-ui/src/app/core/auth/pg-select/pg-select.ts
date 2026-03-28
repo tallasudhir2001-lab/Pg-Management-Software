@@ -22,7 +22,7 @@ export class PgSelect {
 
   selectPg(pgId: string) {
     this.auth.selectPg(pgId).subscribe(res => {
-      this.auth.saveToken(res.token); // replace temp token
+      this.auth.saveToken(res.token, res.refreshToken);
       this.router.navigate(['/dashboard']);
     });
   }

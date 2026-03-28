@@ -35,16 +35,10 @@ namespace PgManagement_WebApi.Data
                 await context.SaveChangesAsync();
             }
 
-            if(!await context.PgRoles.AnyAsync())
+            foreach (var roleName in new[] { "Owner", "Manager", "Staff" })
             {
-                var roles = new List<PgRole>
-                {
-                    new PgRole { Name = "Owner" },
-                    new PgRole { Name = "Manager" },
-                    new PgRole { Name = "Staff" }
-                };
-                await context.PgRoles.AddRangeAsync(roles);
-                await context.SaveChangesAsync();
+                if (!await roleManager.RoleExistsAsync(roleName))
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
             }
 
             //Payment Types
@@ -99,10 +93,11 @@ namespace PgManagement_WebApi.Data
                     Email = adminEmail,
                     EmailConfirmed = true
                 };
-
                 await userManager.CreateAsync(adminUser, "Admin@123");
-                await userManager.AddToRoleAsync(adminUser, "Admin");
             }
+            // Ensure Admin role is assigned even if the user already existed
+            if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+                await userManager.AddToRoleAsync(adminUser, "Admin");
 
         }
 

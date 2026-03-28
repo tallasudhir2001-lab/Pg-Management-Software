@@ -9,11 +9,12 @@ import { ToastService } from '../../../shared/toast/toast-service';
 import { AdvanceService } from '../../advances/services/advance-service';
 import { Advance } from '../../advances/models/advance.model';
 import { SettleAdvanceModal } from '../../advances/settle-advance-modal/settle-advance-modal';
+import { HasAccessDirective } from '../../../shared/directives/has-access.directive';
 
 @Component({
   selector: 'app-booking-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, SettleAdvanceModal],
+  imports: [CommonModule, RouterModule, SettleAdvanceModal, HasAccessDirective],
   templateUrl: './booking-list.html',
   styleUrl: './booking-list.css',
 })

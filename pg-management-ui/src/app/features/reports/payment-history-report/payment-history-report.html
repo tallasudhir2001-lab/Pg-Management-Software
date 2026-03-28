@@ -1,0 +1,91 @@
+<div class="report-page">
+  <div class="back-nav" (click)="goBack()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="back-icon">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+    </svg>
+    <span>Reports</span>
+  </div>
+  <h2 class="page-title">Payment History Report</h2>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>From Date</label>
+      <input type="date" [(ngModel)]="fromDate" />
+    </div>
+    <div class="filter-group">
+      <label>To Date</label>
+      <input type="date" [(ngModel)]="toDate" />
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary" (click)="loadData()" [disabled]="isLoading">
+        {{ isLoading ? 'Loading...' : 'Preview' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="report-card" *ngIf="data !== null">
+    <div class="report-card-header">
+      <h3 class="report-card-title">{{ data.rows.length }} payments</h3>
+      <div class="report-card-actions">
+        <button class="btn-secondary" (click)="openEmailModal()">✉️ Send Email</button>
+        <button class="btn-primary" (click)="downloadPdf()" [disabled]="isDownloading">
+          {{ isDownloading ? 'Generating...' : '⬇ Download PDF' }}
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="data.rows.length === 0" class="empty-state">No payments found for the selected date range.</div>
+
+    <table class="report-table" *ngIf="data.rows.length > 0">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Receipt No</th>
+          <th>Tenant</th>
+          <th>Room</th>
+          <th>Type</th>
+          <th class="text-right">Amount</th>
+          <th>Mode</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of data.rows">
+          <td>{{ row.paymentDate | date:'dd MMM yyyy' }}</td>
+          <td><span class="receipt-no">{{ row.receiptNumber }}</span></td>
+          <td>{{ row.tenantName }}</td>
+          <td>{{ row.roomNumber || '—' }}</td>
+          <td>{{ row.paymentType }}</td>
+          <td class="text-right">₹{{ row.amount | number:'1.0-0' }}</td>
+          <td>{{ row.paymentMode }}</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="5" class="text-right">Total Collected</td>
+          <td class="text-right">₹{{ data.totalAmount | number:'1.0-0' }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="showEmailModal"></div>
+<div class="modal" *ngIf="showEmailModal">
+  <div class="modal-header">
+    <h3 class="modal-title">Send Report by Email</h3>
+    <button class="modal-close" (click)="showEmailModal = false">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-group">
+      <label>Recipient Email</label>
+      <input type="email" [(ngModel)]="recipientEmail" placeholder="owner@example.com" />
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn-secondary" (click)="showEmailModal = false">Cancel</button>
+    <button class="btn-primary" (click)="sendEmail()" [disabled]="!recipientEmail || isSending">
+      {{ isSending ? 'Sending...' : 'Send' }}
+    </button>
+  </div>
+</div>

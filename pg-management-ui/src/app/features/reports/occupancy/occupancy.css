@@ -1,0 +1,41 @@
+@import '../styles/report-page.css';
+
+.summary-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.summary-card {
+  flex: 1;
+  min-width: 130px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 20px;
+  text-align: center;
+}
+
+.summary-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.summary-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summary-card.occupied { border-color: #a5b4fc; background: #eef2ff; }
+.summary-card.occupied .summary-value { color: #4338ca; }
+.summary-card.vacant { border-color: #6ee7b7; background: #ecfdf5; }
+.summary-card.vacant .summary-value { color: #065f46; }
+.summary-card.rate { border-color: #fcd34d; background: #fffbeb; }
+.summary-card.rate .summary-value { color: #92400e; }

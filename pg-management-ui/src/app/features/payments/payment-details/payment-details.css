@@ -27,6 +27,24 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+.btn-receipt {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 8px;
+}
+
+.btn-receipt:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
 /* Disable visual cue for view-mode inputs */
 .form-input:disabled,
 .form-input[disabled] {

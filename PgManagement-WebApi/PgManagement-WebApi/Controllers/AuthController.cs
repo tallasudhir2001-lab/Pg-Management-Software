@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +9,9 @@ using PgManagement_WebApi.Identity;
 using PgManagement_WebApi.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace PgManagement_WebApi.Controllers
 {
@@ -21,12 +22,14 @@ namespace PgManagement_WebApi.Controllers
         private readonly ApplicationDbContext context;
         private readonly UserManager<ApplicationUser> userManager;
         private readonly IConfiguration configuration;
-        public AuthController(ApplicationDbContext context,UserManager<ApplicationUser> userManager,IConfiguration configuration)
+
+        public AuthController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IConfiguration configuration)
         {
             this.context = context;
             this.userManager = userManager;
             this.configuration = configuration;
         }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequestDto request)
         {
@@ -35,6 +38,7 @@ namespace PgManagement_WebApi.Controllers
                 user = await userManager.FindByEmailAsync(request.UserNameOrEmail);
             else
                 user = await userManager.FindByNameAsync(request.UserNameOrEmail);
+
             if (user == null)
                 return Unauthorized("Invalid credentials");
 
@@ -47,41 +51,40 @@ namespace PgManagement_WebApi.Controllers
             if (isAdmin)
             {
                 var adminToken = GenerateAdminJwt(user);
-                return Ok(new
-                {
-                    isAdmin = true,
-                    token = adminToken
-                });
+                var adminRefresh = await CreateRefreshToken(user.Id, pgId: null);
+                return Ok(new { isAdmin = true, token = adminToken, refreshToken = adminRefresh });
             }
 
-            // Fetch PGs user has access to
-            var pgs = await context.UserPgs
+            var userRoles = await userManager.GetRolesAsync(user);
+            var roleName = userRoles.FirstOrDefault(r => r != "Admin") ?? "";
+
+            var userPgList = await context.UserPgs
                 .Where(up => up.UserId == user.Id)
                 .Include(up => up.PG)
-                .Include(up => up.Role)
-                .Select(up => new PgSelectionDto
-                {
-                    PgId = up.PgId,
-                    PgName = up.PG.Name,
-                    Role = up.Role.Name
-                }).ToListAsync();
+                .ToListAsync();
+
+            var pgs = userPgList.Select(up => new PgSelectionDto
+            {
+                PgId = up.PgId,
+                PgName = up.PG.Name,
+                Role = roleName
+            }).ToList();
+
+            if (pgs.Count == 0)
+                return Unauthorized("No PG access configured for this account. Contact your administrator.");
+
             if (pgs.Count == 1)
             {
-                var userPg = await context.UserPgs
-                    .Include(x => x.Role)
-                    .FirstAsync(x => x.UserId == user.Id);
+                var userPg = userPgList.First();
                 var token = await GenerateTenantJwt(user, userPg);
-                return Ok(new { token });   
+                var refreshToken = await CreateRefreshToken(user.Id, userPg.PgId);
+                return Ok(new { token, refreshToken });
             }
 
             var tempToken = GenerateTempJwt(user);
-            return Ok(new
-            {
-                requirespgSelection=true,
-                tempToken,
-                pgs
-            });
+            return Ok(new { requirespgSelection = true, tempToken, pgs });
         }
+
         [HttpPost("select-pg")]
         [Authorize]
         public async Task<IActionResult> SelectPg(SelectPgDto selectedPg)
@@ -90,23 +93,94 @@ namespace PgManagement_WebApi.Controllers
             if (authLevel != "identity_only")
                 return Forbid();
 
-            //how does this know user? we generate a temptoken which when there are multiple pgs, from token read it
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var userPg = await context.UserPgs
-                .Include(x => x.Role)
-                .FirstOrDefaultAsync(x =>
-                    x.UserId == userId &&
-                    x.PgId == selectedPg.PgId);
+                .FirstOrDefaultAsync(x => x.UserId == userId && x.PgId == selectedPg.PgId);
             if (userPg == null)
                 return Forbid();
 
             var user = await userManager.FindByIdAsync(userId);
             if (user == null)
-                return Unauthorized();        
+                return Unauthorized();
 
-            var finalToken = GenerateTenantJwt(user, userPg);
-            return Ok(new { token = finalToken });
+            var token = await GenerateTenantJwt(user, userPg);
+            var refreshToken = await CreateRefreshToken(user.Id, userPg.PgId);
+            return Ok(new { token, refreshToken });
+        }
+
+        [HttpPost("refresh")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto dto)
+        {
+            var stored = await context.RefreshTokens
+                .Include(rt => rt.User)
+                .FirstOrDefaultAsync(rt => rt.Token == dto.RefreshToken && !rt.IsRevoked);
+
+            if (stored == null || stored.ExpiresAt < DateTime.UtcNow)
+                return Unauthorized("Invalid or expired refresh token.");
+
+            // Revoke the used token (rotation — each refresh token is single-use)
+            stored.IsRevoked = true;
+
+            string newAccessToken;
+            string newRefreshToken;
+
+            if (stored.PgId == null)
+            {
+                newAccessToken = GenerateAdminJwt(stored.User);
+                newRefreshToken = await CreateRefreshToken(stored.UserId, pgId: null);
+            }
+            else
+            {
+                var userPg = await context.UserPgs
+                    .FirstOrDefaultAsync(up => up.UserId == stored.UserId && up.PgId == stored.PgId);
+
+                if (userPg == null)
+                    return Unauthorized("PG access has been revoked.");
+
+                newAccessToken = await GenerateTenantJwt(stored.User, userPg);
+                newRefreshToken = await CreateRefreshToken(stored.UserId, stored.PgId);
+            }
+
+            return Ok(new { token = newAccessToken, refreshToken = newRefreshToken });
+        }
+
+        [HttpPost("logout")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Logout([FromBody] LogoutRequestDto dto)
+        {
+            var stored = await context.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.Token == dto.RefreshToken && !rt.IsRevoked);
+
+            if (stored != null)
+            {
+                stored.IsRevoked = true;
+                await context.SaveChangesAsync();
+            }
+
+            return NoContent();
+        }
+
+        // ─── Helpers ────────────────────────────────────────────────────────────
+
+        private async Task<string> CreateRefreshToken(string userId, string? pgId)
+        {
+            var tokenBytes = RandomNumberGenerator.GetBytes(64);
+            var token = Convert.ToBase64String(tokenBytes);
+
+            context.RefreshTokens.Add(new RefreshToken
+            {
+                Token = token,
+                UserId = userId,
+                PgId = pgId,
+                ExpiresAt = DateTime.UtcNow.AddDays(30),
+                IsRevoked = false,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await context.SaveChangesAsync();
+            return token;
         }
 
         private string GenerateTempJwt(ApplicationUser user)
@@ -116,44 +190,40 @@ namespace PgManagement_WebApi.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim("auth_level", "identity_only")
             };
-
             return CreateToken(claims, TimeSpan.FromMinutes(5));
         }
 
         private async Task<string> GenerateTenantJwt(ApplicationUser user, UserPg userPg)
         {
+            var roles = await userManager.GetRolesAsync(user);
+            var roleName = roles.FirstOrDefault(r => r != "Admin") ?? "";
+
+            var identityRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
+            var roleId = identityRole?.Id ?? "";
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim("pgId", userPg.PgId),
-                new Claim("role", userPg.Role.Name),
+                new Claim("role", roleName),
+                new Claim("roleId", roleId),
                 new Claim("auth_level", "tenant")
             };
-            var roles = await userManager.GetRolesAsync(user);
+
             foreach (var role in roles)
-            {
                 claims.Add(new Claim(ClaimTypes.Role, role));
-            }
+
+            var permissionKeys = await context.RoleAccessPoints
+                .Where(rap => rap.RoleId == roleId)
+                .Include(rap => rap.AccessPoint)
+                .Where(rap => rap.AccessPoint.IsActive)
+                .Select(rap => rap.AccessPoint.Key)
+                .ToListAsync();
+
+            claims.Add(new Claim("permissions", JsonSerializer.Serialize(permissionKeys)));
 
             return CreateToken(claims, TimeSpan.FromHours(2));
-        }
-
-        private string CreateToken(IEnumerable<Claim> claims, TimeSpan expiry)
-        {
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: configuration["Jwt:Issuer"],
-                audience: configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.Add(expiry),
-                signingCredentials: creds);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         private string GenerateAdminJwt(ApplicationUser user)
@@ -165,34 +235,22 @@ namespace PgManagement_WebApi.Controllers
                 new Claim(ClaimTypes.Role, "Admin"),
                 new Claim("auth_level", "admin")
             };
-
             return CreateToken(claims, TimeSpan.FromHours(4));
         }
 
-        private string GenerateJwtToken(ApplicationUser user, PgSelectionDto pg)
+        private string CreateToken(IEnumerable<Claim> claims, TimeSpan expiry)
         {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim("pgId", pg.PgId),
-                new Claim("role", pg.Role)
-            };
-
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
-
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-            issuer: configuration["Jwt:Issuer"],
-            audience: configuration["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(2),
-            signingCredentials: creds);
+                issuer: configuration["Jwt:Issuer"],
+                audience: configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.Add(expiry),
+                signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-    
     }
 }

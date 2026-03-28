@@ -1,6 +1,5 @@
 <div class="history-container" *ngIf="payments$ | async as history; else loading">
   <div class="header-row">
-    <h3 class="section-title">Payment History</h3>
     <span class="count-badge">{{ history.length }} Records</span>
   </div>
 

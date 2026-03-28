@@ -7,6 +7,7 @@ export interface TenantDetailsModel {
   name: string;
   contactNumber: string;
   aadharNumber: string;
+  email: string | null;
 
   // Financial details
   hasAdvance: boolean;

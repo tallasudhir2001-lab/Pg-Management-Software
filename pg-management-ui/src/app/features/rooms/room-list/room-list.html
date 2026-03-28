@@ -13,7 +13,7 @@
       </button>
     </div>
   </div>
-  <button class="btn-primary add-room-btn" type="button" (click)="openAddRoom()">
+  <button *hasAccess="'Room.CreateRoom'" class="btn-primary add-room-btn" type="button" (click)="openAddRoom()">
     + Add Room
   </button>
 </div>

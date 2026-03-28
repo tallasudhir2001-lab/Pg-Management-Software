@@ -1,0 +1,17 @@
+/* Override global button width for the logout button inside sidebar */
+.logout-btn {
+  width: 100%;
+  margin-top: auto;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  padding: 11px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.6);
+}

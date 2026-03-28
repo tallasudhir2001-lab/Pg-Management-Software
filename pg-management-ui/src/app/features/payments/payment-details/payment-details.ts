@@ -7,6 +7,7 @@ import { DatePipe, DecimalPipe, CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../shared/toast/toast-service';
+import { ReceiptDrawer } from '../receipt-drawer/receipt-drawer';
 import { TimeHelper } from '../../../shared/utils/time.helper';
 
 export interface PaymentDetails {
@@ -31,7 +32,7 @@ const PAYMENT_FREQUENCIES = [
 @Component({
   selector: 'app-payment-details',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, ReactiveFormsModule, CommonModule, RouterLink],
+  imports: [DatePipe, DecimalPipe, ReactiveFormsModule, CommonModule, RouterLink, ReceiptDrawer],
   templateUrl: './payment-details.html',
   styleUrls: ['../styles/payment-shared.css','./payment-details.css']
 })
@@ -48,6 +49,7 @@ export class PaymentDetails implements OnChanges {
   frequencies = PAYMENT_FREQUENCIES;
   saving = false;
   loading = true;
+  showReceipt = false;
 
   constructor(
     private fb: FormBuilder,

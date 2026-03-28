@@ -38,7 +38,6 @@ namespace PgManagement_WebApi.Data
         public DbSet<Payment> Payments { get; set; }
         public DbSet<PaymentMode> PaymentModes { get; set; }
         public DbSet<UserPg> UserPgs { get; set; }
-        public DbSet<PgRole> PgRoles { get; set; }
         public DbSet<TenantRoom> TenantRooms { get; set; }
         public DbSet<TenantRentHistory> TenantRentHistories { get; set; }
         public DbSet<RoomRentHistory> RoomRentHistories { get; set; }
@@ -49,6 +48,9 @@ namespace PgManagement_WebApi.Data
         public DbSet<Advance> Advances { get; set; }
         public DbSet<PaymentType> PaymentTypes { get; set; }
         public DbSet<Booking> Bookings { get; set; }
+        public DbSet<AccessPoint> AccessPoints { get; set; }
+        public DbSet<RoleAccessPoint> RoleAccessPoints { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
 
 
@@ -74,6 +76,10 @@ namespace PgManagement_WebApi.Data
                 .WithMany()
                 .HasForeignKey(up => up.PgId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            /* ============================================================
+               UserPg no longer carries RoleId — roles are in AspNetUserRoles
+               ============================================================ */
 
             /* ============================================================
                Tenant → PG
@@ -236,6 +242,44 @@ namespace PgManagement_WebApi.Data
                 .Property(b => b.AdvanceAmount)
                 .HasPrecision(18, 2);
 
+
+            /* ============================================================
+               AccessPoint
+               ============================================================ */
+            modelBuilder.Entity<AccessPoint>()
+                .HasIndex(a => a.Key)
+                .IsUnique();
+
+            /* ============================================================
+               RoleAccessPoint (join table)
+               ============================================================ */
+            modelBuilder.Entity<RoleAccessPoint>()
+                .HasKey(rap => new { rap.RoleId, rap.AccessPointId });
+
+            modelBuilder.Entity<RoleAccessPoint>()
+                .HasOne(rap => rap.Role)
+                .WithMany()
+                .HasForeignKey(rap => rap.RoleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RoleAccessPoint>()
+                .HasOne(rap => rap.AccessPoint)
+                .WithMany(a => a.RoleAccessPoints)
+                .HasForeignKey(rap => rap.AccessPointId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            /* ============================================================
+               RefreshToken
+               ============================================================ */
+            modelBuilder.Entity<RefreshToken>()
+                .HasOne(rt => rt.User)
+                .WithMany()
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(rt => rt.Token)
+                .IsUnique();
 
             modelBuilder.ApplyConfiguration(new ExpenseConfiguration());
             modelBuilder.ApplyConfiguration(new ExpenseCategoryConfiguration());

@@ -6,8 +6,12 @@ using Microsoft.OpenApi.Models;
 using PgManagement_WebApi.Data;
 using PgManagement_WebApi.Identity;
 using PgManagement_WebApi.MiddleWare;
+using PgManagement_WebApi.Options;
 using PgManagement_WebApi.Services;
+using QuestPDF.Infrastructure;
 using System.Text;
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +24,16 @@ builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<IAdvanceService, AdvanceService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IAccessPointDiscoveryService, AccessPointDiscoveryService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IEmailNotificationService, EmailNotificationService>();
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
+
+var emailProvider = builder.Configuration["Email:Provider"];
+if (emailProvider == "AwsSes")
+    builder.Services.AddScoped<IEmailProvider, AwsSesEmailProvider>();
+else
+    builder.Services.AddScoped<IEmailProvider, SmtpEmailProvider>();
 
 
 
@@ -67,7 +81,10 @@ builder.Services.AddAuthentication(options =>
     };
 });
 builder.Services.AddAuthorization();
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<PgManagement_WebApi.Filters.AccessPointAuthorizationFilter>();
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -127,6 +144,13 @@ using (var scope = app.Services.CreateScope())
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     await SeedData.InitializeAsync(context, userManager, roleManager);
+}
+
+// Sync access points from controller attributes
+using (var scope = app.Services.CreateScope())
+{
+    var discoveryService = scope.ServiceProvider.GetRequiredService<IAccessPointDiscoveryService>();
+    await discoveryService.SyncAccessPointsAsync();
 }
 
 app.Run();

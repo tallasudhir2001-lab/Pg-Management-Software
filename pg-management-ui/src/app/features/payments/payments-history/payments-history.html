@@ -14,7 +14,7 @@
                 <img src="/assets/icons/clear-filters.svg" alt="Clear" />
             </button>
             <button class="btn btn-secondary" (click)="openFilters()">Filters</button>
-            <button class="btn btn-primary" routerLink="/payments/add">+ Add Payment</button>
+            <button *hasAccess="'Payment.CreatePayment'" class="btn btn-primary" routerLink="/payments/add">+ Add Payment</button>
         </div>
     </div>
 
@@ -65,13 +65,16 @@
                     </td>
                     <td class="muted">{{ payment.collectedBy }}</td>
                     <td>
+                        <button class="action-btn" (click)="openReceipt(payment)" title="View Receipt">
+                            <img src="assets/icons/receipt.svg" alt="Receipt" />
+                        </button>
                         <button class="action-btn" (click)="onAction('view', payment)" title="View">
                             <img src="assets/icons/info.svg" alt="View" />
                         </button>
-                        <button class="action-btn" (click)="onAction('edit', payment)" title="Edit">
+                        <button *hasAccess="'Payment.UpdatePayment'" class="action-btn" (click)="onAction('edit', payment)" title="Edit">
                             <img src="/assets/icons/edit.svg" alt="Edit" />
                         </button>
-                        <button class="action-btn danger" (click)="onAction('delete', payment)" title="Delete">
+                        <button *hasAccess="'Payment.DeletePayment'" class="action-btn danger" (click)="onAction('delete', payment)" title="Delete">
                             <img src="/assets/icons/delete.svg" alt="Delete" />
                         </button>
                     </td>
@@ -99,6 +102,13 @@
         </div>
     </div>
 </div>
+
+<!-- Receipt Drawer -->
+<app-receipt-drawer
+  *ngIf="activeReceiptPaymentId"
+  [paymentId]="activeReceiptPaymentId"
+  (closed)="closeReceipt()">
+</app-receipt-drawer>
 
 <!-- Filter Drawer -->
 <div *ngIf="showFilters">

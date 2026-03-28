@@ -1,0 +1,34 @@
+<div class="pgl-page">
+  <h1 class="pgl-title">All PGs</h1>
+
+  <div *ngIf="loading" class="pgl-state">Loading...</div>
+  <div *ngIf="error" class="pgl-state pgl-error">{{ error }}</div>
+
+  <div *ngIf="!loading && !error" class="pgl-table-wrap">
+    <table class="pgl-table">
+      <thead>
+        <tr>
+          <th>PG Name</th>
+          <th>Address</th>
+          <th>Contact</th>
+          <th>Owner</th>
+          <th>Owner Email</th>
+          <th>Users</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let pg of pgs">
+          <td class="pgl-name">{{ pg.name }}</td>
+          <td>{{ pg.address }}</td>
+          <td>{{ pg.contactNumber }}</td>
+          <td>{{ pg.ownerName || '—' }}</td>
+          <td>{{ pg.ownerEmail || '—' }}</td>
+          <td class="pgl-count">{{ pg.userCount }}</td>
+        </tr>
+        <tr *ngIf="pgs.length === 0">
+          <td colspan="6" class="pgl-empty">No PGs registered yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

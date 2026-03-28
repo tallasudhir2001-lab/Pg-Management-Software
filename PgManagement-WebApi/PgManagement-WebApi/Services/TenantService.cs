@@ -53,6 +53,7 @@ namespace PgManagement_WebApi.Services
                 ContactNumber = dto.ContactNumber,
                 AadharNumber = dto.AadharNumber,
                 Notes = dto.Notes,
+                Email = dto.Email,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };

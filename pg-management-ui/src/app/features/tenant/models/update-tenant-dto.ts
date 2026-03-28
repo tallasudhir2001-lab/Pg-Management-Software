@@ -3,4 +3,5 @@ export interface UpdateTenantDto {
   contactNumber: string;
   aadharNumber: string;
   notes: string | null;
+  email: string | null;
 }

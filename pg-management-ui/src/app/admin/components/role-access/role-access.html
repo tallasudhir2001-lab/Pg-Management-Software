@@ -1,0 +1,67 @@
+<div class="ra-page">
+  <h1 class="ra-title">Role Permission Management</h1>
+
+  <!-- Role selector -->
+  <div class="ra-role-row">
+    <label class="ra-label" for="roleSelect">Select Role</label>
+    <select id="roleSelect" class="ra-select" (change)="onRoleChange($event)">
+      <option value="">-- Choose a role --</option>
+      <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
+    </select>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="ra-loading">Loading permissions...</div>
+
+  <!-- Module cards -->
+  <ng-container *ngIf="selectedRoleId && !loading">
+    <div class="ra-modules">
+      <div *ngFor="let mod of modules" class="ra-module-card">
+        <!-- Module header -->
+        <div class="ra-module-header">
+          <label class="ra-module-label">
+            <input
+              type="checkbox"
+              class="ra-checkbox"
+              [checked]="moduleState(mod) === 'all'"
+              [indeterminate]="moduleState(mod) === 'partial'"
+              (change)="toggleModule(mod)"
+            />
+            <span class="ra-module-name">{{ mod.module }}</span>
+          </label>
+          <span class="ra-module-count">
+            {{ mod.accessPoints.length }} access point{{ mod.accessPoints.length !== 1 ? 's' : '' }}
+          </span>
+        </div>
+
+        <!-- Access point rows -->
+        <div class="ra-ap-list">
+          <label *ngFor="let ap of mod.accessPoints" class="ra-ap-row">
+            <input
+              type="checkbox"
+              class="ra-checkbox"
+              [checked]="isChecked(ap.id)"
+              (change)="toggle(ap.id)"
+            />
+            <span class="ra-ap-name">{{ ap.displayName }}</span>
+            <span class="ra-method-badge" [ngClass]="methodClass(ap.httpMethod)">
+              {{ ap.httpMethod }}
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save bar -->
+    <div class="ra-save-bar">
+      <button class="ra-save-btn" (click)="save()" [disabled]="saving">
+        {{ saving ? 'Saving...' : 'Save Permissions' }}
+      </button>
+    </div>
+  </ng-container>
+
+  <!-- Empty state when no role selected -->
+  <div *ngIf="!selectedRoleId && !loading" class="ra-empty">
+    Select a role above to manage its permissions.
+  </div>
+</div>

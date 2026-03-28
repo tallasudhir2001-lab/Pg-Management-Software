@@ -34,14 +34,14 @@
       </div>
 
       <div class="header-actions" *ngIf="booking.status === 'Active' && !isEditMode">
-        <button type="button" class="btn-action btn-edit-action" (click)="enableEdit()" title="Edit Booking">Edit</button>
-        <button type="button" class="btn-action btn-checkin-action" (click)="checkIn(booking)" [disabled]="checkingIn" title="Check In Tenant">
+        <button *hasAccess="'Booking.UpdateBooking'" type="button" class="btn-action btn-edit-action" (click)="enableEdit()" title="Edit Booking">Edit</button>
+        <button *hasAccess="'Tenant.CreateStay'" type="button" class="btn-action btn-checkin-action" (click)="checkIn(booking)" [disabled]="checkingIn" title="Check In Tenant">
           {{ checkingIn ? 'Checking In...' : 'Check In' }}
         </button>
-        <button type="button" class="btn-action btn-terminate-action" (click)="requestTerminate(booking)" [disabled]="terminatingBooking" title="Terminate Booking">
+        <button *hasAccess="'Booking.TerminateBooking'" type="button" class="btn-action btn-terminate-action" (click)="requestTerminate(booking)" [disabled]="terminatingBooking" title="Terminate Booking">
           {{ terminatingBooking ? 'Terminating...' : 'Terminate' }}
         </button>
-        <button type="button" class="btn-action btn-cancel-action" (click)="requestCancel(booking)" [disabled]="cancellingBooking" title="Cancel Booking">
+        <button *hasAccess="'Booking.CancelBooking'" type="button" class="btn-action btn-cancel-action" (click)="requestCancel(booking)" [disabled]="cancellingBooking" title="Cancel Booking">
           {{ cancellingBooking ? 'Cancelling...' : 'Cancel' }}
         </button>
       </div>

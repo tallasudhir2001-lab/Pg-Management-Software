@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using PgManagement_WebApi.Attributes;
 using PgManagement_WebApi.Data;
 using PgManagement_WebApi.DTOs.Expense;
 using PgManagement_WebApi.Identity;
@@ -24,6 +25,7 @@ namespace PgManagement_WebApi.Controllers
             this.expenseService = expenseService;
         }
 
+        [AccessPoint("Expense", "View All Expenses")]
         [HttpGet]
         public async Task<IActionResult> GetExpenses(
         [FromQuery] ExpenseListQueryDto query)
@@ -60,6 +62,7 @@ namespace PgManagement_WebApi.Controllers
             return Ok(expense);
         }
 
+        [AccessPoint("Expense", "Create Expense")]
         [HttpPost("create-expense")]
         public async Task<IActionResult> CreateExpense([FromBody] CreateExpenseDto dto)
         {
@@ -71,6 +74,7 @@ namespace PgManagement_WebApi.Controllers
             return CreatedAtAction(nameof(GetExpenses), new { id }, null);
         }
 
+        [AccessPoint("Expense", "Update Expense")]
         [HttpPut("update-expense/{id}")]
         public async Task<IActionResult> UpdateExpense(string id,[FromBody] UpdateExpenseDto dto)
         {
@@ -78,6 +82,7 @@ namespace PgManagement_WebApi.Controllers
             return NoContent();
         }
 
+        [AccessPoint("Expense", "Delete Expense")]
         [HttpDelete("delete-expense/{id}")]
         public async Task<IActionResult> DeleteExpense(string id)
         {

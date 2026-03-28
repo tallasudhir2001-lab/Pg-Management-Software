@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PgManagement_WebApi.Attributes;
 using PgManagement_WebApi.DTOs.advance;
 using PgManagement_WebApi.Services;
 using System.Security.Claims;
@@ -33,6 +34,7 @@ namespace PgManagement_WebApi.Controllers
             return Ok(result);
         }
 
+        [AccessPoint("Advance", "Settle Advance")]
         [HttpPost("{advanceId}/settle")]
         public async Task<IActionResult> SettleAdvance(string advanceId, SettleAdvanceDto dto)
         {
@@ -50,6 +52,7 @@ namespace PgManagement_WebApi.Controllers
 
             return Ok(result);
         }
+        [AccessPoint("Advance", "Create Advance")]
         [HttpPost]
         public async Task<IActionResult> CreateAdvance(CreateAdvanceDto dto)
         {
