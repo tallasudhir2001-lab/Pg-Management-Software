@@ -1,160 +1,164 @@
-<!-- No Room Confirmation Modal -->
-<div *ngIf="showNoRoomConfirm" class="confirm-backdrop">
-  <div class="confirm-dialog">
-    <h3 class="confirm-title">No Room Selected</h3>
-    <p class="confirm-message">
-      You haven't selected a room. The tenant will be created <strong>without an active stay</strong>. Do you want to proceed?
-    </p>
-    <div class="confirm-actions">
-      <button type="button" class="confirm-btn confirm-btn-secondary" (click)="showNoRoomConfirm = false">
-        Go Back
-      </button>
-      <button type="button" class="confirm-btn confirm-btn-primary" (click)="confirmSaveWithoutRoom()">
-        Yes, Proceed
-      </button>
-    </div>
-  </div>
-</div>
-
-
 <div class="form-page-container">
   <div class="add-tenant-card">
 
-    <!--  Reactive Form -->
     <form [formGroup]="form">
 
-      <div class="form-grid">
+      <!-- ── TENANT DETAILS ── -->
+      <p class="at-section-label">Tenant Details</p>
 
-        <!-- LEFT SECTION -->
-        <div class="form-section section-left">
-          <h3 class="section-subtitle">Tenant Details</h3>
-
-          <div class="form-group">
-            <label>Aadhaar Number</label>
-            <input type="text" maxlength="12" inputmode="numeric" pattern="[0-9]*" class="form-input"
-              placeholder="Enter Aadhaar number" formControlName="aadharNumber" />
-          </div>
-          <div *ngIf="existingTenant" class="existing-tenant-warning">
-
-            <p>
-              Tenant <span class="existing-tenant-name">{{ existingTenant.name }}</span> already exists.
-            </p>
-
-            <div class="existing-tenant-actions">
-
-              <button type="button" class="btn-secondary" (click)="viewExistingTenant()">
-                View Tenant
-              </button>
-
-              <button type="button" class="btn-primary" (click)="createStayForExisting()">
-                Create Stay
-              </button>
-
-            </div>
-
-          </div>
-
-
-          <div class="form-group">
-            <label>Tenant Name</label>
-            <input type="text" class="form-input" placeholder="Enter tenant name" formControlName="name" />
-          </div>
-
-          <div class="form-group">
-            <label>Mobile Number</label>
-            <input type="text" class="form-input" placeholder="Enter mobile number" formControlName="contactNumber" />
-          </div>
-
-          <div class="form-group">
-            <label>Email <span style="color: #9ca3af; font-weight: 400;">(optional)</span></label>
-            <input type="email" class="form-input" placeholder="tenant@example.com" formControlName="email" />
-          </div>
-
+      <div class="at-row">
+        <div class="form-group">
+          <label>Aadhaar Number</label>
+          <input type="text" maxlength="12" inputmode="numeric" pattern="[0-9]*"
+            class="form-input" placeholder="Enter Aadhaar number" formControlName="aadharNumber" />
         </div>
-
-        <!-- RIGHT SECTION -->
-        <div class="form-section section-right">
-          <h3 class="section-subtitle">Room Details</h3>
-
-          <div class="form-group">
-            <label>Room</label>
-            <select class="form-input" formControlName="roomId">
-
-              <option value="">Select room</option>
-
-              <option *ngFor="let room of rooms$ | async" [value]="room.roomId">
-                Room {{ room.roomNumber }} - available beds -> ({{ room.vacancies }})
-              </option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Checked In Date</label>
-            <input type="date" class="form-input" formControlName="fromDate" />
-          </div>
+        <div class="form-group">
+          <label>Tenant Name <span class="at-required">*</span></label>
+          <input type="text" class="form-input" placeholder="Enter tenant name" formControlName="name" />
         </div>
-
-        <!-- BOTTOM SECTION -->
-        <div class="form-section section-bottom">
-          <h3 class="section-subtitle">Financial Details</h3>
-
-          <div class="financial-row">
-            <div class="form-group">
-              <!-- Has Advance Checkbox -->
-              <div class="form-group">
-                <div class="form-group checkbox-group">
-                  <label class="checkbox-label">
-                    <input type="checkbox" formControlName="hasAdvance" />
-                    <span>Add Advance</span>
-                  </label>
-                </div>
-              </div>
-          
-              <!-- Show only if checked -->
-              <div *ngIf="form.get('hasAdvance')?.value">
-          
-                <div class="form-group">
-                  <label>Advance Amount (₹)</label>
-                  <input type="number" class="form-input" placeholder="Enter amount" formControlName="advanceAmount" />
-                </div>
-          
-                <div class="form-group">
-                  <label>Payment Mode</label>
-                  <select class="form-input" formControlName="paymentModeCode"
-                    [class.placeholder-selected]="!form.get('paymentModeCode')?.value">
-                
-                    <option value="" disabled hidden>Select a payment mode</option>
-                
-                    <option *ngFor="let m of (paymentModes$ | async)" [value]="m.code">
-                      {{ m.description }}
-                    </option>
-                
-                  </select>
-                </div>
-          
-              </div>
-            </div>
-
-          </div>
-          <div class="form-group">
-            <label>Notes</label>
-            <textarea rows="3" class="form-input" placeholder="Additional notes (optional)" formControlName="notes">
-            </textarea>
-          </div>
-        </div>
-
       </div>
 
-      <!-- ACTIONS -->
-      <div class="actions">
-        <button type="button" class="btn-cancel" (click)="cancel()">
-          Cancel
-        </button>
+      @if (existingTenant) {
+        <div class="existing-tenant-warning">
+          <p>Tenant <span class="existing-tenant-name">{{ existingTenant.name }}</span> already exists.</p>
+          <div class="existing-tenant-actions">
+            <button type="button" class="btn-secondary" (click)="viewExistingTenant()">View Tenant</button>
+            <button type="button" class="btn-primary" (click)="createStayForExisting()">Create Stay</button>
+          </div>
+        </div>
+      }
 
-        <button *ngIf="!existingTenant" type="button" class="btn-save" (click)="save()"
-          [disabled]="checkingAadhar">
-          Save Tenant
-        </button>
+      <div class="at-row">
+        <div class="form-group">
+          <label>Mobile Number <span class="at-required">*</span></label>
+          <input type="text" class="form-input" placeholder="Enter mobile number" formControlName="contactNumber" />
+        </div>
+        <div class="form-group">
+          <label>Email <span class="at-optional">(optional)</span></label>
+          <input type="email" class="form-input" placeholder="tenant@example.com" formControlName="email" />
+        </div>
+      </div>
+
+      <hr class="at-divider" />
+
+      <!-- ── ROOM ── -->
+      <label class="at-toggle-label">
+        <input type="checkbox" formControlName="hasRoom" class="at-toggle-checkbox" />
+        <span class="at-toggle-text">Add Room</span>
+      </label>
+
+      @if (form.get('hasRoom')?.value) {
+        <div class="at-panel">
+          <div class="at-row">
+            <div class="form-group">
+              <label>Room</label>
+              <select class="form-input" formControlName="roomId">
+                <option value="">Select room</option>
+                @if (rooms$ | async; as rooms) {
+                  @for (room of rooms; track room.roomId) {
+                    <option [value]="room.roomId">
+                      Room {{ room.roomNumber }} &mdash; {{ room.vacancies }} bed(s) available
+                    </option>
+                  }
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Checked In Date</label>
+              <input type="date" class="form-input" formControlName="fromDate" />
+            </div>
+          </div>
+        </div>
+      }
+
+      <hr class="at-divider" />
+
+      <!-- ── ADVANCE ── -->
+      <label class="at-toggle-label">
+        <input type="checkbox" formControlName="hasAdvance" class="at-toggle-checkbox" />
+        <span class="at-toggle-text">Add Advance</span>
+      </label>
+
+      @if (form.get('hasAdvance')?.value) {
+        <div class="at-panel">
+          <div class="at-row">
+            <div class="form-group">
+              <label>Advance Amount (₹)</label>
+              <input type="number" class="form-input" placeholder="Enter amount" formControlName="advanceAmount" />
+            </div>
+            <div class="form-group">
+              <label>Payment Mode</label>
+              <select class="form-input" formControlName="paymentModeCode"
+                [class.placeholder-selected]="!form.get('paymentModeCode')?.value">
+                <option value="" disabled hidden>Select a payment mode</option>
+                @if (paymentModes$ | async; as modes) {
+                  @for (m of modes; track m.code) {
+                    <option [value]="m.code">{{ m.description }}</option>
+                  }
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+      }
+
+      <hr class="at-divider" />
+
+      <!-- ── INITIAL PAYMENT ── -->
+      <label class="at-toggle-label">
+        <input type="checkbox" formControlName="hasPayment" class="at-toggle-checkbox" />
+        <span class="at-toggle-text">Add Initial Payment</span>
+      </label>
+
+      @if (form.get('hasPayment')?.value) {
+        <div class="at-panel">
+          <div class="at-row">
+            <div class="form-group">
+              <label>Amount (₹)</label>
+              <input type="number" class="form-input" placeholder="Enter payment amount" formControlName="initialPaymentAmount" />
+            </div>
+            <div class="form-group">
+              <label>Payment Mode</label>
+              <select class="form-input" formControlName="initialPaymentModeCode"
+                [class.placeholder-selected]="!form.get('initialPaymentModeCode')?.value">
+                <option value="" disabled hidden>Select a payment mode</option>
+                @if (paymentModes$ | async; as modes) {
+                  @for (m of modes; track m.code) {
+                    <option [value]="m.code">{{ m.description }}</option>
+                  }
+                }
+              </select>
+            </div>
+          </div>
+          <div class="at-row">
+            <div class="form-group">
+              <label>Paid From</label>
+              <input type="date" class="form-input" formControlName="initialPaidFrom" />
+            </div>
+            <div class="form-group">
+              <label>Paid Upto</label>
+              <input type="date" class="form-input" formControlName="initialPaidUpto" />
+            </div>
+          </div>
+        </div>
+      }
+
+      <hr class="at-divider" />
+
+      <!-- ── NOTES ── -->
+      <div class="form-group">
+        <label>Notes <span class="at-optional">(optional)</span></label>
+        <textarea rows="2" class="form-input" placeholder="Additional notes" formControlName="notes"></textarea>
+      </div>
+
+      <!-- ── ACTIONS ── -->
+      <div class="actions">
+        <button type="button" class="btn-cancel" (click)="cancel()">Cancel</button>
+        @if (!existingTenant) {
+          <button type="button" class="btn-save" (click)="save()" [disabled]="checkingAadhar">
+            Save Tenant
+          </button>
+        }
       </div>
 
     </form>

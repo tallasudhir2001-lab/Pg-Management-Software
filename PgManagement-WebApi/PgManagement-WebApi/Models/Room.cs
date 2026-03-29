@@ -11,6 +11,8 @@ namespace PgManagement_WebApi.Models
         [Required]
         public string PgId { get; set; }   // Foreign key to PG
 
+        public string? BranchId { get; set; }
+
         [Required]
         public string RoomNumber { get; set; }
 

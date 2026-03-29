@@ -13,6 +13,8 @@ namespace PgManagement_WebApi.Models
         public string PgId { get; set; }
         public PG PG { get; set; }
 
+        public string? BranchId { get; set; }
+
         [Required]
         public string TenantId { get; set; }
         public Tenant Tenant { get; set; }

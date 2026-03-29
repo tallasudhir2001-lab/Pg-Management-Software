@@ -15,6 +15,8 @@ namespace PgManagement_WebApi.DTOs.Payment
         public bool HasActiveStay { get; set; }
         public List<PendingStayContextDto> PendingStays { get; set; } = new();
 
+        public string? RoomNumber { get; set; }
+        public decimal RentPerMonth { get; set; }
     }
 
 }

@@ -11,7 +11,8 @@ namespace PgManagement_WebApi.Services
         Task<(bool success, object result, int statusCode)> CreateAdvanceAsync(
     CreateAdvanceDto dto,
     string pgId,
-    string userId);
+    string userId,
+    string? branchId = null);
         Task<(bool success, object result, int statusCode)> GetAdvancesByTenantAsync(
     string tenantId,
     string pgId);

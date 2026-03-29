@@ -67,10 +67,11 @@ namespace PgManagement_WebApi.Controllers
         public async Task<IActionResult> CreateExpense([FromBody] CreateExpenseDto dto)
         {
             var pgId = User.FindFirst("pgId")?.Value;
+            var branchId = User.FindFirst("branchId")?.Value;
             if (string.IsNullOrEmpty(pgId))
                 return Unauthorized();
 
-            var id = await expenseService.CreateExpenseAsync(pgId,dto);
+            var id = await expenseService.CreateExpenseAsync(pgId, dto, branchId);
             return CreatedAtAction(nameof(GetExpenses), new { id }, null);
         }
 

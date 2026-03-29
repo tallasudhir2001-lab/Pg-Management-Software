@@ -16,66 +16,53 @@
     </div>
   </div>
 
-  <!-- Table Container -->
-  <div class="table-container">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th (click)="onSort('tenantName')" style="cursor: pointer;">
-            Tenant
-            <span class="sort-arrow" [class.visible]="isSortedBy('tenantName')"
-              [class.asc]="isSortAsc('tenantName')">▼</span>
-          </th>
-          <th>Room</th>
-          <th (click)="onSort('checkindate')" style="cursor: pointer;">
-            Check-in Date
-            <span class="sort-arrow" [class.visible]="isSortedBy('checkindate')"
-              [class.asc]="isSortAsc('checkindate')">▼</span>
-          </th>
-          <th>Status</th>
-          <th (click)="onSort('advanceamount')" style="cursor: pointer;">
-            Advance
-            <span class="sort-arrow" [class.visible]="isSortedBy('advanceamount')"
-              [class.asc]="isSortAsc('advanceamount')">▼</span>
-          </th>
-          <th>Notes</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let booking of (bookings$ | async)?.items">
-          <td class="tenant-cell">
-            <a [routerLink]="['/bookings', booking.bookingId]" class="tenant-link">{{ booking.tenantName }}</a>
-          </td>
-          <td>Room {{ booking.roomNumber }}</td>
-          <td>{{ formatDate(booking.scheduledCheckInDate) }}</td>
-          <td>
-            <span class="status-pill" [ngClass]="getStatusClass(booking.status)">
-              {{ booking.status }}
-            </span>
-          </td>
-          <td class="amount-cell">{{ booking.advanceAmount > 0 ? formatCurrency(booking.advanceAmount) : '—' }}</td>
-          <td class="muted">{{ booking.notes || '—' }}</td>
-          <td>
-            <a [routerLink]="['/bookings', booking.bookingId]" class="action-btn" title="View Booking">
-              <img src="/assets/icons/view-tenant.svg" alt="View" />
-            </a>
-            <ng-container *hasAccess="'Booking.TerminateBooking'">
-              <button *ngIf="booking.status === 'Active'" class="action-btn terminate" (click)="terminateBooking(booking)"
-                title="Terminate Booking">
-                <img src="/assets/icons/delete.svg" alt="Terminate" />
-              </button>
-            </ng-container>
-            <ng-container *hasAccess="'Booking.CancelBooking'">
-              <button *ngIf="booking.status === 'Active'" class="action-btn danger" (click)="cancelBooking(booking)"
-                title="Cancel Booking">
-                <img src="/assets/icons/cancel.svg" alt="Cancel" />
-              </button>
-            </ng-container>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- Cards -->
+  <div class="booking-grid">
+    <ng-container *ngIf="bookings$ | async as result">
+      <div *ngFor="let booking of result.items" class="booking-card">
+
+        <!-- Card Header -->
+        <div class="card-header">
+          <a [routerLink]="['/bookings', booking.bookingId]" class="card-tenant">{{ booking.tenantName }}</a>
+          <span class="status-pill" [ngClass]="getStatusClass(booking.status)">{{ booking.status }}</span>
+        </div>
+
+        <!-- Meta row -->
+        <div class="card-meta">
+          <span class="meta-item">
+            <span class="meta-label">Room</span>
+            <span class="meta-value">{{ booking.roomNumber }}</span>
+          </span>
+          <span class="meta-divider"></span>
+          <span class="meta-item">
+            <span class="meta-label">Check-in</span>
+            <span class="meta-value">{{ formatDate(booking.scheduledCheckInDate) }}</span>
+          </span>
+          <span *ngIf="booking.advanceAmount > 0" class="meta-divider"></span>
+          <span *ngIf="booking.advanceAmount > 0" class="meta-item">
+            <span class="meta-label">Advance</span>
+            <span class="meta-value advance-value">{{ formatCurrency(booking.advanceAmount) }}</span>
+          </span>
+        </div>
+
+        <!-- Notes -->
+        <p *ngIf="booking.notes" class="card-notes">{{ booking.notes }}</p>
+
+        <!-- Actions -->
+        <div class="card-actions">
+          <a [routerLink]="['/bookings', booking.bookingId]" class="card-action-btn">View</a>
+          <ng-container *hasAccess="'Booking.TerminateBooking'">
+            <button *ngIf="booking.status === 'Active'" class="card-action-btn btn-terminate"
+              (click)="terminateBooking(booking)">Terminate</button>
+          </ng-container>
+          <ng-container *hasAccess="'Booking.CancelBooking'">
+            <button *ngIf="booking.status === 'Active'" class="card-action-btn btn-cancel"
+              (click)="cancelBooking(booking)">Cancel</button>
+          </ng-container>
+        </div>
+
+      </div>
+    </ng-container>
   </div>
 
   <!-- Pagination Info -->

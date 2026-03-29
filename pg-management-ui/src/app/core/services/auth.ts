@@ -58,6 +58,36 @@ export class Auth {
     return this.refreshObservable;
   }
 
+  private decodeTokenPayload(): Record<string, any> | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch {
+      return null;
+    }
+  }
+
+  getRole(): string | null {
+    return this.decodeTokenPayload()?.['role'] ?? null;
+  }
+
+  getBranchId(): string | null {
+    return this.decodeTokenPayload()?.['branchId'] ?? null;
+  }
+
+  getPgId(): string | null {
+    return this.decodeTokenPayload()?.['pgId'] ?? null;
+  }
+
+  isOwner(): boolean {
+    return this.getRole() === 'Owner';
+  }
+
+  isAdmin(): boolean {
+    return this.decodeTokenPayload()?.['auth_level'] === 'admin';
+  }
+
   logout(): void {
     const refreshToken = this.getRefreshToken();
     if (refreshToken) {

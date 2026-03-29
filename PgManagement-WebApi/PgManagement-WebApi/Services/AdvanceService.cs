@@ -91,7 +91,8 @@ namespace PgManagement_WebApi.Services
         public async Task<(bool success, object result, int statusCode)> CreateAdvanceAsync(
     CreateAdvanceDto dto,
     string pgId,
-    string userId)
+    string userId,
+    string? branchId = null)
         {
             using var tx = await _context.Database.BeginTransactionAsync();
 
@@ -126,6 +127,7 @@ namespace PgManagement_WebApi.Services
                 {
                     AdvanceId = Guid.NewGuid().ToString(),
                     TenantId = dto.TenantId,
+                    BranchId = branchId,
                     Amount = dto.Amount,
                     PaidDate = DateTime.UtcNow,
                     IsSettled = false,
@@ -141,6 +143,7 @@ namespace PgManagement_WebApi.Services
                     PaymentId = Guid.NewGuid().ToString(),
                     TenantId = dto.TenantId,
                     PgId = pgId,
+                    BranchId = branchId,
                     Amount = dto.Amount,
                     PaymentDate = DateTime.UtcNow,
                     PaidFrom = DateTime.UtcNow,

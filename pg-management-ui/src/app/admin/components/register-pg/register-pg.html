@@ -2,6 +2,37 @@
   <h1 class="rp-title">Register New PG</h1>
 
   <div class="rp-card">
+
+    <!-- Branch Mode Toggle -->
+    <div class="rp-section-label">Branch Assignment</div>
+    <div class="rp-branch-toggle">
+      <label class="rp-radio-label">
+        <input type="radio" name="branchMode" value="new" [(ngModel)]="branchMode" />
+        Create new branch
+      </label>
+      <label class="rp-radio-label">
+        <input type="radio" name="branchMode" value="existing" [(ngModel)]="branchMode" />
+        Add to existing branch
+      </label>
+    </div>
+
+    <!-- Existing branch dropdown -->
+    <div class="rp-field rp-field--branch" *ngIf="isExistingBranch">
+      <label>Select Branch <span class="required">*</span></label>
+      <select [(ngModel)]="selectedBranchId" class="rp-input">
+        <option value="">-- Select a branch --</option>
+        <option *ngFor="let b of branches" [value]="b.id">
+          {{ b.name }} ({{ b.pgCount }} PG{{ b.pgCount !== 1 ? 's' : '' }})
+        </option>
+      </select>
+      <div class="rp-branch-info" *ngIf="selectedBranchId">
+        <span>All existing owners in this branch will be auto-assigned to the new PG.</span>
+      </div>
+    </div>
+
+    <div class="rp-divider"></div>
+
+    <!-- PG Details -->
     <div class="rp-section-label">PG Details</div>
     <div class="rp-form-grid">
       <div class="rp-field">
@@ -18,23 +49,25 @@
       </div>
     </div>
 
-    <div class="rp-divider"></div>
-
-    <div class="rp-section-label">Owner Account</div>
-    <div class="rp-form-grid">
-      <div class="rp-field">
-        <label>Owner Name <span class="required">*</span></label>
-        <input type="text" [(ngModel)]="ownerName" placeholder="Full name" class="rp-input" />
+    <!-- Owner Account (only for new branch) -->
+    <ng-container *ngIf="!isExistingBranch">
+      <div class="rp-divider"></div>
+      <div class="rp-section-label">Owner Account</div>
+      <div class="rp-form-grid">
+        <div class="rp-field">
+          <label>Owner Name <span class="required">*</span></label>
+          <input type="text" [(ngModel)]="ownerName" placeholder="Full name" class="rp-input" />
+        </div>
+        <div class="rp-field">
+          <label>Email <span class="required">*</span></label>
+          <input type="email" [(ngModel)]="ownerEmail" placeholder="owner@example.com" class="rp-input" />
+        </div>
+        <div class="rp-field">
+          <label>Password <span class="required">*</span></label>
+          <input type="password" [(ngModel)]="password" placeholder="Minimum 8 characters" class="rp-input" />
+        </div>
       </div>
-      <div class="rp-field">
-        <label>Email <span class="required">*</span></label>
-        <input type="email" [(ngModel)]="ownerEmail" placeholder="owner@example.com" class="rp-input" />
-      </div>
-      <div class="rp-field">
-        <label>Password <span class="required">*</span></label>
-        <input type="password" [(ngModel)]="password" placeholder="Minimum 8 characters" class="rp-input" />
-      </div>
-    </div>
+    </ng-container>
 
     <div class="rp-footer">
       <button class="rp-btn" (click)="registerPg()" [disabled]="!isValid || saving">

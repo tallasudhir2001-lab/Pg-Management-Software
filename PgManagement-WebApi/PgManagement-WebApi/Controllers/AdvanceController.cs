@@ -57,13 +57,14 @@ namespace PgManagement_WebApi.Controllers
         public async Task<IActionResult> CreateAdvance(CreateAdvanceDto dto)
         {
             var pgId = User.FindFirst("pgId")?.Value;
+            var branchId = User.FindFirst("branchId")?.Value;
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(pgId))
                 return Unauthorized();
 
             var (success, result, statusCode) =
-                await advanceService.CreateAdvanceAsync(dto, pgId, userId);
+                await advanceService.CreateAdvanceAsync(dto, pgId, userId, branchId);
 
             if (!success)
                 return StatusCode(statusCode, result);

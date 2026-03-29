@@ -54,12 +54,13 @@ namespace PgManagement_WebApi.Controllers
         public async Task<IActionResult> CreateBooking([FromBody] CreateBookingDto dto)
         {
             var pgId = User.FindFirst("pgId")?.Value;
+            var branchId = User.FindFirst("branchId")?.Value;
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(pgId))
                 return Unauthorized();
 
-            var id = await _bookingService.CreateBookingAsync(pgId, dto, userId);
+            var id = await _bookingService.CreateBookingAsync(pgId, dto, userId, branchId);
             return CreatedAtAction(nameof(GetById), new { id }, null);
         }
 

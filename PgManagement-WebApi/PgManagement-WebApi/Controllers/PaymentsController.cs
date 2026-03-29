@@ -62,19 +62,27 @@ namespace PgManagement_WebApi.Controllers
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // POST {paymentId}/send-receipt  — sends receipt to tenant email
+        // POST {paymentId}/send-receipt  — sends receipt to tenant's email on file
         // ─────────────────────────────────────────────────────────────────────
         [HttpPost("{paymentId}/send-receipt")]
-        public async Task<IActionResult> SendReceipt(string paymentId, [FromBody] SendReceiptDto dto)
+        public async Task<IActionResult> SendReceipt(string paymentId)
         {
             var pgId = User.FindFirst("pgId")?.Value;
             if (string.IsNullOrEmpty(pgId)) return Unauthorized();
 
-            if (string.IsNullOrEmpty(dto?.RecipientEmail))
-                return BadRequest("Recipient email is required.");
+            var payment = await context.Payments
+                .Include(p => p.Tenant)
+                .FirstOrDefaultAsync(p => p.PaymentId == paymentId && p.PgId == pgId && !p.IsDeleted);
 
-            await emailService.SendPaymentReceiptAsync(paymentId, pgId, dto.RecipientEmail);
-            return Ok(new { message = $"Receipt sent to {dto.RecipientEmail}" });
+            if (payment == null)
+                return NotFound("Payment not found.");
+
+            var email = payment.Tenant?.Email;
+            if (string.IsNullOrWhiteSpace(email))
+                return UnprocessableEntity("Tenant does not have an email address on file.");
+
+            await emailService.SendPaymentReceiptAsync(paymentId, pgId, email);
+            return Ok(new { message = $"Receipt sent to {email}" });
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -85,6 +93,7 @@ namespace PgManagement_WebApi.Controllers
         public async Task<IActionResult> CreatePayment(CreatePaymentDto dto)
         {
             var pgId = User.FindFirst("pgId")?.Value;
+            var branchId = User.FindFirst("branchId")?.Value;
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(pgId) || string.IsNullOrEmpty(userId))
@@ -176,6 +185,7 @@ namespace PgManagement_WebApi.Controllers
             {
                 PaymentId = Guid.NewGuid().ToString(),
                 PgId = pgId,
+                BranchId = branchId,
                 TenantId = dto.TenantId,
                 Amount = dto.Amount,
                 PaymentDate = dto.PaymentDate ?? DateTime.UtcNow,
@@ -401,6 +411,11 @@ namespace PgManagement_WebApi.Controllers
                     stayPending += slices.Sum(s => s.Amount);
                 }
 
+                var currentRentHistory = rentHistories
+                    .Where(r => r.EffectiveFrom <= today && (r.EffectiveTo == null || r.EffectiveTo >= today))
+                    .OrderByDescending(r => r.EffectiveFrom)
+                    .FirstOrDefault();
+
                 if (stayPending > 0)
                 {
                     pendingStays.Add(new PendingStayContextDto
@@ -411,7 +426,8 @@ namespace PgManagement_WebApi.Controllers
                         ToDate = stayTo,
                         PendingAmount = Decimal.Round(stayPending, 2),
                         IsActiveStay = stay.ToDate == null,
-                        IsNextPayable = false // set later
+                        IsNextPayable = false, // set later
+                        RentPerMonth = currentRentHistory?.RentAmount ?? 0
                     });
                 }
             }
@@ -419,6 +435,22 @@ namespace PgManagement_WebApi.Controllers
             // 5️⃣ No pending rent at all
             if (!allUnpaidRanges.Any())
             {
+                var activeStayForRent = stays.FirstOrDefault(s => s.ToDate == null);
+                decimal activeRentPerMonth = 0;
+                string? activeRoomNumber = activeStayForRent?.Room?.RoomNumber;
+
+                if (activeStayForRent != null)
+                {
+                    var activeRentHistory = await context.RoomRentHistories
+                        .Where(r => r.RoomId == activeStayForRent.RoomId &&
+                                    r.EffectiveFrom <= today &&
+                                    (r.EffectiveTo == null || r.EffectiveTo >= today))
+                        .OrderByDescending(r => r.EffectiveFrom)
+                        .FirstOrDefaultAsync();
+
+                    activeRentPerMonth = activeRentHistory?.RentAmount ?? 0;
+                }
+
                 return Ok(new PaymentContextDto
                 {
                     TenantId = tenant.TenantId,
@@ -428,7 +460,9 @@ namespace PgManagement_WebApi.Controllers
                     PaidFrom = null,
                     MaxPaidUpto = null,
                     HasActiveStay = false,
-                    AsOfDate = today
+                    AsOfDate = today,
+                    RoomNumber = activeRoomNumber,
+                    RentPerMonth = activeRentPerMonth
                 });
             }
 
@@ -462,6 +496,8 @@ namespace PgManagement_WebApi.Controllers
                 }
             }
 
+            var activeStay = pendingStays.FirstOrDefault(s => s.IsActiveStay);
+
             return Ok(new PaymentContextDto
             {
                 TenantId = tenant.TenantId,
@@ -470,8 +506,10 @@ namespace PgManagement_WebApi.Controllers
                 PendingStays = pendingStays,
                 PaidFrom = paidFrom,
                 MaxPaidUpto = maxPaidUpto,
-                HasActiveStay = pendingStays.Any(s => s.IsActiveStay),
-                AsOfDate = today
+                HasActiveStay = activeStay != null,
+                AsOfDate = today,
+                RoomNumber = activeStay?.RoomNumber,
+                RentPerMonth = activeStay?.RentPerMonth ?? 0
             });
         }
 
@@ -496,6 +534,7 @@ namespace PgManagement_WebApi.Controllers
 
             var payments = await context.Payments
                 .Include(p => p.PaymentType)
+                .Include(p => p.CreatedByUser)
                 .Where(p =>
                     p.TenantId == tenantId &&
                     p.PgId == pgId &&
@@ -512,7 +551,7 @@ namespace PgManagement_WebApi.Controllers
                     Amount = p.Amount,
                     PaymentMode = p.PaymentModeCode,
                     Frequency = p.PaymentFrequencyCode.ToString(),
-                    CollectedBy = p.CreatedByUser.UserName
+                    CollectedBy = p.CreatedByUser.FullName ?? p.CreatedByUser.UserName
                 })
                 .ToListAsync();
 
@@ -632,7 +671,7 @@ namespace PgManagement_WebApi.Controllers
                         p.PaidUpto.ToString("dd MMM yyyy"),
                     Amount = p.Amount,
                     Mode = p.PaymentModeCode,
-                    CollectedBy = p.CreatedByUser.UserName!
+                    CollectedBy = p.CreatedByUser.FullName ?? p.CreatedByUser.UserName!
                 })
                 .ToListAsync();
 

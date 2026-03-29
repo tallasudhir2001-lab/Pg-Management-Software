@@ -14,5 +14,8 @@
         public DateTime? CheckedInAt { get; set; }
         public bool IsRentPending { get; set; }
 
+        public DateTime? LastPaymentDate { get; set; }
+        public DateTime? OverdueSince { get; set; }
+        public int? DaysOverdue { get; set; }
     }
 }

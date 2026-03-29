@@ -12,5 +12,6 @@
 
         public bool IsActiveStay { get; set; }
         public bool IsNextPayable { get; set; }
+        public decimal RentPerMonth { get; set; }
     }
 }

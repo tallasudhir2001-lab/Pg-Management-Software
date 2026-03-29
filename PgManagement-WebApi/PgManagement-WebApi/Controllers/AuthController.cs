@@ -201,11 +201,15 @@ namespace PgManagement_WebApi.Controllers
             var identityRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
             var roleId = identityRole?.Id ?? "";
 
+            var pg = await context.PGs.FindAsync(userPg.PgId);
+            var branchId = pg?.BranchId ?? "";
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim("pgId", userPg.PgId),
+                new Claim("branchId", branchId),
                 new Claim("role", roleName),
                 new Claim("roleId", roleId),
                 new Claim("auth_level", "tenant")

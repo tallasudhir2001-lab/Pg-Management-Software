@@ -50,7 +50,7 @@
           <td class="text-right">₹{{ row.outstandingAmount | number:'1.0-0' }}</td>
           <td class="text-center"><span class="badge badge-red">{{ row.daysOverdue }}d</span></td>
           <td>{{ row.overdueSince | date:'dd MMM yyyy' }}</td>
-          <td>{{ row.lastPaymentDate ? (row.lastPaymentDate | date:'dd MMM yyyy') : '—' }}</td>
+          <td>{{ row.lastPaymentDate ? (row.lastPaymentDate | date:'dd MMM yyyy') : 'Never' }}</td>
         </tr>
       </tbody>
       <tfoot>

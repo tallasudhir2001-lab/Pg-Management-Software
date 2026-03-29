@@ -139,6 +139,13 @@
   color: #4ade80;
 }
 
+.stay-rent {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+
 .stay-period {
   font-size: 12px;
   opacity: 0.7;

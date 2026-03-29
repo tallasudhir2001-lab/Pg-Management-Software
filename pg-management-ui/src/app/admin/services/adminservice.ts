@@ -18,4 +18,15 @@ export class Adminservice {
   getPgs(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/pgs`);
   }
+
+  getBranches(): Observable<BranchDto[]> {
+    return this.http.get<BranchDto[]>(`${this.apiUrl}/branches`);
+  }
+}
+
+export interface BranchDto {
+  id: string;
+  name: string;
+  pgCount: number;
+  pGs: { pgId: string; name: string }[];
 }

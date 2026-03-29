@@ -1,7 +1,7 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Adminservice } from '../../services/adminservice';
+import { Adminservice, BranchDto } from '../../services/adminservice';
 import { ToastService } from '../../../shared/toast/toast-service';
 
 @Component({
@@ -11,7 +11,7 @@ import { ToastService } from '../../../shared/toast/toast-service';
   templateUrl: './register-pg.html',
   styleUrl: './register-pg.css',
 })
-export class RegisterPg {
+export class RegisterPg implements OnInit {
   pgName = '';
   address = '';
   contactNumber = '';
@@ -20,34 +20,81 @@ export class RegisterPg {
   password = '';
   saving = false;
 
+  // Branch selection
+  branchMode: 'new' | 'existing' = 'new';
+  branches: BranchDto[] = [];
+  selectedBranchId = '';
+  loadingBranches = false;
+
   constructor(
     private adminservice: Adminservice,
     private toast: ToastService,
     private cdr: ChangeDetectorRef
   ) {}
 
+  ngOnInit(): void {
+    this.loadBranches();
+  }
+
+  loadBranches(): void {
+    this.loadingBranches = true;
+    this.adminservice.getBranches().subscribe({
+      next: branches => {
+        this.branches = branches;
+        this.loadingBranches = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loadingBranches = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  get isExistingBranch(): boolean {
+    return this.branchMode === 'existing';
+  }
+
   get isValid(): boolean {
-    return !!(this.pgName && this.address && this.contactNumber && this.ownerName && this.ownerEmail && this.password);
+    const pgValid = !!(this.pgName && this.address && this.contactNumber);
+    if (this.isExistingBranch) {
+      return pgValid && !!this.selectedBranchId;
+    }
+    return pgValid && !!(this.ownerName && this.ownerEmail && this.password);
   }
 
   registerPg() {
     if (!this.isValid || this.saving) return;
     this.saving = true;
 
-    this.adminservice.registerPg({
+    const payload: any = {
       pgName: this.pgName,
       address: this.address,
       contactNumber: this.contactNumber,
-      ownerName: this.ownerName,
-      ownerEmail: this.ownerEmail,
-      password: this.password
-    }).subscribe({
+    };
+
+    if (this.isExistingBranch) {
+      payload.branchId = this.selectedBranchId;
+      // Owner is derived from existing branch — no owner fields needed
+      payload.ownerName = '';
+      payload.ownerEmail = '';
+      payload.password = '';
+    } else {
+      payload.ownerName = this.ownerName;
+      payload.ownerEmail = this.ownerEmail;
+      payload.password = this.password;
+    }
+
+    this.adminservice.registerPg(payload).subscribe({
       next: () => {
         this.saving = false;
         this.pgName = this.address = this.contactNumber = '';
         this.ownerName = this.ownerEmail = this.password = '';
+        this.selectedBranchId = '';
+        this.branchMode = 'new';
         this.cdr.detectChanges();
         this.toast.showSuccess('PG registered successfully.');
+        this.loadBranches(); // refresh branch list
       },
       error: err => {
         this.saving = false;

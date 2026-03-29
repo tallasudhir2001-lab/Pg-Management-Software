@@ -46,9 +46,14 @@
         <button type="button" class="btn-edit" (click)="enableEdit()">
           ✏️ Edit Payment
         </button>
-        <button type="button" class="btn-receipt" (click)="showReceipt = true">
-          🧾 View Receipt
-        </button>
+        <div class="receipt-btn-row">
+          <button type="button" class="btn-receipt" (click)="showReceipt = true">
+            🧾 View
+          </button>
+          <button type="button" class="btn-send-receipt" (click)="sendReceipt()" [disabled]="sendingReceipt">
+            {{ sendingReceipt ? '⏳ Sending…' : '📧 Send' }}
+          </button>
+        </div>
       </div>
     </section>
 

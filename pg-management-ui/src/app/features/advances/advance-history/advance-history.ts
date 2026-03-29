@@ -26,8 +26,12 @@ export class AdvanceHistory {
 
   selectedAdvance: Advance | null = null;
   isModalOpen = false;
-
   isAddModalOpen = false;
+  showAll = false;
+
+  get visibleAdvances(): Advance[] {
+    return this.showAll ? this.advances : this.advances.filter(a => !a.isSettled);
+  }
 
   newAmount: number = 0;
   newPaymentMode: string = '';

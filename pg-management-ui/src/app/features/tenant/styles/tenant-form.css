@@ -327,11 +327,11 @@
 .pending-rent-card {
     background: #fff;
     border-radius: 14px;
-    padding: 24px;
-    margin: 32px 0;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e5e7eb; /* Matching the main card style */
-    max-width: 750px; /* Aligns with your main card width */
+    padding: 14px 16px;
+    margin: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e5e7eb;
+    max-width: 750px;
     width: 100%;
     box-sizing: border-box;
 }
@@ -354,9 +354,9 @@
 }
 
 .as-of {
-   margin-top: 2px;
-  font-size: 12px;
-  color: #6b7280;
+  margin-top: 1px;
+  font-size: 11px;
+  color: #9ca3af;
 }
 
 /* Center Amount Display */
@@ -400,7 +400,7 @@
 }
 
 .pending-divider {
-    margin: 20px 0;
+    margin: 10px 0;
     border: none;
     border-top: 1px solid #f3f4f6;
 }
@@ -421,15 +421,19 @@
 .text-left { text-align: left; }
 .text-right { text-align: right; }
 .pending-table th {
-    font-size: 12px;
+    font-size: 10px;
     text-transform: uppercase;
     color: #9ca3af;
-    padding: 12px 0;
+    padding: 8px 0;
     border-bottom: 1px solid #f3f4f6;
+    letter-spacing: 0.04em;
 }
 .pending-table td {
-   padding: 16px 0;
+    padding: 7px 0;
     border-bottom: 1px solid #f9fafb;
+    font-size: 12px;
+    line-height: 1.3;
+    color: #374151;
 }
 
 .period-cell {
@@ -449,14 +453,14 @@
 .pending-table th:nth-child(3), .pending-table td:nth-child(3) { width: 20%; } /* Rate */
 .pending-table th:nth-child(4), .pending-table td:nth-child(4) { width: 20%; } /* Amount */
 .total-label {
-    padding-top: 20px;
+    padding-top: 10px;
     font-weight: 700;
     color: #0F1041;
-    font-size: 15px;
+    font-size: 13px;
 }
 
 .total-amount {
-    padding-top: 20px;
+    padding-top: 10px;
 }
 
 .text-right {
@@ -471,23 +475,24 @@
 
 .pending-left h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 14px;
+  font-weight: 700;
   color: #0F1041;
 }
 
 .pending-amount-display {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  color: #0F1041; /* same as text */
+  color: #0F1041;
 }
 .btn-add-payment-pill {
-  flex: 1; /* 👈 occupies remaining space */
-  height: 44px;
-  border-radius: 999px; /* 👈 pill */
+  flex: 1;
+  height: 34px;
+  border-radius: 999px;
   border: none;
   background-color: #0F1041;
   color: white;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -507,7 +512,8 @@
 }
 .pending-title-block h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 14px;
+  font-weight: 700;
   color: #0F1041;
 }
 .amount-clear {
@@ -710,17 +716,17 @@
   max-width: 750px;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   overflow: hidden;
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 
 .collapsible-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 24px;
+  padding: 14px 16px;
   cursor: pointer;
   user-select: none;
   transition: background 0.15s;
@@ -731,9 +737,11 @@
 }
 
 .collapsible-title {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   color: #0f1041;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .chevron-icon {
@@ -750,4 +758,349 @@
 
 .collapsible-body {
   border-top: 1px solid #f3f4f6;
+}
+
+/* ==============================
+   Tenant Details — Dashboard Layout
+================================ */
+
+.td-page {
+  padding: 24px 32px;
+  background-color: #f9fafb;
+  min-height: calc(100vh - 60px);
+  box-sizing: border-box;
+}
+
+.td-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  gap: 16px;
+  align-items: stretch;
+  margin-top: 16px;
+}
+
+.td-left-col,
+.td-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.td-left-col {
+  height: 100%;
+}
+
+/* ── Compact Info Card ── */
+.td-info-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Card top: avatar + name/status + action buttons */
+.td-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.td-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #0f1041;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.td-name-block {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.td-name-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.td-status-chip {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.td-chip-active   { background: #dcfce7; color: #166534; }
+.td-chip-inactive { background: #f1f5f9; color: #64748b; }
+.td-chip-nostay   { background: #fef9c3; color: #854d0e; }
+
+.td-editing-chip {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  flex: 1;
+}
+
+.td-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.td-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  text-transform: uppercase;
+  margin: 0 0 4px 0;
+}
+
+.td-divider {
+  border: none;
+  border-top: 1px solid #f1f5f9;
+  margin: 8px 0;
+}
+
+.td-create-stay-btn {
+  margin-top: 6px;
+  display: block;
+}
+
+/* Key-value rows (view mode) */
+.td-row {
+  display: flex;
+  align-items: baseline;
+  padding: 3px 0;
+  gap: 8px;
+}
+
+.td-key {
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 600;
+  flex: 0 0 72px;
+  white-space: nowrap;
+}
+
+.td-val {
+  font-size: 13px;
+  color: #111827;
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+}
+
+.td-val-bold {
+  font-weight: 700;
+}
+
+.td-val-flex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.td-notes-row {
+  align-items: flex-start;
+}
+
+.td-notes {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+/* Edit mode fields (compact) */
+.td-edit-group {
+  margin-bottom: 8px;
+}
+
+.td-edit-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.td-input {
+  padding: 7px 10px !important;
+  font-size: 13px !important;
+}
+
+/* ── Stay History Card ── */
+.td-stay-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  flex: 1;
+}
+
+.td-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f1041;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 12px 0;
+}
+
+.td-empty {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.td-stay-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #f9fafb;
+  gap: 12px;
+}
+
+.td-stay-row:last-child {
+  border-bottom: none;
+}
+
+.td-stay-room {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.td-current-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #166534;
+  background: #dcfce7;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+
+.td-stay-dates {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.td-arrow {
+  color: #d1d5db;
+  margin: 0 4px;
+}
+
+/* ── Right column card overrides ── */
+.td-right-col .pending-rent-card,
+.td-right-col .advance-card,
+.td-right-col .collapsible-card {
+  max-width: none;
+  margin: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .td-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================= ADD TENANT REDESIGN ================= */
+
+.add-tenant-card {
+  max-width: 900px;
+}
+
+/* Section label — subtle uppercase above each section */
+.at-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 12px;
+}
+
+/* Two-column row */
+.at-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 20px;
+}
+
+/* Thin divider between sections */
+.at-divider {
+  border: none;
+  border-top: 1px solid #f3f4f6;
+  margin: 14px 0;
+}
+
+/* Toggle checkbox row */
+.at-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.at-toggle-checkbox {
+  width: 15px;
+  height: 15px;
+  accent-color: #0f1041;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.at-toggle-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f1041;
+}
+
+/* Panel that appears when toggle is checked */
+.at-panel {
+  margin-top: 14px;
+}
+
+.at-required {
+  color: #dc2626;
+  font-weight: 600;
+  margin-left: 2px;
+}
+
+.at-optional {
+  color: #9ca3af;
+  font-weight: 400;
+  font-size: 12px;
+  margin-left: 2px;
 }

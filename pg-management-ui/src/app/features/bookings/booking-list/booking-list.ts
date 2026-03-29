@@ -35,7 +35,7 @@ export class BookingList implements OnInit {
 
   // Filters
   showFilters = false;
-  filterStatus = '';
+  filterStatus = 'Active';
   filterRoomId = '';
   filterFromDate = '';
   filterToDate = '';

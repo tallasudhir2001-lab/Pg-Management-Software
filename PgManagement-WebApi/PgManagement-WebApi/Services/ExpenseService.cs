@@ -156,12 +156,13 @@ namespace PgManagement_WebApi.Services
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<string> CreateExpenseAsync(string pgId, CreateExpenseDto dto)
+        public async Task<string> CreateExpenseAsync(string pgId, CreateExpenseDto dto, string? branchId = null)
         {
             var expense = new Expense
             {
                 Id = Guid.NewGuid().ToString(),
                 PgId = pgId,
+                BranchId = branchId,
                 CategoryId = dto.CategoryId,
                 Amount = dto.Amount,
                 ExpenseDate = dto.ExpenseDate,

@@ -113,7 +113,7 @@ namespace PgManagement_WebApi.Services
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<string> CreateBookingAsync(string pgId, CreateBookingDto dto, string userId)
+        public async Task<string> CreateBookingAsync(string pgId, CreateBookingDto dto, string userId, string? branchId = null)
         {
             // Validate: if advance given, payment mode is required
             if (dto.AdvanceAmount.HasValue && dto.AdvanceAmount > 0
@@ -179,6 +179,7 @@ namespace PgManagement_WebApi.Services
                     {
                         TenantId = Guid.NewGuid().ToString(),
                         PgId = pgId,
+                        BranchId = branchId,
                         Name = dto.Name,
                         ContactNumber = dto.ContactNumber,
                         AadharNumber = dto.AadharNumber,
@@ -198,6 +199,7 @@ namespace PgManagement_WebApi.Services
                 {
                     BookingId = Guid.NewGuid().ToString(),
                     PgId = pgId,
+                    BranchId = branchId,
                     TenantId = tenantId,
                     RoomId = dto.RoomId,
                     ScheduledCheckInDate = dto.ScheduledCheckInDate,
@@ -223,6 +225,7 @@ namespace PgManagement_WebApi.Services
                     {
                         AdvanceId = Guid.NewGuid().ToString(),
                         TenantId = tenantId,
+                        BranchId = branchId,
                         Amount = dto.AdvanceAmount.Value,
                         PaidDate = DateTime.UtcNow,
                         IsSettled = false,
@@ -237,6 +240,7 @@ namespace PgManagement_WebApi.Services
                         PaymentId = Guid.NewGuid().ToString(),
                         TenantId = tenantId,
                         PgId = pgId,
+                        BranchId = branchId,
                         Amount = dto.AdvanceAmount.Value,
                         PaymentDate = DateTime.UtcNow,
                         PaidFrom = DateTime.UtcNow,

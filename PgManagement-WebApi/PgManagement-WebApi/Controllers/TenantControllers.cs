@@ -58,7 +58,8 @@ namespace PgManagement_WebApi.Controllers
             {
                 query = query.Where(t =>
                     t.Name.Contains(search) ||
-                    t.ContactNumber.Contains(search));
+                    t.ContactNumber.Contains(search) ||
+                    t.AadharNumber.Contains(search));
             }
 
             //  Sorting
@@ -104,7 +105,8 @@ namespace PgManagement_WebApi.Controllers
                 {
                     p.TenantId,
                     PaidFrom = p.PaidFrom.Date,
-                    PaidUpto = p.PaidUpto.Date
+                    PaidUpto = p.PaidUpto.Date,
+                    p.PaymentTypeCode
                 })
                 .ToListAsync();
 
@@ -134,30 +136,33 @@ namespace PgManagement_WebApi.Controllers
                     .OrderByDescending(s => s.ToDate)
                     .FirstOrDefault();
 
-                var tenantPayments = paymentsLookup.ContainsKey(tenant.TenantId)
+                var tenantPaymentList = paymentsLookup.ContainsKey(tenant.TenantId)
                     ? paymentsLookup[tenant.TenantId]
-                        .Select(p => (p.PaidFrom, p.PaidUpto))
-                    : Enumerable.Empty<(DateTime, DateTime)>();
+                    : [];
+
+                var tenantPayments = tenantPaymentList.Select(p => (p.PaidFrom, p.PaidUpto));
+
+                var lastPaymentDate = tenantPaymentList
+                    .Where(p => p.PaymentTypeCode != "ADVANCE_PAYMENT")
+                    .Select(p => (DateTime?)p.PaidUpto)
+                    .DefaultIfEmpty()
+                    .Max();
 
                 bool hasPending = false;
+                var allUnpaidRanges = new List<(DateTime From, DateTime To)>();
 
                 foreach (var stay in stays)
                 {
                     var stayFrom = stay.FromDate.Date;
                     var stayTo = stay.ToDate ?? today;
 
-                    var unpaid = DateRangeHelper.Subtract(
-                        stayFrom,
-                        stayTo,
-                        tenantPayments
-                    );
-
-                    if (unpaid.Any())
-                    {
-                        hasPending = true;
-                        break;
-                    }
+                    var unpaid = DateRangeHelper.Subtract(stayFrom, stayTo, tenantPayments);
+                    allUnpaidRanges.AddRange(unpaid);
+                    if (unpaid.Any()) hasPending = true;
                 }
+
+                DateTime? overdueSince = allUnpaidRanges.Any() ? allUnpaidRanges.Min(r => r.From) : null;
+                int? daysOverdue = overdueSince.HasValue ? (today - overdueSince.Value).Days : null;
 
                 var roomIdValue = activeStay?.RoomId ?? lastStay?.RoomId;
 
@@ -180,7 +185,10 @@ namespace PgManagement_WebApi.Controllers
                     Status = activeStay != null ? "ACTIVE"
                            : stays.Any() ? "MOVED OUT"
                            : "NO STAY",
-                    IsRentPending = activeStay != null || stays.Any() ? hasPending : false
+                    IsRentPending = activeStay != null || stays.Any() ? hasPending : false,
+                    LastPaymentDate = lastPaymentDate,
+                    OverdueSince = activeStay != null ? overdueSince : null,
+                    DaysOverdue = activeStay != null ? daysOverdue : null
                 });
             }
 
@@ -204,6 +212,14 @@ namespace PgManagement_WebApi.Controllers
             if (rentPending.HasValue)
             {
                 result = result.Where(x => x.IsRentPending == rentPending.Value).ToList();
+            }
+
+            // Sort by computed fields (post-processing)
+            if (sortBy.Equals("daysoverdue", StringComparison.OrdinalIgnoreCase))
+            {
+                result = sortDir == "asc"
+                    ? result.OrderBy(x => x.DaysOverdue ?? -1).ToList()
+                    : result.OrderByDescending(x => x.DaysOverdue ?? -1).ToList();
             }
 
             // 7️⃣ totalCount is now post-filter for accurate pagination
@@ -452,12 +468,13 @@ namespace PgManagement_WebApi.Controllers
         public async Task<IActionResult> CreateTenant(CreateTenantDto dto)
         {
             var pgId = User.FindFirst("pgId")?.Value;
+            var branchId = User.FindFirst("branchId")?.Value;
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(pgId))
                 return Unauthorized();
 
             var (success, result, statusCode) =
-                await tenantService.CreateTenantAsync(dto, pgId, userId);
+                await tenantService.CreateTenantAsync(dto, pgId, userId, branchId);
 
             if (!success)
                 return StatusCode(statusCode, result);

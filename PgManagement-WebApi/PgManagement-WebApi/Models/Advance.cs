@@ -13,6 +13,8 @@ namespace PgManagement_WebApi.Models
         public string TenantId { get; set; }
         public Tenant Tenant { get; set; }
 
+        public string? BranchId { get; set; }
+
         // Original amount paid
         [Required]
         public decimal Amount { get; set; }

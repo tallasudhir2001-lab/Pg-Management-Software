@@ -245,6 +245,7 @@ namespace PgManagement_WebApi.Controllers
         public async Task<IActionResult> CreateRoom([FromBody] CreateRoomDto dto)
         {
             var pgId = User.FindFirst("pgId")?.Value;
+            var branchId = User.FindFirst("branchId")?.Value;
             if (string.IsNullOrEmpty(pgId))
                 return Unauthorized();
 
@@ -261,6 +262,7 @@ namespace PgManagement_WebApi.Controllers
             {
                 RoomId = Guid.NewGuid().ToString(),
                 PgId = pgId,
+                BranchId = branchId,
                 RoomNumber = dto.RoomNumber,
                 Capacity = dto.Capacity
             };

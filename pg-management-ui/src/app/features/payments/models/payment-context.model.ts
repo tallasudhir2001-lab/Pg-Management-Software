@@ -6,6 +6,7 @@ export interface PendingStayContext {
   pendingAmount: number;
   isActiveStay: boolean;
   isNextPayable: boolean;
+  rentPerMonth: number;
 }
 
 export interface PaymentContext {
@@ -17,4 +18,6 @@ export interface PaymentContext {
   asOfDate: string;
   hasActiveStay: boolean;
   pendingStays: PendingStayContext[];
+  roomNumber: string | null;
+  rentPerMonth: number;
 }

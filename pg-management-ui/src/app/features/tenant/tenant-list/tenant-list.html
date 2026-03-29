@@ -8,7 +8,7 @@
   <!-- Search + Actions Row -->
   <div class="tenant-actions">
 
-    <input type="text" class="search-input" placeholder="Search by name or mobile number" [ngModel]="searchText"
+    <input type="text" class="search-input" placeholder="Search by name, mobile or Aadhaar" [ngModel]="searchText"
       (ngModelChange)="onSearchChange($event)" />
 
     <div class="action-buttons">
@@ -51,35 +51,54 @@
           <!-- last 3: fixed -->
           <th>Status</th>
           <th>Rent</th>
+          <th class="th-wrap">Last<br>Payment</th>
+          <th class="th-wrap">Overdue<br>Since</th>
+          <th class="th-wrap" (click)="onSort('daysoverdue')" style="cursor: pointer;">
+            Days<br>Overdue
+            <span class="sort-arrow" [class.visible]="isSortedBy('daysoverdue')" [class.asc]="isSortAsc('daysoverdue')">▼</span>
+          </th>
           <th>Actions</th>
         </tr>
       </thead>
 
       <tbody>
         <tr *ngFor="let t of (tenants$ | async)?.items">
-          <!-- col 1 odd: bold black -->
-          <td class="cell-primary">{{ t.name }}</td>
-          <!-- col 2 even: bold grey -->
-          <td class="cell-secondary">{{ t.roomNumber ?? '—' }}</td>
-          <!-- col 3 odd: bold black -->
-          <td class="cell-primary">{{ t.contactNumber }}</td>
-          <!-- col 4 even: bold grey -->
-          <td class="cell-secondary">{{ t.checkedInAt | date: 'MMM d, y' }}</td>
+          <!-- col 1: name -->
+          <td class="cell-primary cell-link" (click)="onAction('view', t)">{{ t.name }}</td>
+          <!-- col 2: room -->
+          <td class="cell-secondary">{{ t.roomNumber ?? '' }}</td>
+          <!-- col 3: contact -->
+          <td class="cell-secondary">{{ t.contactNumber }}</td>
+          <!-- col 4: checked in -->
+          <td class="cell-secondary">{{ t.checkedInAt | date: 'd MMM y' }}</td>
           <!-- col 5: status pill -->
           <td>
             <span class="status-pill"
               [class.active]="t.status === 'ACTIVE'"
               [class.inactive]="t.status === 'MOVED OUT'"
               [class.no-stay]="t.status === 'NO STAY'">
-              {{ t.status }}
+              {{ t.status === 'ACTIVE' ? 'Active' : t.status === 'MOVED OUT' ? 'Moved Out' : 'No Stay' }}
             </span>
           </td>
-          <!-- col 6: rent — N/A for no-stay tenants -->
-          <td class="rent-text"
-            [class.rent-pending]="t.status !== 'NO STAY' && t.isRentPending"
-            [class.rent-paid]="t.status !== 'NO STAY' && !t.isRentPending"
-            [style.color]="t.status === 'NO STAY' ? '#9ca3af' : ''">
-            {{ t.status === 'NO STAY' ? '—' : (t.isRentPending ? 'Pending' : 'Paid') }}
+          <!-- col 6: rent pill -->
+          <td>
+            @if (t.status !== 'NO STAY') {
+              <span class="rent-pill"
+                [class.rent-pill-paid]="!t.isRentPending"
+                [class.rent-pill-pending]="t.isRentPending">
+                {{ t.isRentPending ? 'Pending' : 'Paid' }}
+              </span>
+            }
+          </td>
+          <!-- col 7: last payment date -->
+          <td class="cell-secondary">{{ t.lastPaymentDate ? (t.lastPaymentDate | date: 'd MMM y') : '' }}</td>
+          <!-- col 8: overdue since -->
+          <td class="cell-secondary">{{ t.overdueSince ? (t.overdueSince | date: 'd MMM y') : '' }}</td>
+          <!-- col 9: days overdue -->
+          <td>
+            @if (t.daysOverdue && t.daysOverdue > 0) {
+              <span class="overdue-pill">{{ t.daysOverdue }}d</span>
+            }
           </td>
           <td>
             <button class="action-btn" title="View" (click)="onAction('view', t)">

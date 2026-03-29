@@ -8,7 +8,8 @@
 
   <!-- Add User Form -->
   <div *ngIf="showAddForm" class="pgu-add-form">
-    <h3 class="form-title">Add User to PG</h3>
+    <h3 class="form-title">Add / Invite User</h3>
+    <p class="form-hint">If the email already exists in the system, no password is needed — the user will simply be added to the selected PGs.</p>
     <div class="form-grid">
       <div class="form-group">
         <label>Full Name</label>
@@ -19,7 +20,7 @@
         <input type="email" [(ngModel)]="newUser.email" placeholder="john@example.com" class="form-input" />
       </div>
       <div class="form-group">
-        <label>Password</label>
+        <label>Password <span class="optional">(required for new users)</span></label>
         <input type="password" [(ngModel)]="newUser.password" placeholder="Temporary password" class="form-input" />
       </div>
       <div class="form-group">
@@ -29,8 +30,20 @@
         </select>
       </div>
     </div>
+
+    <!-- PG Assignment (only shown if branch has more than 1 PG) -->
+    <div *ngIf="branchPgs.length > 1" class="form-group form-group--full">
+      <label>Assign to PGs <span class="optional">(leave all unchecked to use current PG)</span></label>
+      <div class="pg-checkbox-list">
+        <label *ngFor="let pg of branchPgs" class="pg-check-label">
+          <input type="checkbox" [checked]="isNewUserPgSelected(pg.pgId)" (change)="toggleNewUserPg(pg.pgId)" />
+          {{ pg.name }}
+        </label>
+      </div>
+    </div>
+
     <div class="form-actions">
-      <button class="btn-save" (click)="addUser()" [disabled]="saving || !newUser.email || !newUser.name || !newUser.password">
+      <button class="btn-save" (click)="addUser()" [disabled]="saving || !newUser.email || !newUser.name">
         {{ saving ? 'Adding...' : 'Add User' }}
       </button>
     </div>
@@ -46,6 +59,7 @@
           <th>Name</th>
           <th>Email</th>
           <th>Role</th>
+          <th>PG Access</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -53,6 +67,8 @@
         <tr *ngFor="let user of users">
           <td class="pgu-name">{{ user.name }}</td>
           <td>{{ user.email }}</td>
+
+          <!-- Role cell -->
           <td>
             <ng-container *ngIf="editingRoleUserId === user.userId; else roleBadge">
               <div class="role-edit-row">
@@ -67,31 +83,63 @@
               <span class="role-badge" [ngClass]="roleBadgeClass(user.role)">{{ user.role }}</span>
             </ng-template>
           </td>
+
+          <!-- PG Access cell -->
+          <td>
+            <ng-container *ngIf="editingPgsUserId === user.userId && branchPgs.length > 1; else pgTags">
+              <div class="pg-edit-row">
+                <div class="pg-checkbox-list">
+                  <label *ngFor="let pg of branchPgs" class="pg-check-label">
+                    <input type="checkbox" [checked]="isPgSelected(pg.pgId)" (change)="togglePg(pg.pgId)" />
+                    {{ pg.name }}
+                  </label>
+                </div>
+                <div class="pg-edit-actions">
+                  <button class="btn-sm btn-confirm" (click)="savePgAssignments(user)">Save</button>
+                  <button class="btn-sm btn-discard" (click)="cancelEditPgs()">Cancel</button>
+                </div>
+              </div>
+            </ng-container>
+            <ng-template #pgTags>
+              <div class="pg-tag-list">
+                <span *ngFor="let pg of user.assignedPgs" class="pg-tag">{{ pg.pgName }}</span>
+              </div>
+            </ng-template>
+          </td>
+
+          <!-- Actions cell -->
           <td class="pgu-actions">
-            <button class="btn-sm btn-edit" (click)="startEditRole(user)" *ngIf="editingRoleUserId !== user.userId">
-              Change Role
+            <button class="btn-sm btn-edit"
+              *ngIf="editingRoleUserId !== user.userId"
+              (click)="startEditRole(user)">
+              Role
+            </button>
+            <button class="btn-sm btn-edit"
+              *ngIf="branchPgs.length > 1 && editingPgsUserId !== user.userId"
+              (click)="startEditPgs(user)">
+              PGs
             </button>
             <button class="btn-sm btn-remove" (click)="confirmRemove(user.userId)">Remove</button>
           </td>
         </tr>
         <tr *ngIf="users.length === 0">
-          <td colspan="4" class="pgu-empty">No users in this PG yet. Add one above.</td>
+          <td colspan="5" class="pgu-empty">No users in this branch yet. Add one above.</td>
         </tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- Remove Confirm -->
+<!-- Remove Confirm Modal -->
 <ng-container *ngIf="pendingRemoveUserId">
   <div class="modal-backdrop" (click)="pendingRemoveUserId = null"></div>
   <div class="confirm-modal">
     <div class="confirm-modal-header">
       <h3>Remove User</h3>
-      <button class="modal-close-btn" (click)="pendingRemoveUserId = null">✕</button>
+      <button class="modal-close-btn" (click)="pendingRemoveUserId = null">&#x2715;</button>
     </div>
     <div class="confirm-modal-body">
-      <p>Are you sure you want to remove this user from the PG? They will lose access immediately.</p>
+      <p>Remove this user from all PGs in the branch? They will lose access immediately.</p>
     </div>
     <div class="confirm-modal-actions">
       <button class="btn-discard" (click)="pendingRemoveUserId = null">Cancel</button>

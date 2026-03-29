@@ -361,7 +361,7 @@ namespace PgManagement_WebApi.Services
                 .Where(tr =>
                     tr.PgId == pgId &&
                     tr.FromDate <= asOf &&
-                    (tr.ToDate == null || tr.ToDate >= asOf))
+                    (tr.ToDate == null || tr.ToDate > asOf))
                 .ToListAsync();
 
             var rows = rooms.Select(room =>

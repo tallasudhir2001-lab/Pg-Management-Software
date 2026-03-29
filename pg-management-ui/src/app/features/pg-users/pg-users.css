@@ -210,3 +210,58 @@
 .confirm-modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
 .btn-danger { background: #dc2626; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; }
 .btn-danger:hover { background: #b91c1c; }
+
+/* PG tags */
+.pg-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.pg-tag {
+  display: inline-block;
+  background: #f0f4ff;
+  color: #3b4db8;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #c7d2fe;
+}
+
+/* PG checkbox list (add form + edit) */
+.pg-checkbox-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+.pg-check-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+}
+
+/* PG edit inline */
+.pg-edit-row { display: flex; flex-direction: column; gap: 8px; }
+.pg-edit-actions { display: flex; gap: 8px; }
+
+/* Form hint */
+.form-hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin: -12px 0 16px;
+}
+
+.optional {
+  font-size: 11px;
+  font-weight: 400;
+  color: #9ca3af;
+  margin-left: 4px;
+}
+
+.form-group--full {
+  grid-column: 1 / -1;
+}

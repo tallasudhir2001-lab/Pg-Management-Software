@@ -50,6 +50,7 @@ export class PaymentDetails implements OnChanges {
   saving = false;
   loading = true;
   showReceipt = false;
+  sendingReceipt = false;
 
   constructor(
     private fb: FormBuilder,
@@ -120,6 +121,22 @@ export class PaymentDetails implements OnChanges {
     this.form.enable();
     this.form.get('paidFrom')?.disable(); // always keep paidFrom locked
     this.cdr.detectChanges();
+  }
+
+  sendReceipt(): void {
+    if (this.sendingReceipt) return;
+    this.sendingReceipt = true;
+    this.paymentService.sendReceipt(this.paymentId).subscribe({
+      next: (res) => {
+        this.toastService.showSuccess(res.message);
+        this.sendingReceipt = false;
+      },
+      error: (err) => {
+        const msg = err?.error?.message ?? err?.error ?? 'Failed to send receipt.';
+        this.toastService.showError(msg);
+        this.sendingReceipt = false;
+      }
+    });
   }
 
   save(payment: PaymentDetails) {

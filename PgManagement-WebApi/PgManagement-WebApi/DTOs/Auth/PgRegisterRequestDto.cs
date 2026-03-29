@@ -8,5 +8,10 @@
         public string OwnerName { get; set; }
         public string OwnerEmail { get; set; }
         public string Password { get; set; }
+        /// <summary>
+        /// If provided, links the new PG to this existing branch.
+        /// If null, a new branch is auto-created with the same name as the PG.
+        /// </summary>
+        public string? BranchId { get; set; }
     }
 }

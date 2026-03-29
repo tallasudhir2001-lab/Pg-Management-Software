@@ -100,4 +100,8 @@ export class PaymentService {
   updatePayment(paymentId: string, payload: any): Observable<any> {
     return this.http.put(`${this.baseUrl}/${paymentId}`, payload);
   }
+
+  sendReceipt(paymentId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/${paymentId}/send-receipt`, {});
+  }
 }

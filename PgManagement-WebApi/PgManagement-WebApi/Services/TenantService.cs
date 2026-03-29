@@ -18,7 +18,7 @@ namespace PgManagement_WebApi.Services
         }
 
         public async Task<(bool success, object? result, int statusCode)>
-    CreateTenantAsync(CreateTenantDto dto, string pgId, string userId)
+    CreateTenantAsync(CreateTenantDto dto, string pgId, string userId, string? branchId = null)
         {
             var existingTenant = await FindByAadhaar(pgId, dto.AadharNumber);
 
@@ -49,6 +49,7 @@ namespace PgManagement_WebApi.Services
             {
                 TenantId = Guid.NewGuid().ToString(),
                 PgId = pgId,
+                BranchId = branchId,
                 Name = dto.Name,
                 ContactNumber = dto.ContactNumber,
                 AadharNumber = dto.AadharNumber,
@@ -73,6 +74,7 @@ namespace PgManagement_WebApi.Services
                 {
                     AdvanceId = Guid.NewGuid().ToString(),
                     TenantId = tenant.TenantId,
+                    BranchId = branchId,
                     Amount = dto.AdvanceAmount.Value,
                     PaidDate = DateTime.UtcNow,
                     IsSettled = false,
@@ -93,6 +95,7 @@ namespace PgManagement_WebApi.Services
                     PaymentTypeCode = "ADVANCE_PAYMENT",
                     PaymentModeCode = dto.PaymentModeCode,
                     PaymentFrequencyCode = "ONETIME",
+                    BranchId = branchId,
                     CreatedByUserId = userId
                 };
 

@@ -12,13 +12,12 @@ namespace PgManagement_WebApi.Services
         }
 
         public string? UserId
-        {
-            get
-            {
-                return _httpContextAccessor.HttpContext?
-                    .User?
-                    .FindFirstValue(ClaimTypes.NameIdentifier);
-            }
-        }
+            => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        public string? PgId
+            => _httpContextAccessor.HttpContext?.User?.FindFirstValue("pgId");
+
+        public string? BranchId
+            => _httpContextAccessor.HttpContext?.User?.FindFirstValue("branchId");
     }
 }

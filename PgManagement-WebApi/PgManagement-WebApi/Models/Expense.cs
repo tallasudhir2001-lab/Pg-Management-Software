@@ -13,6 +13,8 @@ namespace PgManagement_WebApi.Models
         public string PgId { get; set; }
         public PG Pg { get; set; }
 
+        public string? BranchId { get; set; }
+
         [Required]
         public int CategoryId { get; set; }
         public ExpenseCategory Category { get; set; }

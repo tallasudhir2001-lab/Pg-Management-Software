@@ -130,8 +130,25 @@
 .result-item:hover { background: var(--accent-light); }
 
 .tenant-result-name { font-size: 0.9375rem; font-weight: 600; }
-.tenant-room { font-size: 0.8125rem; color: var(--ink-soft); margin-top: 2px; }
 .result-content { display: flex; flex-direction: column; }
+
+.result-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.tenant-room,
+.tenant-mobile {
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}
+
+.result-sep {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
 
 .arrow-icon {
   width: 16px; height: 16px;
@@ -165,6 +182,7 @@
 }
 
 .tenant-name { font-size: 0.9375rem; font-weight: 700; color: var(--ink); }
+.tenant-detail { font-size: 0.8125rem; color: var(--accent); opacity: 0.85; }
 .tenant-info { display: flex; flex-direction: column; gap: 1px; }
 
 /* Change button */

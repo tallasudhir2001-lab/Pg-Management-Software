@@ -32,6 +32,7 @@ namespace PgManagement_WebApi.Data
             return base.SaveChangesAsync(cancellationToken);
         }
 
+        public DbSet<Branch> Branches { get; set; }
         public DbSet<PG> PGs { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Tenant> Tenants { get; set; }
@@ -58,6 +59,15 @@ namespace PgManagement_WebApi.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            /* ============================================================
+               Branch → PG (one-to-many)
+               ============================================================ */
+            modelBuilder.Entity<PG>()
+                .HasOne(p => p.Branch)
+                .WithMany(b => b.PGs)
+                .HasForeignKey(p => p.BranchId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             /* ============================================================
                User ↔ PG (many-to-many)

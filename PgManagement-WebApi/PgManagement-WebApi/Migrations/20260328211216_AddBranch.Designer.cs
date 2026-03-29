@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PgManagement_WebApi.Data;
 
@@ -11,9 +12,11 @@ using PgManagement_WebApi.Data;
 namespace PgManagement_WebApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260328211216_AddBranch")]
+    partial class AddBranch
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,9 +177,6 @@ namespace PgManagement_WebApi.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("FullName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -193,6 +193,9 @@ namespace PgManagement_WebApi.Migrations
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PgId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
@@ -219,6 +222,8 @@ namespace PgManagement_WebApi.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasIndex("PgId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -275,9 +280,6 @@ namespace PgManagement_WebApi.Migrations
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("BranchId")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -343,9 +345,6 @@ namespace PgManagement_WebApi.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("BranchId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -394,24 +393,6 @@ namespace PgManagement_WebApi.Migrations
                     b.ToTable("Bookings");
                 });
 
-            modelBuilder.Entity("PgManagement_WebApi.Models.Branch", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Branches");
-                });
-
             modelBuilder.Entity("PgManagement_WebApi.Models.Expense", b =>
                 {
                     b.Property<string>("Id")
@@ -421,9 +402,6 @@ namespace PgManagement_WebApi.Migrations
                     b.Property<decimal>("Amount")
                         .HasPrecision(12, 2)
                         .HasColumnType("decimal(12,2)");
-
-                    b.Property<string>("BranchId")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
@@ -560,9 +538,6 @@ namespace PgManagement_WebApi.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("BranchId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("ContactNumber")
                         .IsRequired()
                         .HasMaxLength(15)
@@ -575,8 +550,6 @@ namespace PgManagement_WebApi.Migrations
 
                     b.HasKey("PgId");
 
-                    b.HasIndex("BranchId");
-
                     b.ToTable("PGs");
                 });
 
@@ -588,9 +561,6 @@ namespace PgManagement_WebApi.Migrations
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("BranchId")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -774,9 +744,6 @@ namespace PgManagement_WebApi.Migrations
                     b.Property<string>("RoomId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("BranchId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Capacity")
                         .HasColumnType("int");
 
@@ -835,9 +802,6 @@ namespace PgManagement_WebApi.Migrations
 
                     b.Property<string>("AadharNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("BranchId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ContactNumber")
@@ -1011,6 +975,13 @@ namespace PgManagement_WebApi.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PgManagement_WebApi.Identity.ApplicationUser", b =>
+                {
+                    b.HasOne("PgManagement_WebApi.Models.PG", null)
+                        .WithMany("Users")
+                        .HasForeignKey("PgId");
+                });
+
             modelBuilder.Entity("PgManagement_WebApi.Models.Advance", b =>
                 {
                     b.HasOne("PgManagement_WebApi.Identity.ApplicationUser", "CreatedByUser")
@@ -1099,16 +1070,6 @@ namespace PgManagement_WebApi.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Expense");
-                });
-
-            modelBuilder.Entity("PgManagement_WebApi.Models.PG", b =>
-                {
-                    b.HasOne("PgManagement_WebApi.Models.Branch", "Branch")
-                        .WithMany("PGs")
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Branch");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.Payment", b =>
@@ -1298,11 +1259,6 @@ namespace PgManagement_WebApi.Migrations
                     b.Navigation("RoleAccessPoints");
                 });
 
-            modelBuilder.Entity("PgManagement_WebApi.Models.Branch", b =>
-                {
-                    b.Navigation("PGs");
-                });
-
             modelBuilder.Entity("PgManagement_WebApi.Models.Expense", b =>
                 {
                     b.Navigation("AuditLogs");
@@ -1318,6 +1274,8 @@ namespace PgManagement_WebApi.Migrations
                     b.Navigation("Rooms");
 
                     b.Navigation("Tenants");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.PaymentFrequency", b =>
