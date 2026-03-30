@@ -19,9 +19,24 @@ export class PaymentHistory implements OnInit{
 
   payments$!: Observable<TenantPaymentHistory[]>;
 
+  // filter checkboxes — all selected by default
+  showRentPayment = true;
+  showAdvancePayment = true;
+  showAdvanceRefund = true;
+
   constructor(private paymentService: PaymentService) {}
 
   ngOnInit(): void {
     this.payments$ = this.paymentService.getTenantPaymentHistory(this.tenantId);
+  }
+
+  filterPayments(payments: TenantPaymentHistory[]): TenantPaymentHistory[] {
+    return payments.filter(p => {
+      const type = p.paymentType?.toLowerCase() || '';
+      if (type.includes('rent') && !this.showRentPayment) return false;
+      if (type.includes('advance') && type.includes('refund') && !this.showAdvanceRefund) return false;
+      if (type.includes('advance') && !type.includes('refund') && !this.showAdvancePayment) return false;
+      return true;
+    });
   }
 }

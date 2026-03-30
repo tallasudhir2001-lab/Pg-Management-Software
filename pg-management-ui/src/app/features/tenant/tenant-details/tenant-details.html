@@ -12,178 +12,155 @@
 
   <div class="td-grid">
 
-    <!-- ═══════════ LEFT COLUMN ═══════════ -->
+    <!-- ═══════════ LEFT COLUMN — Tenant Card ═══════════ -->
     <div class="td-left-col">
 
-      <!-- Compact Info Card -->
       <div class="td-info-card">
 
-        <!-- ── Card Top: avatar + name + status + actions ── -->
-        <div class="td-card-top">
-          @if (mode === 'view') {
-            <div class="td-avatar">{{ (tenant.name || '?')[0] }}</div>
-            <div class="td-name-block">
-              <span class="td-name-text">{{ tenant.name }}</span>
-              <span class="td-status-chip" [ngClass]="{
-                'td-chip-active':   tenant.status === 'ACTIVE',
-                'td-chip-inactive': tenant.status === 'MOVED OUT',
-                'td-chip-nostay':   tenant.status === 'NO STAY'
+        <!-- ── Card Header: info strip + action buttons ── -->
+        <div class="td-card-header-row">
+          <div class="td-info-strip">
+            <div class="td-info-item">
+              <span class="td-info-label">Tenant</span>
+              <span class="td-info-value">{{ tenant.name }}</span>
+            </div>
+            <div class="td-info-item">
+              <span class="td-info-label">Contact</span>
+              <span class="td-info-value">{{ tenant.contactNumber }}</span>
+            </div>
+            <div class="td-info-item">
+              <span class="td-info-label">Status</span>
+              <span class="td-status-pill" [ngClass]="{
+                'td-status-active':   tenant.status === 'ACTIVE',
+                'td-status-movedout': tenant.status === 'MOVED OUT',
+                'td-status-nostay':   tenant.status === 'NO STAY'
               }">{{ tenant.status === 'ACTIVE' ? 'Active' : tenant.status === 'MOVED OUT' ? 'Moved Out' : 'No Stay' }}</span>
             </div>
-          } @else {
-            <span class="td-editing-chip">Editing</span>
-          }
-          <div class="td-card-actions">
-            <ng-container *hasAccess="'Tenant.UpdateTenant'">
-              <button type="button" class="icon-btn"
-                (click)="toggleMode()" [title]="mode === 'view' ? 'Edit Tenant' : 'View Mode'">
-                @if (mode === 'view') {
-                  <img src="assets/icons/edit-tenant.svg" alt="Edit" />
-                } @else {
-                  <img src="assets/icons/view-tenant.svg" alt="View" />
-                }
-              </button>
-            </ng-container>
-            @if (mode === 'view' && tenant.status === 'ACTIVE') {
-              <ng-container *hasAccess="'Tenant.ChangeRoom'">
-                <button type="button" class="icon-btn change-room-btn"
-                  title="Change Room" (click)="openChangeRoom()">
-                  <img src="assets/icons/change-room.svg" alt="Change Room" />
-                </button>
-              </ng-container>
-              <ng-container *hasAccess="'Tenant.MoveOutTenant'">
-                <button type="button" class="icon-btn move-out-btn"
-                  title="Move Out Tenant" (click)="confirmMoveOut()">
-                  <img src="assets/icons/move-out.svg" alt="Move Out" />
-                </button>
-              </ng-container>
-            }
           </div>
+
+          @if (mode === 'view') {
+            <div class="td-header-actions">
+              <ng-container *hasAccess="'Tenant.UpdateTenant'">
+                <button type="button" class="td-btn-action td-btn-edit"
+                  (click)="toggleMode()" title="Edit Tenant">Edit</button>
+              </ng-container>
+              @if (tenant.status === 'ACTIVE') {
+                <ng-container *hasAccess="'Tenant.ChangeRoom'">
+                  <button type="button" class="td-btn-action td-btn-changeroom"
+                    (click)="openChangeRoom()" title="Change Room">Change Room</button>
+                </ng-container>
+                <ng-container *hasAccess="'Tenant.MoveOutTenant'">
+                  <button type="button" class="td-btn-action td-btn-moveout"
+                    (click)="confirmMoveOut()" title="Move Out Tenant">Move Out</button>
+                </ng-container>
+              }
+              @if (tenant.status === 'MOVED OUT' || tenant.status === 'NO STAY') {
+                <ng-container *hasAccess="'Tenant.CreateStay'">
+                  <button type="button" class="td-btn-action td-btn-newstay"
+                    (click)="openCreateStay()">+ New Stay</button>
+                </ng-container>
+              }
+            </div>
+          } @else {
+            <div class="td-header-actions">
+              <span class="td-editing-chip">Editing</span>
+            </div>
+          }
         </div>
 
+        <div class="td-strip-divider"></div>
+
         @if (mode === 'view') {
-          <!-- ── Contact section ── -->
-          <div class="td-divider"></div>
-          <p class="td-section-label">Contact</p>
-          <div class="td-row">
-            <span class="td-key">Mobile</span>
-            <span class="td-val">{{ tenant.contactNumber }}</span>
-          </div>
-          <div class="td-row">
-            <span class="td-key">Aadhaar</span>
-            <span class="td-val">{{ tenant.aadharNumber }}</span>
-          </div>
-          <div class="td-row">
-            <span class="td-key">Email</span>
-            <span class="td-val">{{ tenant.email || '—' }}</span>
-          </div>
-
-          <!-- ── Stay section ── -->
-          <div class="td-divider"></div>
-          <p class="td-section-label">Stay</p>
-          <div class="td-row">
-            <span class="td-key">Room</span>
-            <span class="td-val">{{ tenant.roomNumber ?? '—' }}</span>
-          </div>
-          <div class="td-row">
-            <span class="td-key">Checked In</span>
-            <span class="td-val">{{ tenant.checkedInAt | date:'d MMM yyyy' }}</span>
-          </div>
-          @if (tenant.movedOutAt) {
-            <div class="td-row">
-              <span class="td-key">Moved Out</span>
-              <span class="td-val">{{ tenant.movedOutAt | date:'d MMM yyyy' }}</span>
+          <!-- ── Details Grid ── -->
+          <div class="td-details-grid">
+            <div class="td-detail-group">
+              <label class="td-detail-label">Aadhaar</label>
+              <span class="td-detail-value">{{ tenant.aadharNumber }}</span>
             </div>
-          }
-          @if (tenant.status === 'MOVED OUT' || tenant.status === 'NO STAY') {
-            <ng-container *hasAccess="'Tenant.CreateStay'">
-              <button class="btn-create-stay td-create-stay-btn" (click)="openCreateStay()">+ New Stay</button>
-            </ng-container>
-          }
-
-          <!-- ── Financial section ── -->
-          <div class="td-divider"></div>
-          <p class="td-section-label">Financial</p>
-          <div class="td-row">
-            <span class="td-key">Advance</span>
-            <span class="td-val">
-              <span [ngClass]="tenant.hasAdvance ? 'status-neutral' : 'status-inactive'">
-                {{ tenant.hasAdvance ? 'Active' : 'None' }}
+            <div class="td-detail-group">
+              <label class="td-detail-label">Email</label>
+              <span class="td-detail-value">{{ tenant.email || '—' }}</span>
+            </div>
+            <div class="td-detail-group">
+              <label class="td-detail-label">Room</label>
+              <span class="td-detail-value">{{ tenant.roomNumber ?? '—' }}</span>
+            </div>
+            <div class="td-detail-group">
+              <label class="td-detail-label">Checked In</label>
+              <span class="td-detail-value">{{ tenant.checkedInAt | date:'d MMM yyyy' }}</span>
+            </div>
+            @if (tenant.movedOutAt) {
+              <div class="td-detail-group">
+                <label class="td-detail-label">Moved Out</label>
+                <span class="td-detail-value">{{ tenant.movedOutAt | date:'d MMM yyyy' }}</span>
+              </div>
+            }
+            <div class="td-detail-group">
+              <label class="td-detail-label">Advance</label>
+              <span class="td-detail-value">
+                <span [ngClass]="tenant.hasAdvance ? 'status-neutral' : 'status-inactive'">
+                  {{ tenant.hasAdvance ? 'Active' : 'None' }}
+                </span>
               </span>
-            </span>
+            </div>
+            @if (tenant.hasAdvance) {
+              <div class="td-detail-group">
+                <label class="td-detail-label">Advance Amount</label>
+                <span class="td-detail-value">₹ {{ tenant.advanceAmount }}</span>
+              </div>
+              <div class="td-detail-group">
+                <label class="td-detail-label">Pay Mode</label>
+                <span class="td-detail-value">{{ tenant.advancePaymentMode }}</span>
+              </div>
+            }
+            @if (tenant.notes) {
+              <div class="td-detail-group td-full-width">
+                <label class="td-detail-label">Notes</label>
+                <span class="td-detail-value td-notes">{{ tenant.notes }}</span>
+              </div>
+            }
           </div>
-          @if (tenant.hasAdvance) {
-            <div class="td-row">
-              <span class="td-key">Amount</span>
-              <span class="td-val">₹ {{ tenant.advanceAmount }}</span>
-            </div>
-            <div class="td-row">
-              <span class="td-key">Pay Mode</span>
-              <span class="td-val">{{ tenant.advancePaymentMode }}</span>
-            </div>
-          }
-          @if (tenant.notes) {
-            <div class="td-row td-notes-row">
-              <span class="td-key">Notes</span>
-              <span class="td-val td-notes">{{ tenant.notes }}</span>
-            </div>
-          }
 
         } @else {
           <!-- ── Edit mode ── -->
-          <div class="td-divider"></div>
-          <div class="td-edit-group">
-            <label class="td-edit-label">Name</label>
-            <input type="text" class="form-input td-input" [(ngModel)]="editableTenant.name" />
-          </div>
-          <div class="td-edit-group">
-            <label class="td-edit-label">Mobile</label>
-            <input type="text" class="form-input td-input" [(ngModel)]="editableTenant.contactNumber" />
-          </div>
-          <div class="td-edit-group">
-            <label class="td-edit-label">Aadhaar</label>
-            <input type="text" class="form-input td-input" [(ngModel)]="editableTenant.aadharNumber" />
-          </div>
-          <div class="td-edit-group">
-            <label class="td-edit-label">Email</label>
-            <input type="email" class="form-input td-input" placeholder="optional"
-              [(ngModel)]="editableTenant.email" />
-          </div>
-          <div class="td-edit-group">
-            <label class="td-edit-label">Notes</label>
-            <textarea class="form-input td-input" rows="3" [(ngModel)]="editableTenant.notes"></textarea>
-          </div>
-          <div class="actions">
-            <button type="button" class="btn-cancel" (click)="cancel()">Cancel</button>
-            <button type="button" class="btn-save" (click)="save()">Save</button>
+          <div class="td-edit-form">
+            <div class="td-edit-grid">
+              <div class="td-edit-group">
+                <label class="td-edit-label">Name</label>
+                <input type="text" class="form-input td-input" [(ngModel)]="editableTenant.name" />
+              </div>
+              <div class="td-edit-group">
+                <label class="td-edit-label">Mobile</label>
+                <input type="text" class="form-input td-input" [(ngModel)]="editableTenant.contactNumber" />
+              </div>
+              <div class="td-edit-group">
+                <label class="td-edit-label">Aadhaar</label>
+                <input type="text" class="form-input td-input" [(ngModel)]="editableTenant.aadharNumber" />
+              </div>
+              <div class="td-edit-group">
+                <label class="td-edit-label">Email</label>
+                <input type="email" class="form-input td-input" placeholder="optional"
+                  [(ngModel)]="editableTenant.email" />
+              </div>
+              <div class="td-edit-group td-full-width">
+                <label class="td-edit-label">Notes</label>
+                <textarea class="form-input td-input" rows="3" [(ngModel)]="editableTenant.notes"></textarea>
+              </div>
+            </div>
+            <div class="td-save-row">
+              <button type="button" class="td-btn-discard" (click)="toggleMode()">Discard</button>
+              <button type="button" class="td-btn-save" (click)="save()">Save Changes</button>
+            </div>
           </div>
         }
 
       </div>
-      <!-- /Info Card -->
+      <!-- /Tenant Card -->
 
-      <!-- Stay History -->
-      <div class="td-stay-card">
-        <h3 class="td-card-title">Stay History</h3>
-        @if (stays.length === 0) {
-          <div class="td-empty">No stay history.</div>
-        }
-        @for (stay of stays; track stay.fromDate) {
-          <div class="td-stay-row">
-            <span class="td-stay-room">
-              Room {{ stay.roomNumber }}
-              @if (!stay.toDate) {
-                <span class="td-current-tag">Current</span>
-              }
-            </span>
-            <span class="td-stay-dates">
-              {{ stay.fromDate | date:'d MMM yyyy' }}
-              <span class="td-arrow">→</span>
-              {{ stay.toDate ? (stay.toDate | date:'d MMM yyyy') : 'Present' }}
-            </span>
-          </div>
-        }
-      </div>
+      <!-- Advance History -->
+      <app-advance-history [advances]="tenant.advances" [tenantId]="tenant.tenantId"
+        (settled)="reload$.next()">
+      </app-advance-history>
 
     </div>
     <!-- /Left Column -->
@@ -255,24 +232,25 @@
         </div>
       }
 
-      <!-- Advance History -->
-      <app-advance-history [advances]="tenant.advances" [tenantId]="tenant.tenantId"
-        (settled)="reload$.next()">
-      </app-advance-history>
-
-      <!-- Payment History (collapsible) -->
-      <div class="collapsible-card">
-        <div class="collapsible-header" (click)="paymentHistoryExpanded = !paymentHistoryExpanded">
-          <span class="collapsible-title">Payment History</span>
-          <svg class="chevron-icon" [class.expanded]="paymentHistoryExpanded"
-            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-            stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-          </svg>
-        </div>
-        @if (paymentHistoryExpanded) {
-          <div class="collapsible-body">
-            <app-payment-history [tenantId]="tenantId"></app-payment-history>
+      <!-- Stay History -->
+      <div class="td-stay-card">
+        <h3 class="td-card-title">Stay History</h3>
+        @if (stays.length === 0) {
+          <div class="td-empty">No stay history.</div>
+        }
+        @for (stay of stays; track stay.fromDate) {
+          <div class="td-stay-row">
+            <span class="td-stay-room">
+              Room {{ stay.roomNumber }}
+              @if (!stay.toDate) {
+                <span class="td-current-tag">Current</span>
+              }
+            </span>
+            <span class="td-stay-dates">
+              {{ stay.fromDate | date:'d MMM yyyy' }}
+              <span class="td-arrow">→</span>
+              {{ stay.toDate ? (stay.toDate | date:'d MMM yyyy') : 'Present' }}
+            </span>
           </div>
         }
       </div>
@@ -282,6 +260,31 @@
 
   </div>
   <!-- /Grid -->
+
+  <!-- ═══════════ PAYMENT HISTORY ═══════════ -->
+  <div class="td-payment-history-section">
+    <div class="td-payment-card">
+      <div class="td-payment-card-header" (click)="paymentHistoryExpanded = !paymentHistoryExpanded">
+        <div class="td-payment-title-row">
+          <svg class="td-payment-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+          </svg>
+          <h3>Payment History</h3>
+        </div>
+        <button class="td-payment-toggle" [class.expanded]="paymentHistoryExpanded">
+          {{ paymentHistoryExpanded ? 'Hide' : 'Show' }}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+      </div>
+      @if (paymentHistoryExpanded) {
+        <div class="td-payment-card-body">
+          <app-payment-history [tenantId]="tenantId"></app-payment-history>
+        </div>
+      }
+    </div>
+  </div>
 
   <!-- ═══════════ MODALS ═══════════ -->
 

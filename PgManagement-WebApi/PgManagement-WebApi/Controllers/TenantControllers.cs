@@ -162,7 +162,7 @@ namespace PgManagement_WebApi.Controllers
                 }
 
                 DateTime? overdueSince = allUnpaidRanges.Any() ? allUnpaidRanges.Min(r => r.From) : null;
-                int? daysOverdue = overdueSince.HasValue ? (today - overdueSince.Value).Days : null;
+                int? daysOverdue = overdueSince.HasValue ? (today - overdueSince.Value).Days + 1 : null;
 
                 var roomIdValue = activeStay?.RoomId ?? lastStay?.RoomId;
 

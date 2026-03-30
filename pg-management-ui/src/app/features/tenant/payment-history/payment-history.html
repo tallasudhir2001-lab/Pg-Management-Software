@@ -1,7 +1,21 @@
 @if (payments$ | async; as history) {
   <div class="history-container">
-    <div class="header-row">
-      <span class="count-badge">{{ history.length }} Records</span>
+    <div class="ph-filter-row">
+      <div class="ph-filters">
+        <label class="ph-checkbox">
+          <input type="checkbox" [(ngModel)]="showRentPayment" />
+          <span>Rent Payment</span>
+        </label>
+        <label class="ph-checkbox">
+          <input type="checkbox" [(ngModel)]="showAdvancePayment" />
+          <span>Advance Payment</span>
+        </label>
+        <label class="ph-checkbox">
+          <input type="checkbox" [(ngModel)]="showAdvanceRefund" />
+          <span>Advance Refund</span>
+        </label>
+      </div>
+      <span class="count-badge">{{ filterPayments(history).length }} Records</span>
     </div>
 
     <div class="table-wrapper">
@@ -16,13 +30,13 @@
           </tr>
         </thead>
         <tbody>
-          @for (p of history; track p.paymentDate) {
+          @for (p of filterPayments(history); track p.paymentId) {
             <tr>
-              <td class="date-cell">{{ p.paymentDate | date:'d MMM yy' }}</td>
+              <td class="date-cell">{{ p.paymentDate | date:'d MMMM yyyy' }}</td>
               <td>{{ p.paymentType }}</td>
               <td>
                 <div class="period-range">
-                  {{ p.paidFrom | date:'d MMM' }}<span>→</span>{{ p.paidUpto | date:'d MMM yy' }}
+                  {{ p.paidFrom | date:'d MMMM yyyy' }}<span>→</span>{{ p.paidUpto | date:'d MMMM yyyy' }}
                 </div>
               </td>
               <td>
@@ -39,8 +53,8 @@
       </table>
     </div>
 
-    @if (history.length === 0) {
-      <div class="empty-state">No payments recorded for this tenant.</div>
+    @if (filterPayments(history).length === 0) {
+      <div class="empty-state">No payments match the selected filters.</div>
     }
   </div>
 } @else {
