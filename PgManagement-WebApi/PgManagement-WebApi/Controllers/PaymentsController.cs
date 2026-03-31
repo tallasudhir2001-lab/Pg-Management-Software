@@ -33,19 +33,22 @@ namespace PgManagement_WebApi.Controllers
         private readonly IConfiguration configuration;
         private readonly IReportService reportService;
         private readonly IEmailNotificationService emailService;
+        private readonly IWhatsAppNotificationService whatsAppService;
 
         public PaymentsController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             IConfiguration configuration,
             IReportService reportService,
-            IEmailNotificationService emailService)
+            IEmailNotificationService emailService,
+            IWhatsAppNotificationService whatsAppService)
         {
             this.context = context;
             this.userManager = userManager;
             this.configuration = configuration;
             this.reportService = reportService;
             this.emailService = emailService;
+            this.whatsAppService = whatsAppService;
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -70,6 +73,12 @@ namespace PgManagement_WebApi.Controllers
             var pgId = User.FindFirst("pgId")?.Value;
             if (string.IsNullOrEmpty(pgId)) return Unauthorized();
 
+            var pg = await context.PGs.FindAsync(pgId);
+            if (pg == null) return NotFound("PG not found.");
+
+            if (!pg.IsEmailSubscriptionEnabled)
+                return BadRequest("Email subscription is not enabled for this PG. Please purchase an email subscription to use this feature.");
+
             var payment = await context.Payments
                 .Include(p => p.Tenant)
                 .FirstOrDefaultAsync(p => p.PaymentId == paymentId && p.PgId == pgId && !p.IsDeleted);
@@ -83,6 +92,36 @@ namespace PgManagement_WebApi.Controllers
 
             await emailService.SendPaymentReceiptAsync(paymentId, pgId, email);
             return Ok(new { message = $"Receipt sent to {email}" });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // POST {paymentId}/send-receipt-whatsapp  — sends receipt to tenant's WhatsApp
+        // ─────────────────────────────────────────────────────────────────────
+        [HttpPost("{paymentId}/send-receipt-whatsapp")]
+        public async Task<IActionResult> SendReceiptWhatsApp(string paymentId)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId)) return Unauthorized();
+
+            var pg = await context.PGs.FindAsync(pgId);
+            if (pg == null) return NotFound("PG not found.");
+
+            if (!pg.IsWhatsappSubscriptionEnabled)
+                return BadRequest("WhatsApp subscription is not enabled for this PG. Please purchase a WhatsApp subscription to use this feature.");
+
+            var payment = await context.Payments
+                .Include(p => p.Tenant)
+                .FirstOrDefaultAsync(p => p.PaymentId == paymentId && p.PgId == pgId && !p.IsDeleted);
+
+            if (payment == null)
+                return NotFound("Payment not found.");
+
+            var phone = payment.Tenant?.ContactNumber;
+            if (string.IsNullOrWhiteSpace(phone))
+                return UnprocessableEntity("Tenant does not have a phone number on file.");
+
+            await whatsAppService.SendPaymentReceiptAsync(paymentId, pgId, phone);
+            return Ok(new { message = $"Receipt sent via WhatsApp to {phone}" });
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -201,6 +240,45 @@ namespace PgManagement_WebApi.Controllers
 
             context.Payments.Add(payment);
             await context.SaveChangesAsync();
+
+            // Auto-send payment receipt in background if configured
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var scope = HttpContext.RequestServices.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    var emailSvc = scope.ServiceProvider.GetRequiredService<IEmailNotificationService>();
+
+                    var notifSettings = await db.NotificationSettings
+                        .FirstOrDefaultAsync(ns => ns.PgId == pgId);
+
+                    if (notifSettings?.AutoSendPaymentReceipt == true)
+                    {
+                        var pg = await db.PGs.FindAsync(pgId);
+                        var tenant = await db.Tenants.FindAsync(dto.TenantId);
+                        var tenantEmail = tenant?.Email;
+                        var tenantPhone = tenant?.ContactNumber;
+
+                        if (notifSettings.SendViaEmail && pg?.IsEmailSubscriptionEnabled == true
+                            && !string.IsNullOrWhiteSpace(tenantEmail))
+                        {
+                            await emailSvc.SendPaymentReceiptAsync(payment.PaymentId, pgId, tenantEmail);
+                        }
+
+                        if (notifSettings.SendViaWhatsapp && pg?.IsWhatsappSubscriptionEnabled == true
+                            && !string.IsNullOrWhiteSpace(tenantPhone))
+                        {
+                            var whatsAppSvc = scope.ServiceProvider.GetRequiredService<IWhatsAppNotificationService>();
+                            await whatsAppSvc.SendPaymentReceiptAsync(payment.PaymentId, pgId, tenantPhone);
+                        }
+                    }
+                }
+                catch
+                {
+                    // Background send failed — don't affect the user
+                }
+            });
 
             return Ok(new PaymentResponseDto
             {
@@ -574,8 +652,8 @@ namespace PgManagement_WebApi.Controllers
             [FromQuery] string sortBy = "paymentDate",
             [FromQuery] string sortDir = "desc")
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
             var query = context.Payments
@@ -583,13 +661,16 @@ namespace PgManagement_WebApi.Controllers
                 .Include(p => p.Tenant)
                 .Include(p => p.CreatedByUser)
                 .Include(p => p.PaymentType)
-                .Where(p => p.PgId == pgId && !p.IsDeleted);
+                .Where(p => pgIds.Contains(p.PgId) && !p.IsDeleted);
 
-            // 🔍 Search
+            // 🔍 Search by receipt no, mobile number, or aadhar number
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var term = search.Trim().ToLower();
-                query = query.Where(p => p.Tenant.Name.ToLower().Contains(term));
+                query = query.Where(p =>
+                    p.PaymentId.ToLower().Contains(term) ||
+                    p.Tenant.ContactNumber.Contains(term) ||
+                    p.Tenant.AadharNumber.Contains(term));
             }
 
             // 🎯 Filters
@@ -702,7 +783,15 @@ namespace PgManagement_WebApi.Controllers
                     !p.IsDeleted);
 
             if (payment == null)
+            {
+                var otherPgName = await context.Payments
+                    .Where(p => p.PaymentId == paymentId && !p.IsDeleted)
+                    .Join(context.PGs, p => p.PgId, pg => pg.PgId, (p, pg) => pg.Name)
+                    .FirstOrDefaultAsync();
+                if (otherPgName != null)
+                    return StatusCode(403, $"This payment belongs to {otherPgName}. Please login to {otherPgName} to modify it.");
                 return NotFound("Payment not found");
+            }
 
             var hasLaterPayments = await context.Payments.AnyAsync(p =>
                 p.TenantId == payment.TenantId &&
@@ -734,12 +823,12 @@ namespace PgManagement_WebApi.Controllers
         [HttpGet("{paymentId}")]
         public async Task<IActionResult> GetPayment(string paymentId)
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
             var payment = await context.Payments
-                .Where(p => p.PaymentId == paymentId && p.PgId == pgId && !p.IsDeleted)
+                .Where(p => p.PaymentId == paymentId && pgIds.Contains(p.PgId) && !p.IsDeleted)
                 .Select(p => new
                 {
                     p.PaymentId,
@@ -778,7 +867,15 @@ namespace PgManagement_WebApi.Controllers
                     !p.IsDeleted);
 
             if (payment == null)
+            {
+                var otherPgName = await context.Payments
+                    .Where(p => p.PaymentId == paymentId && !p.IsDeleted)
+                    .Join(context.PGs, p => p.PgId, pg => pg.PgId, (p, pg) => pg.Name)
+                    .FirstOrDefaultAsync();
+                if (otherPgName != null)
+                    return StatusCode(403, $"This payment belongs to {otherPgName}. Please login to {otherPgName} to modify it.");
                 return NotFound("Payment not found");
+            }
 
             var hasLaterPayments = await context.Payments.AnyAsync(p =>
                 p.TenantId == payment.TenantId &&

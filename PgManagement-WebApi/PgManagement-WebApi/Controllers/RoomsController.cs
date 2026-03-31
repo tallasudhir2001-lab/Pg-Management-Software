@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using PgManagement_WebApi.Data;
 using PgManagement_WebApi.DTOs.Pagination;
 using PgManagement_WebApi.DTOs.Room;
+using PgManagement_WebApi.Helpers;
 using PgManagement_WebApi.Identity;
 using PgManagement_WebApi.Models;
 
@@ -37,12 +38,12 @@ namespace PgManagement_WebApi.Controllers
     string? vacancies = null
 )
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
             IQueryable<Room> query = context.Rooms
-                .Where(r => r.PgId == pgId);
+                .Where(r => pgIds.Contains(r.PgId));
 
             // 🔍 Search by Room Number
             if (!string.IsNullOrWhiteSpace(search))
@@ -81,7 +82,7 @@ namespace PgManagement_WebApi.Controllers
 
                 OccupiedBeds = context.TenantRooms.Count(tr =>
                     tr.RoomId == r.RoomId &&
-                    tr.PgId == pgId &&
+                    pgIds.Contains(tr.PgId) &&
                     tr.ToDate == null
                 ),
 
@@ -185,12 +186,12 @@ namespace PgManagement_WebApi.Controllers
         [HttpGet("{roomId}")]
         public async Task<IActionResult> GetRoomById(string roomId)
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
             var room = await context.Rooms
-                .Where(r => r.RoomId == roomId && r.PgId == pgId)
+                .Where(r => r.RoomId == roomId && pgIds.Contains(r.PgId))
                 .Select(r => new
                 {
                     r.RoomId,
@@ -211,7 +212,7 @@ namespace PgManagement_WebApi.Controllers
 
                     OccupiedBeds = context.TenantRooms.Count(tr =>
                         tr.RoomId == r.RoomId &&
-                        tr.PgId == pgId &&
+                        pgIds.Contains(tr.PgId) &&
                         tr.ToDate == null
                     )
                 })
@@ -305,7 +306,15 @@ namespace PgManagement_WebApi.Controllers
                 .FirstOrDefaultAsync(r => r.RoomId == roomId && r.PgId == pgId);
 
             if (room == null)
+            {
+                var otherPgName = await context.Rooms
+                    .Where(r => r.RoomId == roomId)
+                    .Join(context.PGs, r => r.PgId, pg => pg.PgId, (r, pg) => pg.Name)
+                    .FirstOrDefaultAsync();
+                if (otherPgName != null)
+                    return StatusCode(403, $"This room belongs to {otherPgName}. Please login to {otherPgName} to modify it.");
                 return NotFound("Room not found.");
+            }
 
             var duplicateRoom = await context.Rooms.AnyAsync(r =>
                 r.PgId == pgId &&
@@ -391,7 +400,15 @@ namespace PgManagement_WebApi.Controllers
                 .FirstOrDefaultAsync(r => r.RoomId == roomId && r.PgId == pgId);
 
             if (room == null)
+            {
+                var otherPgName = await context.Rooms
+                    .Where(r => r.RoomId == roomId)
+                    .Join(context.PGs, r => r.PgId, pg => pg.PgId, (r, pg) => pg.Name)
+                    .FirstOrDefaultAsync();
+                if (otherPgName != null)
+                    return StatusCode(403, $"This room belongs to {otherPgName}. Please login to {otherPgName} to modify it.");
                 return NotFound();
+            }
 
             // 1. Check ANY tenant-room history (active OR moved-out)
             var hasAnyTenantHistory = await context.TenantRooms.AnyAsync(tr =>
@@ -423,15 +440,15 @@ namespace PgManagement_WebApi.Controllers
         [HttpGet("{roomId}/tenants")]
         public async Task<IActionResult> GetTenantsInRoom(string roomId)
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
             var tenants = await context.TenantRooms
                 .AsNoTracking()
                 .Where(tr =>
                     tr.RoomId == roomId &&
-                    tr.PgId == pgId &&
+                    pgIds.Contains(tr.PgId) &&
                     tr.ToDate == null)
                 .Select(tr => new
                 {

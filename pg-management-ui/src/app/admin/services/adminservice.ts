@@ -22,6 +22,10 @@ export class Adminservice {
   getBranches(): Observable<BranchDto[]> {
     return this.http.get<BranchDto[]>(`${this.apiUrl}/branches`);
   }
+
+  updatePgSubscription(pgId: string, data: { isEmailSubscriptionEnabled: boolean; isWhatsappSubscriptionEnabled: boolean }): Observable<any> {
+    return this.http.put(`${this.apiUrl}/pgs/${pgId}/subscription`, data);
+  }
 }
 
 export interface BranchDto {

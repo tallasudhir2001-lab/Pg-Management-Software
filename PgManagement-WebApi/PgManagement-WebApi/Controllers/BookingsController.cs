@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PgManagement_WebApi.Attributes;
+using PgManagement_WebApi.Data;
 using PgManagement_WebApi.DTOs.Booking;
+using PgManagement_WebApi.Helpers;
 using PgManagement_WebApi.Services;
 using System.Security.Claims;
 
@@ -11,21 +13,23 @@ namespace PgManagement_WebApi.Controllers
     public class BookingsController : ControllerBase
     {
         private readonly IBookingService _bookingService;
+        private readonly ApplicationDbContext _context;
 
-        public BookingsController(IBookingService bookingService)
+        public BookingsController(IBookingService bookingService, ApplicationDbContext context)
         {
             _bookingService = bookingService;
+            _context = context;
         }
 
         [AccessPoint("Booking", "View All Bookings")]
         [HttpGet]
         public async Task<IActionResult> GetBookings([FromQuery] BookingListQueryDto query)
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(_context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
-            var result = await _bookingService.GetBookingsAsync(pgId, query);
+            var result = await _bookingService.GetBookingsAsync(pgIds, query);
             return Ok(result);
         }
 

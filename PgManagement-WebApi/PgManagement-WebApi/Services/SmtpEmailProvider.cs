@@ -45,5 +45,34 @@ namespace PgManagement_WebApi.Services
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
         }
+
+        public async Task SendEmailWithAttachmentsAsync(
+            string to,
+            string subject,
+            string htmlBody,
+            List<(byte[] Data, string FileName)> attachments)
+        {
+            var smtp = _emailOptions.Smtp ?? new SmtpOptions();
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(_emailOptions.FromName, _emailOptions.FromAddress));
+            message.To.Add(MailboxAddress.Parse(to));
+            message.Subject = subject;
+
+            var bodyBuilder = new BodyBuilder { HtmlBody = htmlBody };
+            foreach (var (data, fileName) in attachments)
+                bodyBuilder.Attachments.Add(fileName, data, ContentType.Parse("application/pdf"));
+
+            message.Body = bodyBuilder.ToMessageBody();
+
+            using var client = new SmtpClient();
+            await client.ConnectAsync(smtp.Host, smtp.Port,
+                smtp.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None);
+
+            if (!string.IsNullOrEmpty(smtp.Username))
+                await client.AuthenticateAsync(smtp.Username, smtp.Password);
+
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
+        }
     }
 }

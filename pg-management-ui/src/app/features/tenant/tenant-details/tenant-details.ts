@@ -249,6 +249,11 @@ confirmChangeRoom(): void {
   save(): void {
   if (this.mode !== 'edit') return;
 
+  if (!this.editableTenant.email?.trim()) {
+    this.toastService.showError('Email is required.');
+    return;
+  }
+
   const dto = this.mapToUpdateDto(this.editableTenant);
 
   this.tenantService.updateTenant(this.tenantId, dto).subscribe({

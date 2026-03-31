@@ -11,6 +11,8 @@ namespace PgManagement_WebApi.DTOs.Admin
         public int UserCount { get; set; }
         public string? BranchId { get; set; }
         public string? BranchName { get; set; }
+        public bool IsEmailSubscriptionEnabled { get; set; }
+        public bool IsWhatsappSubscriptionEnabled { get; set; }
     }
 
     public class BranchDto

@@ -44,14 +44,14 @@ namespace PgManagement_WebApi.Controllers
         {
             var today = DateTime.UtcNow.Date;
 
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
             // 1️⃣ Base Query
             IQueryable<Tenant> query = context.Tenants
                 .AsNoTracking()
-                .Where(t => t.PgId == pgId && !t.isDeleted);
+                .Where(t => pgIds.Contains(t.PgId) && !t.isDeleted);
 
             //  Search
             if (!string.IsNullOrEmpty(search))
@@ -243,14 +243,14 @@ namespace PgManagement_WebApi.Controllers
         [HttpGet("{tenantId}")]
         public async Task<IActionResult> GetTenantById(string tenantId)
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
             var tenant = await context.Tenants
                 .Where(t =>
                     t.TenantId == tenantId &&
-                    t.PgId == pgId &&
+                    pgIds.Contains(t.PgId) &&
                     !t.isDeleted)
                 .Select(t => new
                 {
@@ -265,7 +265,6 @@ namespace PgManagement_WebApi.Controllers
                     ActiveAssignment = context.TenantRooms
                         .Where(tr =>
                             tr.TenantId == tenantId &&
-                            tr.PgId == pgId &&
                             tr.ToDate == null)
                         .Select(tr => new
                         {
@@ -277,8 +276,7 @@ namespace PgManagement_WebApi.Controllers
                     //  Last stay (for moved-out tenants)
                     LastAssignment = context.TenantRooms
                         .Where(tr =>
-                            tr.TenantId == tenantId &&
-                            tr.PgId == pgId)
+                            tr.TenantId == tenantId)
                         .OrderByDescending(tr => tr.ToDate ?? DateTime.UtcNow)
                         .Select(tr => new
                         {
@@ -294,7 +292,7 @@ namespace PgManagement_WebApi.Controllers
                 return NotFound();
 
             var stays = await context.TenantRooms
-                            .Where(tr => tr.TenantId == tenantId && tr.PgId == pgId)
+                            .Where(tr => tr.TenantId == tenantId && pgIds.Contains(tr.PgId))
                             .OrderBy(tr => tr.FromDate)
                             .Select(tr => new
                             {
@@ -420,7 +418,15 @@ namespace PgManagement_WebApi.Controllers
                     tr.ToDate == null);
 
             if (activeRoom == null)
+            {
+                var otherPgName = await context.TenantRooms
+                    .Where(tr => tr.TenantId == tenantId && tr.ToDate == null)
+                    .Join(context.PGs, tr => tr.PgId, pg => pg.PgId, (tr, pg) => pg.Name)
+                    .FirstOrDefaultAsync();
+                if (otherPgName != null)
+                    return StatusCode(403, $"This tenant belongs to {otherPgName}. Please login to {otherPgName} to modify it.");
                 return BadRequest("Tenant does not have an active room.");
+            }
 
             // 2️⃣ Validate move-out date against latest payment's PaidUpto
             var latestPayment = await context.Payments
@@ -494,7 +500,15 @@ namespace PgManagement_WebApi.Controllers
 
             var tenant = await context.Tenants.SingleOrDefaultAsync(t => t.TenantId == tenantId && t.PgId == pgId);
             if (tenant == null)
+            {
+                var otherPgName = await context.Tenants
+                    .Where(t => t.TenantId == tenantId && !t.isDeleted)
+                    .Join(context.PGs, t => t.PgId, pg => pg.PgId, (t, pg) => pg.Name)
+                    .FirstOrDefaultAsync();
+                if (otherPgName != null)
+                    return StatusCode(403, $"This tenant belongs to {otherPgName}. Please login to {otherPgName} to modify it.");
                 return NotFound();
+            }
 
             tenant.Name = dto.Name;
             tenant.ContactNumber = dto.ContactNumber;
@@ -522,7 +536,15 @@ namespace PgManagement_WebApi.Controllers
                     !t.isDeleted);
 
             if (tenant == null)
+            {
+                var otherPgName = await context.Tenants
+                    .Where(t => t.TenantId == tenantId && !t.isDeleted)
+                    .Join(context.PGs, t => t.PgId, pg => pg.PgId, (t, pg) => pg.Name)
+                    .FirstOrDefaultAsync();
+                if (otherPgName != null)
+                    return StatusCode(403, $"This tenant belongs to {otherPgName}. Please login to {otherPgName} to modify it.");
                 return NotFound();
+            }
 
             //  Check active room assignment
             var hasActiveRoom = await context.TenantRooms.AnyAsync(tr =>

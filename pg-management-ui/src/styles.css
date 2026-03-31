@@ -125,16 +125,77 @@ button:hover {
   padding: 20px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .sidebar nav {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.sidebar nav::-webkit-scrollbar {
+  display: none;
 }
 .logo {
-  margin-bottom: 30px;
+  margin-bottom: 16px;
   font-size: 20px;
   font-weight: 600;
+}
+
+/* Branch View Toggle */
+.branch-toggle-wrapper {
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.branch-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.branch-toggle-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.3px;
+}
+
+.toggle-switch {
+  width: 40px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 11px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+.toggle-switch.active {
+  background: #34d399;
+}
+
+.toggle-knob {
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.25s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch.active .toggle-knob {
+  transform: translateX(18px);
 }
 
 .sidebar nav a {

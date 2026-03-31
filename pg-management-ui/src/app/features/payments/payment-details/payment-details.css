@@ -1,78 +1,154 @@
-/* payment-details.css
-   Only overrides / additions beyond payment-shared.css
-   Import order in component: payment-shared.css, then this file.
-*/
+/* payment-details.css */
 
-/* Edit toggle button in sidebar */
+/* ── Action buttons area ── */
 .summary-actions {
   margin-top: 24px;
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.btn-edit {
+/* ── Shared button style ── */
+.pd-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
-  background: rgba(255, 255, 255, 0.12);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  padding: 10px 16px;
+  padding: 11px 16px;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.1s;
+  border: none;
+  white-space: nowrap;
 }
 
-.btn-edit:hover {
+.pd-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.pd-btn-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ── Edit button ── */
+.pd-btn-edit {
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 10px;
+}
+.pd-btn-edit:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.receipt-btn-row {
+/* ── Row for View + Send ── */
+.pd-btn-row {
   display: flex;
   gap: 8px;
-  margin-top: 8px;
 }
 
-.btn-receipt {
+/* ── View Receipt button ── */
+.pd-btn-view {
   flex: 1;
   background: rgba(255, 255, 255, 0.08);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 10px 8px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
-
-.btn-receipt:hover {
+.pd-btn-view:hover {
   background: rgba(255, 255, 255, 0.16);
-}
-
-.btn-send-receipt {
-  flex: 1;
-  background: rgba(99, 102, 241, 0.25);
   color: white;
-  border: 1px solid rgba(99, 102, 241, 0.5);
-  padding: 10px 8px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, opacity 0.2s;
 }
 
-.btn-send-receipt:hover:not(:disabled) {
-  background: rgba(99, 102, 241, 0.4);
+/* ── Send Receipt button ── */
+.pd-send-wrapper {
+  flex: 1;
+  position: relative;
 }
 
-.btn-send-receipt:disabled {
+.pd-btn-send {
+  background: #6366f1;
+  color: white;
+  width: 100%;
+}
+.pd-btn-send:hover:not(:disabled) {
+  background: #4f46e5;
+}
+.pd-btn-send:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* Disable visual cue for view-mode inputs */
+/* ── Dropdown menu ── */
+.pd-send-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #1e1f4b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  z-index: 20;
+  animation: slideUp 0.15s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pd-send-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.pd-send-option:hover:not(.disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pd-send-option.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pd-send-option-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.pd-send-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pd-send-option-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+}
+
+.pd-send-option-hint {
+  font-size: 11px;
+  color: #f87171;
+  font-weight: 500;
+}
+
+/* ── Disable visual cue for view-mode inputs ── */
 .form-input:disabled,
 .form-input[disabled] {
   background: #f9fafb;

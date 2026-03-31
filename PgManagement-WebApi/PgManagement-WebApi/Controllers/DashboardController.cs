@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PgManagement_WebApi.Data;
 using PgManagement_WebApi.DTOs.Dashboard;
+using PgManagement_WebApi.Helpers;
 
 namespace PgManagement_WebApi.Controllers
 {
@@ -26,8 +27,8 @@ namespace PgManagement_WebApi.Controllers
     DateTime? from,
     DateTime? to)
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
             var now = DateTime.UtcNow;
@@ -37,16 +38,16 @@ namespace PgManagement_WebApi.Controllers
             // Rooms (no date relevance)
             var totalRooms = await context.Rooms
                 .AsNoTracking()
-                .CountAsync(r => r.PgId == pgId);
+                .CountAsync(r => pgIds.Contains(r.PgId));
 
             // Tenants (no date relevance)
             var totalTenants = await context.Tenants
                 .AsNoTracking()
-                .CountAsync(t => t.PgId == pgId && !t.isDeleted);
+                .CountAsync(t => pgIds.Contains(t.PgId) && !t.isDeleted);
 
             var activeTenants = await context.TenantRooms
                 .AsNoTracking()
-                .Where(tr => tr.PgId == pgId && tr.ToDate == null)
+                .Where(tr => pgIds.Contains(tr.PgId) && tr.ToDate == null)
                 .Select(tr => tr.TenantId)
                 .Distinct()
                 .CountAsync();
@@ -56,18 +57,18 @@ namespace PgManagement_WebApi.Controllers
             // Beds
             var totalBeds = await context.Rooms
                 .AsNoTracking()
-                .Where(r => r.PgId == pgId)
+                .Where(r => pgIds.Contains(r.PgId))
                 .SumAsync(r => r.Capacity);
 
             var occupiedBeds = await context.TenantRooms
                 .AsNoTracking()
-                .CountAsync(tr => tr.PgId == pgId && tr.ToDate == null);
+                .CountAsync(tr => pgIds.Contains(tr.PgId) && tr.ToDate == null);
 
             // ✅ Revenue filtered by date range
             var revenue = await context.Payments
                 .AsNoTracking()
                 .Where(p =>
-                    p.PgId == pgId &&
+                    pgIds.Contains(p.PgId) &&
                     !p.IsDeleted &&
                     p.PaymentDate >= start &&
                     p.PaymentDate <= end)
@@ -94,8 +95,8 @@ namespace PgManagement_WebApi.Controllers
     DateTime? from,
     DateTime? to)
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
             var start = from ?? DateTime.UtcNow.AddMonths(-11);
@@ -104,7 +105,7 @@ namespace PgManagement_WebApi.Controllers
             var data = await context.Payments
                 .AsNoTracking()
                 .Where(p =>
-                    p.PgId == pgId &&
+                    pgIds.Contains(p.PgId) &&
                     !p.IsDeleted &&
                     p.PaymentDate >= start &&
                     p.PaymentDate <= end)
@@ -130,15 +131,15 @@ namespace PgManagement_WebApi.Controllers
     DateTime? from = null,
     DateTime? to = null)
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
             var query = context.Payments
                 .AsNoTracking()
                 .Include(p => p.Tenant)
                 .Where(p =>
-                    p.PgId == pgId &&
+                    pgIds.Contains(p.PgId) &&
                     !p.IsDeleted);
 
             if (from.HasValue)
@@ -169,19 +170,19 @@ namespace PgManagement_WebApi.Controllers
         [HttpGet("occupancy")]
         public async Task<IActionResult> GetOccupancy()
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
             var totalBeds = await context.Rooms
                 .AsNoTracking()
-                .Where(r => r.PgId == pgId)
+                .Where(r => pgIds.Contains(r.PgId))
                 .SumAsync(r => r.Capacity);
 
             var occupiedBeds = await context.TenantRooms
                 .AsNoTracking()
                 .CountAsync(tr =>
-                    tr.PgId == pgId &&
+                    pgIds.Contains(tr.PgId) &&
                     tr.ToDate == null);
 
             return Ok(new
@@ -196,8 +197,8 @@ namespace PgManagement_WebApi.Controllers
     DateTime? from,
     DateTime? to)
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
             var now = DateTime.UtcNow;
@@ -207,7 +208,7 @@ namespace PgManagement_WebApi.Controllers
             var totalExpenses = await context.Expenses
                 .AsNoTracking()
                 .Where(e =>
-                    e.PgId == pgId &&
+                    pgIds.Contains(e.PgId) &&
                     !e.IsDeleted &&
                     e.ExpenseDate >= start &&
                     e.ExpenseDate <= end)

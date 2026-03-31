@@ -550,6 +550,32 @@ namespace PgManagement_WebApi.Migrations
                     b.ToTable("ExpenseCategories");
                 });
 
+            modelBuilder.Entity("PgManagement_WebApi.Models.NotificationSettings", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("AutoSendPaymentReceipt")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PgId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("SendViaEmail")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("SendViaWhatsapp")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PgId")
+                        .IsUnique();
+
+                    b.ToTable("NotificationSettings");
+                });
+
             modelBuilder.Entity("PgManagement_WebApi.Models.PG", b =>
                 {
                     b.Property<string>("PgId")
@@ -567,6 +593,12 @@ namespace PgManagement_WebApi.Migrations
                         .IsRequired()
                         .HasMaxLength(15)
                         .HasColumnType("nvarchar(15)");
+
+                    b.Property<bool>("IsEmailSubscriptionEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsWhatsappSubscriptionEnabled")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -754,6 +786,40 @@ namespace PgManagement_WebApi.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("PgManagement_WebApi.Models.ReportSubscription", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PgId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ReportType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("PgId", "UserId", "ReportType")
+                        .IsUnique();
+
+                    b.ToTable("ReportSubscriptions");
+                });
+
             modelBuilder.Entity("PgManagement_WebApi.Models.RoleAccessPoint", b =>
                 {
                     b.Property<string>("RoleId")
@@ -852,6 +918,7 @@ namespace PgManagement_WebApi.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasMaxLength(254)
                         .HasColumnType("nvarchar(254)");
 
@@ -1101,6 +1168,17 @@ namespace PgManagement_WebApi.Migrations
                     b.Navigation("Expense");
                 });
 
+            modelBuilder.Entity("PgManagement_WebApi.Models.NotificationSettings", b =>
+                {
+                    b.HasOne("PgManagement_WebApi.Models.PG", "PG")
+                        .WithMany()
+                        .HasForeignKey("PgId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PG");
+                });
+
             modelBuilder.Entity("PgManagement_WebApi.Models.PG", b =>
                 {
                     b.HasOne("PgManagement_WebApi.Models.Branch", "Branch")
@@ -1176,6 +1254,25 @@ namespace PgManagement_WebApi.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PgManagement_WebApi.Models.ReportSubscription", b =>
+                {
+                    b.HasOne("PgManagement_WebApi.Models.PG", "PG")
+                        .WithMany()
+                        .HasForeignKey("PgId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PgManagement_WebApi.Identity.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PG");
 
                     b.Navigation("User");
                 });

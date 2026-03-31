@@ -50,5 +50,39 @@ namespace PgManagement_WebApi.Services
                 RawMessage = new RawMessage { Data = memoryStream }
             });
         }
+
+        public async Task SendEmailWithAttachmentsAsync(
+            string to,
+            string subject,
+            string htmlBody,
+            List<(byte[] Data, string FileName)> attachments)
+        {
+            var ses = _emailOptions.AwsSes ?? new AwsSesOptions();
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(_emailOptions.FromName, _emailOptions.FromAddress));
+            message.To.Add(MailboxAddress.Parse(to));
+            message.Subject = subject;
+
+            var bodyBuilder = new BodyBuilder { HtmlBody = htmlBody };
+            foreach (var (data, fileName) in attachments)
+                bodyBuilder.Attachments.Add(fileName, data, ContentType.Parse("application/pdf"));
+
+            message.Body = bodyBuilder.ToMessageBody();
+
+            using var memoryStream = new MemoryStream();
+            await message.WriteToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            var client = new AmazonSimpleEmailServiceClient(
+                ses.AccessKey,
+                ses.SecretKey,
+                RegionEndpoint.GetBySystemName(ses.Region));
+
+            await client.SendRawEmailAsync(new SendRawEmailRequest
+            {
+                RawMessage = new RawMessage { Data = memoryStream }
+            });
+        }
     }
 }

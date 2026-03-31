@@ -1,0 +1,71 @@
+<div class="rs-page">
+  <div class="back-nav" (click)="goBack()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="back-icon">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+    </svg>
+    <span>Configurations</span>
+  </div>
+
+  <h1 class="rs-title">📊 Report Subscriptions</h1>
+  <p class="rs-subtitle">Choose which daily reports each user receives via email. All selected reports are combined into a single email with inline summaries and PDF attachments.</p>
+
+  <div *ngIf="loading" class="rs-loading">Loading subscriptions...</div>
+
+  <div *ngIf="!loading && !error" class="rs-content">
+    <div class="rs-table-wrapper">
+      <table class="rs-table">
+        <thead>
+          <tr>
+            <th class="rs-th-user">User</th>
+            <th *ngFor="let opt of reportOptions" class="rs-th-report" [title]="opt.description">
+              {{ opt.displayName }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users" class="rs-row">
+            <td class="rs-td-user">
+              <div class="rs-user-info">
+                <span class="rs-user-name">{{ user.fullName }}</span>
+                <span class="rs-user-email">{{ user.email }}</span>
+              </div>
+              <span class="rs-sub-count" *ngIf="getSubscribedCount(user.userId) > 0">
+                {{ getSubscribedCount(user.userId) }} report{{ getSubscribedCount(user.userId) !== 1 ? 's' : '' }}
+              </span>
+            </td>
+            <td *ngFor="let opt of reportOptions" class="rs-td-check">
+              <label class="rs-checkbox-label" [class.disabled]="!user.email">
+                <input
+                  type="checkbox"
+                  [checked]="isChecked(user.userId, opt.reportType)"
+                  (change)="toggle(user.userId, opt.reportType)"
+                  [disabled]="!user.email"
+                />
+              </label>
+              <span class="rs-no-email" *ngIf="!user.email" title="No email configured">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="users.length === 0" class="rs-empty">
+      No users found for this PG.
+    </div>
+
+    <div class="rs-info-banner" *ngIf="users.length > 0">
+      <span class="rs-info-icon">ℹ️</span>
+      <span>Reports are sent daily at <strong>8:00 AM</strong>. Each user receives one consolidated email with all their subscribed reports.</span>
+    </div>
+
+    <div class="rs-actions" *ngIf="users.length > 0">
+      <button class="rs-btn-save" (click)="save()" [disabled]="saving">
+        {{ saving ? 'Saving...' : 'Save Subscriptions' }}
+      </button>
+    </div>
+
+    <div class="rs-success" *ngIf="successMsg">{{ successMsg }}</div>
+  </div>
+
+  <div class="rs-error" *ngIf="error">{{ error }}</div>
+</div>

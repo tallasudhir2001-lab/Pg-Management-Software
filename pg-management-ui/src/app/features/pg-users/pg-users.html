@@ -1,4 +1,10 @@
 <div class="pgu-page">
+  <div class="back-nav" (click)="goBack()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="back-icon">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+    </svg>
+    <span>Configurations</span>
+  </div>
   <div class="pgu-header">
     <h1 class="pgu-title">Manage Users</h1>
     <button class="btn-add" (click)="showAddForm = !showAddForm">

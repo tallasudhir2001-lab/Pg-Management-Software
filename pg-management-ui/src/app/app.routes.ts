@@ -34,6 +34,9 @@ import { TenantListReport } from './features/reports/tenant-list-report/tenant-l
 import { AdvanceBalanceReport } from './features/reports/advance-balance/advance-balance';
 import { ExpenseReport } from './features/reports/expense-report/expense-report';
 import { ProfitLossReport } from './features/reports/profit-loss/profit-loss';
+import { Settings } from './features/settings/settings/settings';
+import { ConfigurationsLanding } from './features/configurations/configurations-landing/configurations-landing';
+import { ReportSubscriptions } from './features/settings/report-subscriptions/report-subscriptions';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -68,7 +71,6 @@ export const routes: Routes = [
             { path: 'bookings/:id', component: BookingDetails, canActivate: [permissionGuard], data: { mode: 'view', requiredPermission: 'Booking.GetById' } },
             { path: 'bookings/:id/edit', component: BookingDetails, canActivate: [permissionGuard], data: { mode: 'edit', requiredPermission: 'Booking.UpdateBooking' } },
             { path: 'expenses', component: Expenses, canActivate: [permissionGuard], data: { requiredPermission: 'Expense.GetExpenses' } },
-            { path: 'pg-users', component: PgUserManagement },
             { path: 'reports', component: ReportsLanding },
             { path: 'reports/rent-collection', component: RentCollectionReport },
             { path: 'reports/overdue-rent', component: OverdueRentReport },
@@ -77,7 +79,11 @@ export const routes: Routes = [
             { path: 'reports/tenant-list', component: TenantListReport },
             { path: 'reports/advance-balance', component: AdvanceBalanceReport },
             { path: 'reports/expenses', component: ExpenseReport },
-            { path: 'reports/profit-loss', component: ProfitLossReport }
+            { path: 'reports/profit-loss', component: ProfitLossReport },
+            { path: 'configurations', component: ConfigurationsLanding },
+            { path: 'configurations/manage-users', component: PgUserManagement, canActivate: [permissionGuard], data: { requiredPermission: 'PgUser.GetUsers' } },
+            { path: 'configurations/notifications', component: Settings, canActivate: [permissionGuard], data: { requiredPermission: 'Settings.GetNotificationSettings' } },
+            { path: 'configurations/report-subscriptions', component: ReportSubscriptions, canActivate: [permissionGuard], data: { requiredPermission: 'Settings.GetReportSubscriptions' } }
 
         ]
     },

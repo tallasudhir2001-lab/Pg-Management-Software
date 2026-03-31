@@ -1,0 +1,87 @@
+<div class="modal-backdrop" (click)="close()"></div>
+<div class="modal">
+  <div class="modal-header">
+    <h3 class="modal-title">Send Report</h3>
+    <button class="modal-close" (click)="close()">✕</button>
+  </div>
+
+  <div class="modal-body">
+    <!-- Recipient selection -->
+    <div class="section-label">Select Recipient</div>
+
+    <div class="recipient-list" *ngIf="!loadingRecipients && recipients.length > 0">
+      <div
+        class="recipient-card"
+        *ngFor="let r of recipients"
+        [class.selected]="selectedRecipient === r && !useCustomEmail && !useCustomPhone"
+        (click)="selectRecipient(r)"
+      >
+        <div class="recipient-avatar">{{ r.name.charAt(0) || '?' }}</div>
+        <div class="recipient-info">
+          <span class="recipient-name">{{ r.name }}</span>
+          <span class="recipient-detail" *ngIf="r.email">{{ r.email }}</span>
+          <span class="recipient-detail" *ngIf="r.phoneNumber">{{ r.phoneNumber }}</span>
+        </div>
+        <svg *ngIf="selectedRecipient === r && !useCustomEmail && !useCustomPhone" class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="loading-recipients" *ngIf="loadingRecipients">Loading users...</div>
+    <div class="no-recipients" *ngIf="!loadingRecipients && recipients.length === 0">No users found in this PG.</div>
+
+    <!-- Divider -->
+    <div class="divider">
+      <span class="divider-text">OR</span>
+    </div>
+
+    <!-- Custom email input -->
+    <div class="custom-input-group">
+      <label>Custom Email</label>
+      <input
+        type="email"
+        [(ngModel)]="customEmail"
+        placeholder="someone@example.com"
+        (focus)="useCustomEmail = true; useCustomPhone = false"
+      />
+    </div>
+
+    <!-- Custom phone input -->
+    <div class="custom-input-group">
+      <label>Custom Phone (WhatsApp)</label>
+      <input
+        type="tel"
+        [(ngModel)]="customPhone"
+        placeholder="9876543210"
+        (focus)="useCustomPhone = true; useCustomEmail = false"
+      />
+    </div>
+  </div>
+
+  <div class="modal-actions">
+    <button class="btn-cancel" (click)="close()">Cancel</button>
+    <button
+      class="btn-email"
+      (click)="sendEmail()"
+      [disabled]="isSendingEmail || isSendingWhatsApp"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="btn-icon">
+        <path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z"/>
+        <path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z"/>
+      </svg>
+      {{ isSendingEmail ? 'Sending...' : 'Send Email' }}
+    </button>
+    <button
+      class="btn-whatsapp"
+      (click)="sendWhatsApp()"
+      [disabled]="isSendingWhatsApp || isSendingEmail"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+        <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a8 8 0 01-4.243-1.214l-.252-.149-2.868.852.852-2.868-.17-.268A8 8 0 1112 20z"/>
+      </svg>
+      {{ isSendingWhatsApp ? 'Sending...' : 'WhatsApp' }}
+    </button>
+  </div>
+</div>

@@ -14,6 +14,8 @@
           <th>Owner</th>
           <th>Owner Email</th>
           <th>Users</th>
+          <th>📧 Email</th>
+          <th>💬 WhatsApp</th>
         </tr>
       </thead>
       <tbody>
@@ -24,9 +26,29 @@
           <td>{{ pg.ownerName || '—' }}</td>
           <td>{{ pg.ownerEmail || '—' }}</td>
           <td class="pgl-count">{{ pg.userCount }}</td>
+          <td class="pgl-toggle">
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                [checked]="pg.isEmailSubscriptionEnabled"
+                (change)="toggleSubscription(pg, 'email')"
+              />
+              <span class="toggle-slider"></span>
+            </label>
+          </td>
+          <td class="pgl-toggle">
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                [checked]="pg.isWhatsappSubscriptionEnabled"
+                (change)="toggleSubscription(pg, 'whatsapp')"
+              />
+              <span class="toggle-slider"></span>
+            </label>
+          </td>
         </tr>
         <tr *ngIf="pgs.length === 0">
-          <td colspan="6" class="pgl-empty">No PGs registered yet.</td>
+          <td colspan="8" class="pgl-empty">No PGs registered yet.</td>
         </tr>
       </tbody>
     </table>

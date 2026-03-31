@@ -209,6 +209,81 @@ namespace PgManagement_WebApi.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task<PageResultsDto<ExpenseListItemDto>> GetExpensesAsync(List<string> pgIds, ExpenseListQueryDto query)
+        {
+            var expensesQuery = _context.Expenses
+                .AsNoTracking()
+                .Where(e => pgIds.Contains(e.PgId));
+
+            if (query.FromDate.HasValue)
+                expensesQuery = expensesQuery.Where(e => e.ExpenseDate >= query.FromDate.Value);
+            if (query.ToDate.HasValue)
+                expensesQuery = expensesQuery.Where(e => e.ExpenseDate <= query.ToDate.Value);
+            if (query.CategoryId.HasValue)
+                expensesQuery = expensesQuery.Where(e => e.CategoryId == query.CategoryId.Value);
+            if (query.MinAmount.HasValue)
+                expensesQuery = expensesQuery.Where(e => e.Amount >= query.MinAmount.Value);
+            if (query.MaxAmount.HasValue)
+                expensesQuery = expensesQuery.Where(e => e.Amount <= query.MaxAmount.Value);
+
+            var totalCount = await expensesQuery.CountAsync();
+
+            expensesQuery = query.SortBy?.ToLower() switch
+            {
+                "amount" => query.SortDir == "asc"
+                    ? expensesQuery.OrderBy(e => e.Amount)
+                    : expensesQuery.OrderByDescending(e => e.Amount),
+                "expensedate" => query.SortDir == "asc"
+                    ? expensesQuery.OrderBy(e => e.ExpenseDate)
+                    : expensesQuery.OrderByDescending(e => e.CreatedAt),
+                _ => expensesQuery.OrderByDescending(e => e.CreatedAt)
+            };
+
+            var items = await expensesQuery
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .Select(e => new ExpenseListItemDto
+                {
+                    Id = e.Id,
+                    ExpenseDate = e.ExpenseDate,
+                    Category = e.Category.Name,
+                    Amount = e.Amount,
+                    PaymentMode = e.PaymentMode.Code,
+                    PaymentModeLabel = e.PaymentMode.Description,
+                    Description = e.Description
+                })
+                .ToListAsync();
+
+            return new PageResultsDto<ExpenseListItemDto> { Items = items, TotalCount = totalCount };
+        }
+
+        public async Task<ExpenseSummaryDto> GetExpenseSummaryAsync(List<string> pgIds, DateTime? fromDate, DateTime? toDate, int? categoryId)
+        {
+            var query = _context.Expenses.AsNoTracking().Where(e => pgIds.Contains(e.PgId));
+
+            if (fromDate.HasValue)
+                query = query.Where(e => e.ExpenseDate.Date >= fromDate.Value.Date);
+            if (toDate.HasValue)
+                query = query.Where(e => e.ExpenseDate.Date <= toDate.Value.Date);
+            if (categoryId.HasValue)
+                query = query.Where(e => e.CategoryId == categoryId.Value);
+
+            var totalExpense = await query.SumAsync(e => e.Amount);
+
+            var categoryBreakdown = await query
+                .GroupBy(e => new { e.CategoryId, e.Category.Name })
+                .Select(g => new ExpenseCategorySummaryDto
+                {
+                    CategoryId = g.Key.CategoryId,
+                    Category = g.Key.Name,
+                    TotalAmount = g.Sum(x => x.Amount)
+                })
+                .OrderByDescending(x => x.TotalAmount)
+                .ToListAsync();
+
+            return new ExpenseSummaryDto { TotalExpense = totalExpense, CategoryBreakdown = categoryBreakdown };
+        }
+
        
 
     }

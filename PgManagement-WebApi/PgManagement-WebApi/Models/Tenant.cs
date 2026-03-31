@@ -28,8 +28,9 @@ namespace PgManagement_WebApi.Models
         public string AadharNumber { get; set; }
         public string? Notes { get; set; }
 
+        [Required]
         [MaxLength(254)]
-        public string? Email { get; set; }
+        public string Email { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

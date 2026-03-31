@@ -31,4 +31,10 @@ namespace PgManagement_WebApi.Options
         public string SecretKey { get; set; } = "";
         public string Region { get; set; } = "ap-south-1";
     }
+
+    public class WhatsAppOptions
+    {
+        public string PhoneNumberId { get; set; } = "";
+        public string AccessToken { get; set; } = "";
+    }
 }

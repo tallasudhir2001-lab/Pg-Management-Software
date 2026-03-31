@@ -104,4 +104,8 @@ export class PaymentService {
   sendReceipt(paymentId: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.baseUrl}/${paymentId}/send-receipt`, {});
   }
+
+  sendReceiptWhatsApp(paymentId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/${paymentId}/send-receipt-whatsapp`, {});
+  }
 }

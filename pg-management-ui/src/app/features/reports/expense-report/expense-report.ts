@@ -5,6 +5,7 @@ import { HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { ReportService } from '../services/report.service';
 import { ToastService } from '../../../shared/toast/toast-service';
+import { SendReportModal } from '../send-report-modal/send-report-modal';
 
 export interface ExpenseRow {
   date: string;
@@ -29,7 +30,7 @@ export interface ExpenseData {
 @Component({
   selector: 'app-expense-report',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SendReportModal],
   templateUrl: './expense-report.html',
   styleUrl: './expense-report.css'
 })
@@ -41,9 +42,7 @@ export class ExpenseReport {
   data: ExpenseData | null = null;
   isLoading = false;
   isDownloading = false;
-  isSending = false;
-  showEmailModal = false;
-  recipientEmail = '';
+  showSendModal = false;
 
   constructor(
     private reportService: ReportService,
@@ -86,17 +85,10 @@ export class ExpenseReport {
     });
   }
 
-  openEmailModal(): void { this.recipientEmail = ''; this.showEmailModal = true; }
-
-  sendEmail(): void {
-    if (!this.recipientEmail) return;
-    this.isSending = true;
-    const filters: Record<string, string> = { fromDate: this.fromDate, toDate: this.toDate };
-    if (this.categoryFilter) filters['category'] = this.categoryFilter;
-    this.reportService.sendReport('expenses', this.recipientEmail, filters).subscribe({
-      next: () => { this.isSending = false; this.showEmailModal = false; this.toastService.showSuccess('Report sent successfully'); },
-      error: err => { this.toastService.showError(err?.error || 'Failed to send'); this.isSending = false; }
-    });
+  getFilters(): Record<string, string> {
+    const f: Record<string, string> = { fromDate: this.fromDate, toDate: this.toDate };
+    if (this.categoryFilter) f['category'] = this.categoryFilter;
+    return f;
   }
 
   get totalRows(): number {

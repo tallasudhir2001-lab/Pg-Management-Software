@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PgManagement_WebApi.Attributes;
 using PgManagement_WebApi.Data;
 using PgManagement_WebApi.DTOs.PgUser;
 using PgManagement_WebApi.Identity;
@@ -76,11 +77,11 @@ namespace PgManagement_WebApi.Controllers
         // ── endpoints ────────────────────────────────────────────────────────
 
         // GET /api/pg-users/pgs — list of PGs in the branch (for the add-user form)
+        [AccessPoint("PgUser", "Manage Users")]
         [HttpGet("pgs")]
         public async Task<IActionResult> GetBranchPgs()
         {
             if (string.IsNullOrEmpty(PgId)) return Unauthorized();
-            if (!IsOwnerOrAdmin) return Forbid();
 
             var pgIds = await GetBranchPgIds();
             var pgs = await _context.PGs
@@ -92,11 +93,11 @@ namespace PgManagement_WebApi.Controllers
         }
 
         // GET /api/pg-users
+        [AccessPoint("PgUser", "Manage Users")]
         [HttpGet]
         public async Task<IActionResult> GetUsers()
         {
             if (string.IsNullOrEmpty(PgId)) return Unauthorized();
-            if (!IsOwnerOrAdmin) return Forbid();
 
             // Owner/Admin see all users across the branch; others see only current PG
             var scopePgIds = IsOwnerOrAdmin ? await GetBranchPgIds() : [PgId!];
@@ -119,11 +120,11 @@ namespace PgManagement_WebApi.Controllers
         }
 
         // POST /api/pg-users
+        [AccessPoint("PgUser", "Add User")]
         [HttpPost]
         public async Task<IActionResult> AddUser([FromBody] AddPgUserDto dto)
         {
             if (string.IsNullOrEmpty(PgId)) return Unauthorized();
-            if (!IsOwnerOrAdmin) return Forbid();
 
             if (!AllowedRoles.Contains(dto.RoleName))
                 return BadRequest("Invalid role. Must be Owner, Manager, or Staff.");
@@ -181,11 +182,11 @@ namespace PgManagement_WebApi.Controllers
         }
 
         // PUT /api/pg-users/{userId}/role
+        [AccessPoint("PgUser", "Update User Role")]
         [HttpPut("{userId}/role")]
         public async Task<IActionResult> UpdateRole(string userId, [FromBody] UpdateUserRoleDto dto)
         {
             if (string.IsNullOrEmpty(PgId)) return Unauthorized();
-            if (!IsOwnerOrAdmin) return Forbid();
 
             if (!AllowedRoles.Contains(dto.RoleName))
                 return BadRequest("Invalid role. Must be Owner, Manager, or Staff.");
@@ -207,11 +208,11 @@ namespace PgManagement_WebApi.Controllers
         }
 
         // PUT /api/pg-users/{userId}/pgs — update which branch PGs this user is assigned to
+        [AccessPoint("PgUser", "Update User PGs")]
         [HttpPut("{userId}/pgs")]
         public async Task<IActionResult> UpdatePgAssignments(string userId, [FromBody] UpdateUserPgsDto dto)
         {
             if (string.IsNullOrEmpty(PgId)) return Unauthorized();
-            if (!IsOwnerOrAdmin) return Forbid();
 
             var branchPgIds = await GetBranchPgIds();
             var inBranch = await _context.UserPgs.AnyAsync(up => up.UserId == userId && branchPgIds.Contains(up.PgId));
@@ -236,11 +237,11 @@ namespace PgManagement_WebApi.Controllers
         }
 
         // DELETE /api/pg-users/{userId} — remove user from all PGs in the branch
+        [AccessPoint("PgUser", "Remove User")]
         [HttpDelete("{userId}")]
         public async Task<IActionResult> RemoveUser(string userId)
         {
             if (string.IsNullOrEmpty(PgId)) return Unauthorized();
-            if (!IsOwnerOrAdmin) return Forbid();
 
             var branchPgIds = await GetBranchPgIds();
             var userPgs = await _context.UserPgs

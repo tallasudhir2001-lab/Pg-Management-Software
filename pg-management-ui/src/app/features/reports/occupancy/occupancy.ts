@@ -5,6 +5,7 @@ import { HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { ReportService } from '../services/report.service';
 import { ToastService } from '../../../shared/toast/toast-service';
+import { SendReportModal } from '../send-report-modal/send-report-modal';
 
 export interface OccupancyRow {
   roomNumber: string;
@@ -28,7 +29,7 @@ export interface OccupancyData {
 @Component({
   selector: 'app-occupancy',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SendReportModal],
   templateUrl: './occupancy.html',
   styleUrl: './occupancy.css'
 })
@@ -38,9 +39,7 @@ export class OccupancyReport {
   data: OccupancyData | null = null;
   isLoading = false;
   isDownloading = false;
-  isSending = false;
-  showEmailModal = false;
-  recipientEmail = '';
+  showSendModal = false;
 
   constructor(
     private reportService: ReportService,
@@ -79,15 +78,8 @@ export class OccupancyReport {
     });
   }
 
-  openEmailModal(): void { this.recipientEmail = ''; this.showEmailModal = true; }
-
-  sendEmail(): void {
-    if (!this.recipientEmail) return;
-    this.isSending = true;
-    this.reportService.sendReport('occupancy', this.recipientEmail, { asOfDate: this.asOfDate }).subscribe({
-      next: () => { this.isSending = false; this.showEmailModal = false; this.toastService.showSuccess('Report sent successfully'); },
-      error: err => { this.toastService.showError(err?.error || 'Failed to send'); this.isSending = false; }
-    });
+  getFilters(): Record<string, string> {
+    return { asOfDate: this.asOfDate };
   }
 
   goBack(): void { this.router.navigate(['/reports']); }

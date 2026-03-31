@@ -27,4 +27,12 @@ namespace PgManagement_WebApi.DTOs.Reports
         public string? RecipientName { get; set; }
         public Dictionary<string, string>? Filters { get; set; }
     }
+
+    public class SendReportWhatsAppDto
+    {
+        public string ReportType { get; set; } = "";
+        public string PhoneNumber { get; set; } = "";
+        public string? RecipientName { get; set; }
+        public Dictionary<string, string>? Filters { get; set; }
+    }
 }

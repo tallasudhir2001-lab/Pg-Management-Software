@@ -92,7 +92,9 @@ namespace PgManagement_WebApi.Controllers
                     OwnerEmail = ownerEmail,
                     UserCount = userPgs.Count,
                     BranchId = pg.BranchId,
-                    BranchName = pg.Branch?.Name
+                    BranchName = pg.Branch?.Name,
+                    IsEmailSubscriptionEnabled = pg.IsEmailSubscriptionEnabled,
+                    IsWhatsappSubscriptionEnabled = pg.IsWhatsappSubscriptionEnabled
                 });
             }
 
@@ -200,6 +202,28 @@ namespace PgManagement_WebApi.Controllers
             {
                 UserId = user?.Id ?? string.Empty,
                 PgId = pg.PgId,
+            });
+        }
+
+        // PUT /api/admin/pgs/{pgId}/subscription
+        [HttpPut("pgs/{pgId}/subscription")]
+        public async Task<IActionResult> UpdatePgSubscription(string pgId, UpdatePgSubscriptionDto dto)
+        {
+            var pg = await context.PGs.FindAsync(pgId);
+            if (pg == null)
+                return NotFound("PG not found.");
+
+            pg.IsEmailSubscriptionEnabled = dto.IsEmailSubscriptionEnabled;
+            pg.IsWhatsappSubscriptionEnabled = dto.IsWhatsappSubscriptionEnabled;
+
+            await context.SaveChangesAsync();
+
+            return Ok(new PgSubscriptionDto
+            {
+                PgId = pg.PgId,
+                PgName = pg.Name,
+                IsEmailSubscriptionEnabled = pg.IsEmailSubscriptionEnabled,
+                IsWhatsappSubscriptionEnabled = pg.IsWhatsappSubscriptionEnabled
             });
         }
     }

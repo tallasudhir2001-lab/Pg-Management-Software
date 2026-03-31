@@ -3,6 +3,16 @@
   <aside class="sidebar">
     <h2 class="logo">PG Manager</h2>
 
+    <!-- Branch View Toggle -->
+    <div class="branch-toggle-wrapper" *ngIf="branchView.canToggle$ | async">
+      <label class="branch-toggle">
+        <span class="branch-toggle-label">Branch View</span>
+        <div class="toggle-switch" [class.active]="branchView.isActive$ | async" (click)="onBranchToggle()">
+          <div class="toggle-knob"></div>
+        </div>
+      </label>
+    </div>
+
     <nav>
       <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
       <a routerLink="/room-list" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Rooms</a>
@@ -26,8 +36,8 @@
       </div>
       <a routerLink="/expenses" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Expenses</a>
       <a routerLink="/reports" routerLinkActive="active">Reports</a>
-      @if (isOwner) {
-        <a routerLink="/pg-users" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Manage Users</a>
+      @if (showConfigurations) {
+        <a routerLink="/configurations" routerLinkActive="active">Configurations</a>
       }
     </nav>
 

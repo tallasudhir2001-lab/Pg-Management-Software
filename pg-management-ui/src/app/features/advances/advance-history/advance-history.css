@@ -39,6 +39,7 @@
   font-weight: 600;
   color: #6b7280;
   user-select: none;
+  white-space: nowrap;
 }
 
 .ah-show-all input[type="checkbox"] {
@@ -129,8 +130,8 @@
 
 /* ---- action buttons ---- */
 .btn-primary {
-  background-color: #0f1041;
-  color: #fff;
+  background: #d1fae5;
+  color: #065f46;
   border: none;
   padding: 9px 16px;
   border-radius: 10px;
@@ -142,12 +143,12 @@
 }
 
 .btn-primary:hover {
-  background-color: #1a1c5e;
+  background: #a7f3d0;
 }
 
 .btn-save {
-  background-color: #0f1041;
-  color: #fff;
+  background: #eef2ff;
+  color: #3730a3;
   border: none;
   padding: 7px 16px;
   border-radius: 10px;
@@ -159,7 +160,7 @@
 }
 
 .btn-save:hover:not(:disabled) {
-  background-color: #1a1c5e;
+  background: #e0e7ff;
 }
 
 .btn-save:disabled {

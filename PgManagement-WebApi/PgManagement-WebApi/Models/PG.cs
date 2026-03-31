@@ -20,6 +20,10 @@ namespace PgManagement_WebApi.Models
         public string? BranchId { get; set; }
         public Branch? Branch { get; set; }
 
+        // Subscription flags (managed by Admin)
+        public bool IsEmailSubscriptionEnabled { get; set; }
+        public bool IsWhatsappSubscriptionEnabled { get; set; }
+
         // Navigation properties
         public ICollection<Room> Rooms { get; set; }
         public ICollection<Tenant> Tenants { get; set; }

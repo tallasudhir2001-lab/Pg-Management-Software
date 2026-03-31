@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PgManagement_WebApi.Attributes;
+using PgManagement_WebApi.Data;
 using PgManagement_WebApi.DTOs.Reports;
 using PgManagement_WebApi.Services;
 
@@ -11,11 +13,19 @@ namespace PgManagement_WebApi.Controllers
     {
         private readonly IReportService _reportService;
         private readonly IEmailNotificationService _emailService;
+        private readonly IWhatsAppProvider _whatsAppProvider;
+        private readonly ApplicationDbContext _context;
 
-        public ReportsController(IReportService reportService, IEmailNotificationService emailService)
+        public ReportsController(
+            IReportService reportService,
+            IEmailNotificationService emailService,
+            IWhatsAppProvider whatsAppProvider,
+            ApplicationDbContext context)
         {
             _reportService = reportService;
             _emailService = emailService;
+            _whatsAppProvider = whatsAppProvider;
+            _context = context;
         }
 
         private string PgId => User.FindFirst("pgId")?.Value ?? "";
@@ -238,7 +248,67 @@ namespace PgManagement_WebApi.Controllers
             if (string.IsNullOrEmpty(dto.RecipientEmail))
                 return BadRequest("Recipient email is required.");
 
+            var pg = await _context.PGs.FindAsync(PgId);
+            if (pg == null) return NotFound("PG not found.");
+            if (!pg.IsEmailSubscriptionEnabled)
+                return BadRequest("Email subscription is not enabled for this PG. Please purchase an email subscription to use this feature.");
+
             var filters = dto.Filters ?? new Dictionary<string, string>();
+            var pdf = await GenerateReportPdf(dto.ReportType, filters);
+
+            await _emailService.SendReportAsync(dto.ReportType, pdf, dto.RecipientEmail);
+            return Ok(new { message = $"Report sent to {dto.RecipientEmail}" });
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // SEND REPORT VIA WHATSAPP
+        // ──────────────────────────────────────────────────────────────────────
+        [HttpPost("send-whatsapp")]
+        public async Task<IActionResult> SendReportWhatsApp([FromBody] SendReportWhatsAppDto dto)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            if (string.IsNullOrEmpty(dto.PhoneNumber))
+                return BadRequest("Phone number is required.");
+
+            var pg = await _context.PGs.FindAsync(PgId);
+            if (pg == null) return NotFound("PG not found.");
+            if (!pg.IsWhatsappSubscriptionEnabled)
+                return BadRequest("WhatsApp subscription is not enabled for this PG.");
+
+            var filters = dto.Filters ?? new Dictionary<string, string>();
+            var pdf = await GenerateReportPdf(dto.ReportType, filters);
+
+            var caption = $"📊 {dto.ReportType.Replace("-", " ").ToUpper()} Report\nGenerated on {DateTime.Now:dd MMM yyyy HH:mm}";
+            await _whatsAppProvider.SendDocumentAsync(dto.PhoneNumber, pdf, $"{dto.ReportType}.pdf", caption);
+
+            return Ok(new { message = $"Report sent via WhatsApp to {dto.PhoneNumber}" });
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // GET USERS IN THIS PG (for send modal dropdown)
+        // ──────────────────────────────────────────────────────────────────────
+        [HttpGet("available-recipients")]
+        public async Task<IActionResult> GetAvailableRecipients()
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+
+            var users = await _context.UserPgs
+                .Where(up => up.PgId == PgId)
+                .Include(up => up.User)
+                .Select(up => new
+                {
+                    up.UserId,
+                    Name = up.User.FullName ?? up.User.UserName ?? "",
+                    up.User.Email,
+                    up.User.PhoneNumber
+                })
+                .ToListAsync();
+
+            return Ok(users);
+        }
+
+        private async Task<byte[]> GenerateReportPdf(string reportType, Dictionary<string, string> filters)
+        {
             filters.TryGetValue("asOfDate", out var asOfStr);
             filters.TryGetValue("fromDate", out var fromStr);
             filters.TryGetValue("status", out var status);
@@ -250,7 +320,7 @@ namespace PgManagement_WebApi.Controllers
             var asOfDate = DateTime.TryParse(asOfStr, out var aof) ? aof : DateTime.Today;
             var fromDate = DateTime.TryParse(fromStr, out var fd) ? fd : new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
-            byte[] pdf = dto.ReportType switch
+            return reportType switch
             {
                 "rent-collection"  => await _reportService.GenerateRentCollectionReportAsync(PgId, fromDate.Month, fromDate.Year, null, status),
                 "overdue-rent"     => await _reportService.GenerateOverdueRentReportAsync(PgId, asOfDate, null),
@@ -262,9 +332,6 @@ namespace PgManagement_WebApi.Controllers
                 "profit-loss"      => await _reportService.GenerateProfitLossReportAsync(PgId, fromDate.Month, fromDate.Year),
                 _ => throw new ArgumentException("Unknown report type")
             };
-
-            await _emailService.SendReportAsync(dto.ReportType, pdf, dto.RecipientEmail);
-            return Ok(new { message = $"Report sent to {dto.RecipientEmail}" });
         }
     }
 }

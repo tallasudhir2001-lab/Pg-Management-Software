@@ -4,6 +4,19 @@
   margin: 0 auto;
 }
 
+.back-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  width: fit-content;
+}
+.back-nav:hover { color: #374151; }
+.back-icon { width: 16px; height: 16px; }
+
 .pgu-header {
   display: flex;
   align-items: center;
@@ -231,8 +244,8 @@
 /* PG checkbox list (add form + edit) */
 .pg-checkbox-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
   margin-top: 4px;
 }
 .pg-check-label {
@@ -242,6 +255,13 @@
   font-size: 13px;
   color: #374151;
   cursor: pointer;
+  white-space: nowrap;
+}
+.pg-check-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 /* PG edit inline */
@@ -264,4 +284,10 @@
 
 .form-group--full {
   grid-column: 1 / -1;
+}
+
+.form-group--full .pg-checkbox-list {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
 }

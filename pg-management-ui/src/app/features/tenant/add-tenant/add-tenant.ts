@@ -42,7 +42,7 @@ export class AddTenant implements OnInit {
       name: ['', Validators.required],
       contactNumber: ['', Validators.required],
       aadharNumber: ['', [Validators.pattern(/^\d{12}$/)]],
-      email: ['', [Validators.email]],
+      email: ['', [Validators.required, Validators.email]],
       hasRoom: [false],
       roomId: [''],
       fromDate: [null],
@@ -89,6 +89,7 @@ export class AddTenant implements OnInit {
 
     if (!v.name?.trim()) { this.toastService.showError('Tenant name is required.'); return; }
     if (!v.contactNumber?.trim()) { this.toastService.showError('Mobile number is required.'); return; }
+    if (!v.email?.trim()) { this.toastService.showError('Email is required.'); return; }
     if (v.aadharNumber && !/^\d{12}$/.test(v.aadharNumber)) {
       this.toastService.showError('Aadhaar number must be exactly 12 digits.'); return;
     }
@@ -117,7 +118,7 @@ export class AddTenant implements OnInit {
       name: v.name,
       contactNumber: v.contactNumber,
       aadharNumber: v.aadharNumber,
-      email: v.email || null,
+      email: v.email,
       roomId: v.hasRoom ? (v.roomId || null) : null,
       fromDate: v.hasRoom ? v.fromDate : null,
       notes: v.notes,

@@ -27,7 +27,7 @@
     <div class="report-card-header">
       <h3 class="report-card-title">{{ data.rows.length }} tenants</h3>
       <div class="report-card-actions">
-        <button class="btn-secondary" (click)="openEmailModal()">✉️ Send Email</button>
+        <button class="btn-secondary" (click)="showSendModal = true">📤 Send</button>
         <button class="btn-primary" (click)="downloadPdf()" [disabled]="isDownloading">
           {{ isDownloading ? 'Generating...' : '⬇ Download PDF' }}
         </button>
@@ -63,22 +63,9 @@
   </div>
 </div>
 
-<div class="modal-backdrop" *ngIf="showEmailModal"></div>
-<div class="modal" *ngIf="showEmailModal">
-  <div class="modal-header">
-    <h3 class="modal-title">Send Report by Email</h3>
-    <button class="modal-close" (click)="showEmailModal = false">✕</button>
-  </div>
-  <div class="modal-body">
-    <div class="form-group">
-      <label>Recipient Email</label>
-      <input type="email" [(ngModel)]="recipientEmail" placeholder="owner@example.com" />
-    </div>
-  </div>
-  <div class="modal-actions">
-    <button class="btn-secondary" (click)="showEmailModal = false">Cancel</button>
-    <button class="btn-primary" (click)="sendEmail()" [disabled]="!recipientEmail || isSending">
-      {{ isSending ? 'Sending...' : 'Send' }}
-    </button>
-  </div>
-</div>
+<app-send-report-modal
+  *ngIf="showSendModal"
+  [reportType]="'tenant-list'"
+  [filters]="getFilters()"
+  (closed)="showSendModal = false"
+></app-send-report-modal>

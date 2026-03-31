@@ -52,6 +52,8 @@ namespace PgManagement_WebApi.Data
         public DbSet<AccessPoint> AccessPoints { get; set; }
         public DbSet<RoleAccessPoint> RoleAccessPoints { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<NotificationSettings> NotificationSettings { get; set; }
+        public DbSet<ReportSubscription> ReportSubscriptions { get; set; }
 
 
 
@@ -289,6 +291,38 @@ namespace PgManagement_WebApi.Data
 
             modelBuilder.Entity<RefreshToken>()
                 .HasIndex(rt => rt.Token)
+                .IsUnique();
+
+            /* ============================================================
+               NotificationSettings → PG (one-to-one per PG)
+               ============================================================ */
+            modelBuilder.Entity<NotificationSettings>()
+                .HasOne(ns => ns.PG)
+                .WithMany()
+                .HasForeignKey(ns => ns.PgId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<NotificationSettings>()
+                .HasIndex(ns => ns.PgId)
+                .IsUnique();
+
+            /* ============================================================
+               ReportSubscription → PG + User
+               ============================================================ */
+            modelBuilder.Entity<ReportSubscription>()
+                .HasOne(rs => rs.PG)
+                .WithMany()
+                .HasForeignKey(rs => rs.PgId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ReportSubscription>()
+                .HasOne(rs => rs.User)
+                .WithMany()
+                .HasForeignKey(rs => rs.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ReportSubscription>()
+                .HasIndex(rs => new { rs.PgId, rs.UserId, rs.ReportType })
                 .IsUnique();
 
             modelBuilder.ApplyConfiguration(new ExpenseConfiguration());

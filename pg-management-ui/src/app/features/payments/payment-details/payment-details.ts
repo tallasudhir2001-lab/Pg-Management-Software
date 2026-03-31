@@ -9,6 +9,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../shared/toast/toast-service';
 import { ReceiptDrawer } from '../receipt-drawer/receipt-drawer';
 import { TimeHelper } from '../../../shared/utils/time.helper';
+import { SettingsService, SubscriptionStatus } from '../../settings/services/settings.service';
 
 export interface PaymentDetails {
   paymentId: string;
@@ -51,6 +52,10 @@ export class PaymentDetails implements OnChanges {
   loading = true;
   showReceipt = false;
   sendingReceipt = false;
+  sendingWhatsApp = false;
+  showSendMenu = false;
+  isEmailEnabled = false;
+  isWhatsAppEnabled = false;
 
   constructor(
     private fb: FormBuilder,
@@ -58,7 +63,8 @@ export class PaymentDetails implements OnChanges {
     private route: ActivatedRoute,
     private router: Router,
     private toastService: ToastService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private settingsService: SettingsService
   ) {}
 
   ngOnInit(): void {
@@ -94,6 +100,14 @@ export class PaymentDetails implements OnChanges {
       );
 
     this.paymentModes$ = this.paymentService.getPaymentModes();
+
+    this.settingsService.getSubscriptionStatus().subscribe({
+      next: (status) => {
+        this.isEmailEnabled = status.isEmailSubscriptionEnabled;
+        this.isWhatsAppEnabled = status.isWhatsappSubscriptionEnabled;
+      },
+      error: () => {}
+    });
   }
 
   private buildForm(payment: PaymentDetails) {
@@ -123,18 +137,50 @@ export class PaymentDetails implements OnChanges {
     this.cdr.detectChanges();
   }
 
-  sendReceipt(): void {
+  toggleSendMenu(): void {
+    this.showSendMenu = !this.showSendMenu;
+  }
+
+  sendViaEmail(): void {
     if (this.sendingReceipt) return;
+    if (!this.isEmailEnabled) {
+      this.toastService.showError('Email subscription is not enabled. Please contact your admin to activate it.');
+      this.showSendMenu = false;
+      return;
+    }
     this.sendingReceipt = true;
+    this.showSendMenu = false;
     this.paymentService.sendReceipt(this.paymentId).subscribe({
       next: (res) => {
         this.toastService.showSuccess(res.message);
         this.sendingReceipt = false;
       },
       error: (err) => {
-        const msg = err?.error?.message ?? err?.error ?? 'Failed to send receipt.';
+        const msg = err?.error?.message ?? err?.error ?? 'Failed to send receipt via email.';
         this.toastService.showError(msg);
         this.sendingReceipt = false;
+      }
+    });
+  }
+
+  sendViaWhatsApp(): void {
+    if (this.sendingWhatsApp) return;
+    if (!this.isWhatsAppEnabled) {
+      this.toastService.showError('WhatsApp subscription is not enabled. Please contact your admin to activate it.');
+      this.showSendMenu = false;
+      return;
+    }
+    this.sendingWhatsApp = true;
+    this.showSendMenu = false;
+    this.paymentService.sendReceiptWhatsApp(this.paymentId).subscribe({
+      next: (res) => {
+        this.toastService.showSuccess(res.message);
+        this.sendingWhatsApp = false;
+      },
+      error: (err) => {
+        const msg = err?.error?.message ?? err?.error ?? 'Failed to send receipt via WhatsApp.';
+        this.toastService.showError(msg);
+        this.sendingWhatsApp = false;
       }
     });
   }

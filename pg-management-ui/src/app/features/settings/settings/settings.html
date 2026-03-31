@@ -1,0 +1,92 @@
+<div class="settings-page">
+  <div class="back-nav" (click)="goBack()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="back-icon">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+    </svg>
+    <span>Configurations</span>
+  </div>
+  <h1 class="settings-title">⚙️ Settings</h1>
+
+  <div *ngIf="loading" class="settings-loading">Loading settings...</div>
+
+  <div *ngIf="!loading" class="settings-content">
+
+    <!-- Subscription Status Banner -->
+    <div class="subscription-banner">
+      <h3 class="banner-title">📋 Subscription Status</h3>
+      <div class="subscription-items">
+        <div class="subscription-item">
+          <span class="sub-icon" [class.active]="isEmailSubscriptionEnabled">📧</span>
+          <span class="sub-label">Email Notifications</span>
+          <span class="sub-status" [class.active]="isEmailSubscriptionEnabled">
+            {{ isEmailSubscriptionEnabled ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+        <div class="subscription-item">
+          <span class="sub-icon" [class.active]="isWhatsappSubscriptionEnabled">💬</span>
+          <span class="sub-label">WhatsApp Notifications</span>
+          <span class="sub-status" [class.active]="isWhatsappSubscriptionEnabled">
+            {{ isWhatsappSubscriptionEnabled ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+      </div>
+      <p class="sub-hint" *ngIf="!isEmailSubscriptionEnabled && !isWhatsappSubscriptionEnabled">
+        Contact your admin to enable notification subscriptions.
+      </p>
+    </div>
+
+    <!-- Notification Settings Card -->
+    <div class="settings-card">
+      <h3 class="card-title">🔔 Payment Notifications</h3>
+
+      <!-- Auto Send Toggle -->
+      <div class="setting-row">
+        <label class="setting-label">
+          <input
+            type="checkbox"
+            [(ngModel)]="autoSendPaymentReceipt"
+            (change)="onAutoSendToggle()"
+          />
+          <span>Send payment receipt to tenant automatically upon a payment</span>
+        </label>
+      </div>
+
+      <!-- Channel Selection (visible when auto-send is enabled) -->
+      <div class="channel-selection" *ngIf="autoSendPaymentReceipt">
+        <p class="channel-label">Send via:</p>
+
+        <label class="channel-option" [class.disabled]="!isEmailSubscriptionEnabled">
+          <input
+            type="checkbox"
+            [(ngModel)]="sendViaEmail"
+            (change)="onEmailToggle()"
+            [disabled]="!isEmailSubscriptionEnabled"
+          />
+          <span>📧 Email</span>
+          <span class="no-sub" *ngIf="!isEmailSubscriptionEnabled">(subscription not active)</span>
+        </label>
+
+        <label class="channel-option" [class.disabled]="!isWhatsappSubscriptionEnabled">
+          <input
+            type="checkbox"
+            [(ngModel)]="sendViaWhatsapp"
+            (change)="onWhatsappToggle()"
+            [disabled]="!isWhatsappSubscriptionEnabled"
+          />
+          <span>💬 WhatsApp</span>
+          <span class="no-sub" *ngIf="!isWhatsappSubscriptionEnabled">(subscription not active)</span>
+        </label>
+      </div>
+
+      <!-- Save Button -->
+      <div class="settings-actions">
+        <button class="btn-save" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Saving...' : 'Save Settings' }}
+        </button>
+      </div>
+
+      <div class="success-msg" *ngIf="successMsg">{{ successMsg }}</div>
+      <div class="error-msg" *ngIf="error">{{ error }}</div>
+    </div>
+  </div>
+</div>

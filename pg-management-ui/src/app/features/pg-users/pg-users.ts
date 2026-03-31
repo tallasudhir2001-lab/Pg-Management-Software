@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { ToastService } from '../../shared/toast/toast-service';
 
@@ -55,7 +56,9 @@ export class PgUserManagement implements OnInit {
   // Remove confirm
   pendingRemoveUserId: string | null = null;
 
-  constructor(private http: HttpClient, private toast: ToastService, private cdr: ChangeDetectorRef) {}
+  constructor(private http: HttpClient, private toast: ToastService, private cdr: ChangeDetectorRef, private router: Router) {}
+
+  goBack(): void { this.router.navigate(['/configurations']); }
 
   ngOnInit(): void {
     this.loadBranchPgs();

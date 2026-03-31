@@ -8,6 +8,10 @@ using PgManagement_WebApi.Identity;
 using PgManagement_WebApi.MiddleWare;
 using PgManagement_WebApi.Options;
 using PgManagement_WebApi.Services;
+using PgManagement_WebApi.Jobs;
+using PgManagement_WebApi.Filters;
+using Hangfire;
+using Hangfire.SqlServer;
 using QuestPDF.Infrastructure;
 using System.Text;
 
@@ -34,6 +38,28 @@ if (emailProvider == "AwsSes")
     builder.Services.AddScoped<IEmailProvider, AwsSesEmailProvider>();
 else
     builder.Services.AddScoped<IEmailProvider, SmtpEmailProvider>();
+
+// WhatsApp
+builder.Services.Configure<WhatsAppOptions>(builder.Configuration.GetSection("WhatsApp"));
+builder.Services.AddHttpClient<IWhatsAppProvider, WhatsAppCloudApiProvider>();
+builder.Services.AddScoped<IWhatsAppNotificationService, WhatsAppNotificationService>();
+
+// Hangfire
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection"), new SqlServerStorageOptions
+    {
+        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+        QueuePollInterval = TimeSpan.FromSeconds(15),
+        UseRecommendedIsolationLevel = true,
+        DisableGlobalLocks = true
+    }));
+builder.Services.AddHangfireServer();
+builder.Services.AddSingleton<DailyReportEmailJob>();
+builder.Services.AddSingleton<DailyRentReminderJob>();
 
 
 
@@ -136,6 +162,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// Hangfire Dashboard (admin-only)
+app.MapHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new HangfireAuthorizationFilter() }
+});
+
 //Seed Inital Data
 using (var scope = app.Services.CreateScope())
 {
@@ -152,5 +184,18 @@ using (var scope = app.Services.CreateScope())
     var discoveryService = scope.ServiceProvider.GetRequiredService<IAccessPointDiscoveryService>();
     await discoveryService.SyncAccessPointsAsync();
 }
+
+// Register Hangfire recurring jobs
+RecurringJob.AddOrUpdate<DailyRentReminderJob>(
+    "daily-rent-reminders",
+    job => job.ExecuteAsync(),
+    "0 9 * * *",  // 9:00 AM daily
+    new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time") });
+
+RecurringJob.AddOrUpdate<DailyReportEmailJob>(
+    "daily-report-emails",
+    job => job.ExecuteAsync(),
+    "0 8 * * *",  // 8:00 AM daily
+    new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time") });
 
 app.Run();

@@ -90,6 +90,55 @@ namespace PgManagement_WebApi.Services
             };
         }
 
+        public async Task<PageResultsDto<BookingListItemDto>> GetBookingsAsync(List<string> pgIds, BookingListQueryDto query)
+        {
+            var bookingsQuery = _context.Bookings
+                .AsNoTracking()
+                .Where(b => pgIds.Contains(b.PgId));
+
+            if (query.FromDate.HasValue)
+                bookingsQuery = bookingsQuery.Where(b => b.ScheduledCheckInDate >= query.FromDate.Value);
+            if (query.ToDate.HasValue)
+                bookingsQuery = bookingsQuery.Where(b => b.ScheduledCheckInDate <= query.ToDate.Value);
+            if (!string.IsNullOrEmpty(query.Status) && Enum.TryParse<BookingStatus>(query.Status, true, out var statusFilter))
+                bookingsQuery = bookingsQuery.Where(b => b.Status == statusFilter);
+            if (!string.IsNullOrEmpty(query.RoomId))
+                bookingsQuery = bookingsQuery.Where(b => b.RoomId == query.RoomId);
+
+            var totalCount = await bookingsQuery.CountAsync();
+
+            bookingsQuery = query.SortBy?.ToLower() switch
+            {
+                "checkindate" => query.SortDir == "asc"
+                    ? bookingsQuery.OrderBy(b => b.ScheduledCheckInDate)
+                    : bookingsQuery.OrderByDescending(b => b.ScheduledCheckInDate),
+                "advanceamount" => query.SortDir == "asc"
+                    ? bookingsQuery.OrderBy(b => b.AdvanceAmount)
+                    : bookingsQuery.OrderByDescending(b => b.AdvanceAmount),
+                _ => bookingsQuery.OrderByDescending(b => b.CreatedAt)
+            };
+
+            var items = await bookingsQuery
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .Select(b => new BookingListItemDto
+                {
+                    BookingId = b.BookingId,
+                    TenantId = b.TenantId,
+                    TenantName = b.Tenant.Name,
+                    RoomId = b.RoomId,
+                    RoomNumber = b.Room.RoomNumber,
+                    ScheduledCheckInDate = b.ScheduledCheckInDate,
+                    Status = b.Status.ToString(),
+                    AdvanceAmount = b.AdvanceAmount,
+                    Notes = b.Notes,
+                    CreatedAt = b.CreatedAt
+                })
+                .ToListAsync();
+
+            return new PageResultsDto<BookingListItemDto> { Items = items, TotalCount = totalCount };
+        }
+
         public async Task<BookingDetailsDto?> GetBookingByIdAsync(string pgId, string bookingId)
         {
             return await _context.Bookings

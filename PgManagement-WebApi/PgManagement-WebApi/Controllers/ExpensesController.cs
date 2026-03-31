@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PgManagement_WebApi.Attributes;
 using PgManagement_WebApi.Data;
 using PgManagement_WebApi.DTOs.Expense;
+using PgManagement_WebApi.Helpers;
 using PgManagement_WebApi.Identity;
 using PgManagement_WebApi.Services;
 
@@ -30,23 +31,23 @@ namespace PgManagement_WebApi.Controllers
         public async Task<IActionResult> GetExpenses(
         [FromQuery] ExpenseListQueryDto query)
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
-            var result = await expenseService.GetExpensesAsync(pgId, query);
+            var result = await expenseService.GetExpensesAsync(pgIds, query);
             return Ok(result);
         }
 
         [HttpGet("summary")]
         public async Task<IActionResult> GetExpenseSummary([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate, [FromQuery] int? categoryId)
         {
-            var pgId = User.FindFirst("pgId")?.Value;
-            if (string.IsNullOrEmpty(pgId))
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
                 return Unauthorized();
 
             var summary = await expenseService
-                .GetExpenseSummaryAsync(pgId, fromDate, toDate, categoryId);
+                .GetExpenseSummaryAsync(pgIds, fromDate, toDate, categoryId);
 
             return Ok(summary);
         }
