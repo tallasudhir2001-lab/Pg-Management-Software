@@ -168,6 +168,47 @@ table.report-table tfoot td {
   border-top: 2px solid #e5e7eb;
 }
 
+/* ── Row-level status highlighting (matches PDF) ── */
+table.report-table tbody tr.row-overdue td { background: #fef2f2; }
+table.report-table tbody tr.row-overdue:hover td { background: #fee2e2; }
+table.report-table tbody tr.row-partial td { background: #fffbeb; }
+table.report-table tbody tr.row-partial:hover td { background: #fef3c7; }
+table.report-table tbody tr.row-paid td { background: #f0fdf4; }
+table.report-table tbody tr.row-paid:hover td { background: #dcfce7; }
+
+/* ── Amount coloring (matches PDF) ── */
+.amt-green { color: #065f46; font-weight: 600; }
+.amt-red { color: #991b1b; font-weight: 600; }
+.amt-bold { font-weight: 700; color: #111827; }
+
+/* ── Summary bar (matches PDF footer) ── */
+.report-summary-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  background: #f3f4f6;
+  border-radius: 0 0 12px 12px;
+  padding: 14px 20px;
+  border-top: 1px solid #e5e7eb;
+}
+.report-summary-bar .summary-item {
+  flex: 1;
+  min-width: 120px;
+}
+.report-summary-bar .summary-item .summary-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.report-summary-bar .summary-item .summary-val {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827;
+  margin-top: 2px;
+}
+
 .text-right { text-align: right; }
 .text-center { text-align: center; }
 

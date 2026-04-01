@@ -28,4 +28,21 @@
     {
         public decimal TotalExpenses { get; set; }
     }
+
+    public class DashboardAlertsDto
+    {
+        public int MovedOutWithPendingRent { get; set; }
+        public int MovedOutWithUnsettledAdvance { get; set; }
+        public int ActiveWithPendingRent { get; set; }
+    }
+
+    public class CollectionSummaryDto
+    {
+        public decimal ExpectedRent { get; set; }
+        public decimal CollectedRent { get; set; }
+        public decimal PendingRent { get; set; }
+        public double CollectionRate { get; set; }
+        public int PaidCount { get; set; }
+        public int PendingCount { get; set; }
+    }
 }

@@ -39,6 +39,7 @@ export class TenantList implements OnInit{
   selectedRoomLabel = '';
   filterStatus: '' | 'ACTIVE' | 'MOVED OUT' = '';
   filterRentPending: '' | 'true' | 'false' = '';
+  filterAdvancePending: '' | 'true' = '';
 
   //sorting
   sortBy = 'updated';
@@ -71,15 +72,18 @@ export class TenantList implements OnInit{
         const roomId = roomIdParam ? roomIdParam : null;
         const rentPendingParam = params.get('rentPending');
         const rentPending = rentPendingParam ? rentPendingParam : null;
+        const advancePendingParam = params.get('advancePending');
+        const advancePending = advancePendingParam ? advancePendingParam : null;
         const sortByParam = params.get('sortBy') || 'updated';
         const sortDirParam = (params.get('sortDir') as 'asc' | 'desc') || 'desc';
-        
+
         //  sync UI
         this.currentPage = page;
         this.searchText = search;
         this.filterStatus = tenantStatus as any;
         this.selectedRoomId = roomId;
         this.filterRentPending = (rentPending || '') as any;
+        this.filterAdvancePending = (advancePending || '') as any;
         this.sortBy = sortByParam;
         this.sortDir = sortDirParam;
 
@@ -91,19 +95,20 @@ export class TenantList implements OnInit{
           this.selectedRoomLabel = '';
         }
 
-        return { page, search, tenantStatus, roomId, rentPending, sortBy: sortByParam, sortDir: sortDirParam};
+        return { page, search, tenantStatus, roomId, rentPending, advancePending, sortBy: sortByParam, sortDir: sortDirParam};
       }),
       distinctUntilChanged(
         (a, b) => JSON.stringify(a) === JSON.stringify(b)
       ),
-      switchMap(({ page, search, tenantStatus, roomId, rentPending, sortBy, sortDir }) =>
+      switchMap(({ page, search, tenantStatus, roomId, rentPending, advancePending, sortBy, sortDir }) =>
         this.tenantService.getTenants({
           page,
           pageSize: this.pageSize,
           search,
-          status:tenantStatus,
-          roomId:roomId ?? undefined,
+          status: tenantStatus,
+          roomId: roomId ?? undefined,
           rentPending: rentPending === 'true' ? true : rentPending === 'false' ? false : undefined,
+          advancePending: advancePending === 'true' ? true : undefined,
           sortBy,
           sortDir
         })
@@ -155,8 +160,9 @@ prevPage(): void {
   this.selectedRoomLabel = '';
   this.roomSearchText = '';
   this.filterRentPending = '';
+  this.filterAdvancePending = '';
 
-  this.updateUrl({ page: 1,status:null,roomId:null,rentPending:null,sortBy:null,sortDir:null });
+  this.updateUrl({ page: 1, status: null, roomId: null, rentPending: null, advancePending: null, sortBy: null, sortDir: null });
   this.showFilters = false;
 }
 
@@ -166,6 +172,7 @@ prevPage(): void {
   status?: string | null;
   roomId?: string | null;
   rentPending?: string | null;
+  advancePending?: string | null;
   sortBy?: string | null;
   sortDir?: string | null;
 }): void {

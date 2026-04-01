@@ -54,6 +54,7 @@ namespace PgManagement_WebApi.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<NotificationSettings> NotificationSettings { get; set; }
         public DbSet<ReportSubscription> ReportSubscriptions { get; set; }
+        public DbSet<AuditEvent> AuditEvents { get; set; }
 
 
 
@@ -324,6 +325,27 @@ namespace PgManagement_WebApi.Data
             modelBuilder.Entity<ReportSubscription>()
                 .HasIndex(rs => new { rs.PgId, rs.UserId, rs.ReportType })
                 .IsUnique();
+
+            /* ============================================================
+               AuditEvent
+               ============================================================ */
+            modelBuilder.Entity<AuditEvent>()
+                .HasOne(a => a.PG)
+                .WithMany()
+                .HasForeignKey(a => a.PgId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AuditEvent>()
+                .HasOne(a => a.PerformedByUser)
+                .WithMany()
+                .HasForeignKey(a => a.PerformedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AuditEvent>()
+                .HasOne(a => a.ReviewedByUser)
+                .WithMany()
+                .HasForeignKey(a => a.ReviewedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.ApplyConfiguration(new ExpenseConfiguration());
             modelBuilder.ApplyConfiguration(new ExpenseCategoryConfiguration());

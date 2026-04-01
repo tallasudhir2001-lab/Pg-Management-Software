@@ -39,6 +39,7 @@ namespace PgManagement_WebApi.Controllers
      string? status = null,
      string? roomId = null,
      bool? rentPending = null,
+     bool? advancePending = null,
      string sortBy = "updated",
      string sortDir = "desc")
         {
@@ -195,7 +196,7 @@ namespace PgManagement_WebApi.Controllers
             // 6️⃣ Filters — applied before pagination
             if (!string.IsNullOrEmpty(status))
             {
-                result = status.ToLower() switch
+                result = status.ToLower().Replace(" ", "") switch
                 {
                     "active" => result.Where(x => x.Status == "ACTIVE").ToList(),
                     "movedout" => result.Where(x => x.Status == "MOVED OUT").ToList(),
@@ -212,6 +213,19 @@ namespace PgManagement_WebApi.Controllers
             if (rentPending.HasValue)
             {
                 result = result.Where(x => x.IsRentPending == rentPending.Value).ToList();
+            }
+
+            if (advancePending.HasValue && advancePending.Value)
+            {
+                var tenantIdsWithUnsettledAdvance = await context.Advances
+                    .AsNoTracking()
+                    .Where(a => !a.IsSettled && !a.IsDeleted)
+                    .Select(a => a.TenantId)
+                    .Distinct()
+                    .ToListAsync();
+
+                var unsettledSet = tenantIdsWithUnsettledAdvance.ToHashSet();
+                result = result.Where(x => unsettledSet.Contains(x.TenantId)).ToList();
             }
 
             // Sort by computed fields (post-processing)

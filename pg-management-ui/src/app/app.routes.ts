@@ -37,6 +37,7 @@ import { ProfitLossReport } from './features/reports/profit-loss/profit-loss';
 import { Settings } from './features/settings/settings/settings';
 import { ConfigurationsLanding } from './features/configurations/configurations-landing/configurations-landing';
 import { ReportSubscriptions } from './features/settings/report-subscriptions/report-subscriptions';
+import { AuditLog } from './features/audit/audit-log/audit-log';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -83,7 +84,8 @@ export const routes: Routes = [
             { path: 'configurations', component: ConfigurationsLanding },
             { path: 'configurations/manage-users', component: PgUserManagement, canActivate: [permissionGuard], data: { requiredPermission: 'PgUser.GetUsers' } },
             { path: 'configurations/notifications', component: Settings, canActivate: [permissionGuard], data: { requiredPermission: 'Settings.GetNotificationSettings' } },
-            { path: 'configurations/report-subscriptions', component: ReportSubscriptions, canActivate: [permissionGuard], data: { requiredPermission: 'Settings.GetReportSubscriptions' } }
+            { path: 'configurations/report-subscriptions', component: ReportSubscriptions, canActivate: [permissionGuard], data: { requiredPermission: 'Settings.GetReportSubscriptions' } },
+            { path: 'audit-log', component: AuditLog, canActivate: [permissionGuard], data: { requiredPermission: 'Audit.GetAuditEvents' } }
 
         ]
     },

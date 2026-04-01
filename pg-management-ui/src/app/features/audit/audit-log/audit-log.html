@@ -1,0 +1,162 @@
+<div class="audit-page">
+
+  <!-- Header -->
+  <div class="audit-head">
+    <div>
+      <h1 class="audit-title">Audit Log</h1>
+      <p class="audit-sub">Review changes made to financial records</p>
+    </div>
+    <div class="head-actions">
+      @if (canReview && unreviewedCount > 0) {
+        <button class="mark-all-btn" (click)="markAllReviewed()">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+          Mark All Reviewed
+        </button>
+      }
+      <button class="back-btn" (click)="goBack()">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+        Dashboard
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-row">
+    <div class="filter-group">
+      <label>Status</label>
+      <select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+        <option value="">All</option>
+        <option value="unreviewed">Unreviewed</option>
+        <option value="reviewed">Reviewed</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Event Type</label>
+      <select [(ngModel)]="eventTypeFilter" (ngModelChange)="onFilterChange()">
+        <option value="">All Types</option>
+        <option value="PAYMENT_AMOUNT_CHANGED">Payment Amount Changed</option>
+        <option value="PAYMENT_PERIOD_CHANGED">Payment Period Changed</option>
+        <option value="PAYMENT_DELETED">Payment Deleted</option>
+        <option value="EXPENSE_AMOUNT_CHANGED">Expense Amount Changed</option>
+        <option value="EXPENSE_DELETED">Expense Deleted</option>
+        <option value="ROOM_RENT_CHANGED">Room Rent Changed</option>
+        <option value="ADVANCE_SETTLED">Advance Settled</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Entity</label>
+      <select [(ngModel)]="entityTypeFilter" (ngModelChange)="onFilterChange()">
+        <option value="">All</option>
+        <option value="Payment">Payment</option>
+        <option value="Expense">Expense</option>
+        <option value="Room">Room</option>
+        <option value="Advance">Advance</option>
+      </select>
+    </div>
+    <div class="count-badge">
+      {{ totalCount }} event{{ totalCount !== 1 ? 's' : '' }}
+    </div>
+  </div>
+
+  <!-- Events List -->
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading audit events...</p>
+    </div>
+  } @else if (events.length === 0) {
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p>No audit events found</p>
+    </div>
+  } @else {
+    <div class="events-list">
+      @for (ev of events; track ev.id) {
+        <div class="event-card" [class.unreviewed]="!ev.isReviewed" (click)="toggleExpand(ev.id)">
+          <div class="event-row">
+            <div class="event-indicator" [attr.data-color]="getEventColor(ev.eventType)"></div>
+            <div class="event-main">
+              <div class="event-top">
+                <span class="event-type-badge" [attr.data-color]="getEventColor(ev.eventType)">
+                  {{ getEventLabel(ev.eventType) }}
+                </span>
+                <span class="event-entity">{{ ev.entityType }}</span>
+              </div>
+              <p class="event-desc">{{ ev.description }}</p>
+              <div class="event-meta">
+                <span class="meta-item">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                  {{ ev.performedBy }}
+                </span>
+                <span class="meta-item">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+                  {{ ev.performedAt | date:'d MMM yyyy, h:mm a' }}
+                </span>
+                @if (ev.isReviewed) {
+                  <span class="meta-item reviewed-tag">
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                    Reviewed{{ ev.reviewedBy ? ' by ' + ev.reviewedBy : '' }}
+                  </span>
+                }
+              </div>
+            </div>
+            <div class="event-actions">
+              @if (canReview && !ev.isReviewed) {
+                <button class="review-btn" (click)="markAsReviewed(ev, $event)" title="Mark as reviewed">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                </button>
+              }
+              <button class="expand-btn" [class.expanded]="expandedId === ev.id">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Expanded details -->
+          @if (expandedId === ev.id) {
+            <div class="event-details">
+              @if (parseJson(ev.oldValue); as old) {
+                <div class="detail-section">
+                  <h4>Previous Values</h4>
+                  <div class="detail-grid">
+                    @for (key of objectKeys(old); track key) {
+                      <div class="detail-item">
+                        <span class="detail-key">{{ key }}</span>
+                        <span class="detail-val old-val">{{ old[key] }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              @if (parseJson(ev.newValue); as nv) {
+                <div class="detail-section">
+                  <h4>New Values</h4>
+                  <div class="detail-grid">
+                    @for (key of objectKeys(nv); track key) {
+                      <div class="detail-item">
+                        <span class="detail-key">{{ key }}</span>
+                        <span class="detail-val new-val">{{ nv[key] }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="pagination">
+        <button class="pg-btn" [disabled]="page <= 1" (click)="goToPage(page - 1)">&larr; Prev</button>
+        <span class="pg-info">Page {{ page }} of {{ totalPages }}</span>
+        <button class="pg-btn" [disabled]="page >= totalPages" (click)="goToPage(page + 1)">Next &rarr;</button>
+      </div>
+    }
+  }
+
+</div>

@@ -10,6 +10,7 @@ using PgManagement_WebApi.DTOs.Room;
 using PgManagement_WebApi.Helpers;
 using PgManagement_WebApi.Identity;
 using PgManagement_WebApi.Models;
+using System.Security.Claims;
 
 namespace PgManagement_WebApi.Controllers
 {
@@ -344,6 +345,9 @@ namespace PgManagement_WebApi.Controllers
             // 3️⃣ Handle rent/AC change
             if (isRentChanged)
             {
+                var oldRentAmount = currentRent.RentAmount;
+                var oldIsAc = currentRent.IsAc;
+
                 // Close current rent
                 currentRent.EffectiveTo = DateTime.Now;
 
@@ -379,6 +383,23 @@ namespace PgManagement_WebApi.Controllers
                         FromDate = DateTime.Now
                     });
                 }
+
+                // Audit: room rent changed
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "SYSTEM";
+                context.AuditEvents.Add(new AuditEvent
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    PgId = pgId,
+                    BranchId = room.BranchId,
+                    EventType = "ROOM_RENT_CHANGED",
+                    EntityType = "Room",
+                    EntityId = roomId,
+                    Description = $"Room {room.RoomNumber} rent changed from ₹{oldRentAmount} to ₹{dto.RentAmount}",
+                    OldValue = System.Text.Json.JsonSerializer.Serialize(new { RentAmount = oldRentAmount, IsAc = oldIsAc }),
+                    NewValue = System.Text.Json.JsonSerializer.Serialize(new { RentAmount = dto.RentAmount, IsAc = dto.isAc }),
+                    PerformedByUserId = userId,
+                    PerformedAt = DateTime.UtcNow
+                });
             }
 
             await context.SaveChangesAsync();

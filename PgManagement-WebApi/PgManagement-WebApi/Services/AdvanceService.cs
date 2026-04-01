@@ -71,6 +71,22 @@ namespace PgManagement_WebApi.Services
                     _context.Payments.Add(payment);
                 }
 
+                // Audit: advance settled
+                _context.AuditEvents.Add(new AuditEvent
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    PgId = pgId,
+                    BranchId = advance.BranchId,
+                    EventType = "ADVANCE_SETTLED",
+                    EntityType = "Advance",
+                    EntityId = advanceId,
+                    Description = $"Advance of ₹{advance.Amount} settled (Deducted: ₹{dto.DeductedAmount}, Returned: ₹{returnAmount})",
+                    OldValue = System.Text.Json.JsonSerializer.Serialize(new { advance.Amount, IsSettled = false }),
+                    NewValue = System.Text.Json.JsonSerializer.Serialize(new { advance.Amount, dto.DeductedAmount, ReturnedAmount = returnAmount, IsSettled = true }),
+                    PerformedByUserId = userId,
+                    PerformedAt = DateTime.UtcNow
+                });
+
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 

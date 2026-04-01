@@ -29,6 +29,7 @@ export class Tenantservice {
   status?: string;
   roomId?: string;
   rentPending?: boolean;
+  advancePending?: boolean;
   sortBy?: string;
   sortDir?: string;
 }) {
@@ -52,6 +53,10 @@ export class Tenantservice {
 
   if (params.rentPending !== undefined) {
     httpParams = httpParams.set('rentPending', params.rentPending);
+  }
+
+  if (params.advancePending !== undefined) {
+    httpParams = httpParams.set('advancePending', params.advancePending);
   }
 
   if (params.sortBy) {

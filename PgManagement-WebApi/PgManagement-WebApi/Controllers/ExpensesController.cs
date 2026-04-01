@@ -6,7 +6,10 @@ using PgManagement_WebApi.Data;
 using PgManagement_WebApi.DTOs.Expense;
 using PgManagement_WebApi.Helpers;
 using PgManagement_WebApi.Identity;
+using PgManagement_WebApi.Models;
 using PgManagement_WebApi.Services;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace PgManagement_WebApi.Controllers
 {
@@ -80,6 +83,35 @@ namespace PgManagement_WebApi.Controllers
         [HttpPut("update-expense/{id}")]
         public async Task<IActionResult> UpdateExpense(string id,[FromBody] UpdateExpenseDto dto)
         {
+            var pgId = User.FindFirst("pgId")?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Load old amount before update for audit
+            if (!string.IsNullOrEmpty(pgId) && !string.IsNullOrEmpty(userId))
+            {
+                var existing = await context.Expenses.AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.Id == id && e.PgId == pgId);
+
+                if (existing != null && existing.Amount != dto.Amount)
+                {
+                    context.AuditEvents.Add(new AuditEvent
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        PgId = pgId,
+                        BranchId = existing.BranchId,
+                        EventType = "EXPENSE_AMOUNT_CHANGED",
+                        EntityType = "Expense",
+                        EntityId = id,
+                        Description = $"Expense amount changed from ₹{existing.Amount} to ₹{dto.Amount}",
+                        OldValue = System.Text.Json.JsonSerializer.Serialize(new { existing.Amount }),
+                        NewValue = System.Text.Json.JsonSerializer.Serialize(new { dto.Amount }),
+                        PerformedByUserId = userId,
+                        PerformedAt = DateTime.UtcNow
+                    });
+                    await context.SaveChangesAsync();
+                }
+            }
+
             await expenseService.UpdateExpenseAsync(id, dto);
             return NoContent();
         }
@@ -88,6 +120,39 @@ namespace PgManagement_WebApi.Controllers
         [HttpDelete("delete-expense/{id}")]
         public async Task<IActionResult> DeleteExpense(string id)
         {
+            var pgId = User.FindFirst("pgId")?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!string.IsNullOrEmpty(pgId) && !string.IsNullOrEmpty(userId))
+            {
+                var existing = await context.Expenses.AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.Id == id && e.PgId == pgId);
+
+                if (existing != null)
+                {
+                    context.AuditEvents.Add(new AuditEvent
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        PgId = pgId,
+                        BranchId = existing.BranchId,
+                        EventType = "EXPENSE_DELETED",
+                        EntityType = "Expense",
+                        EntityId = id,
+                        Description = $"Expense of ₹{existing.Amount} deleted",
+                        OldValue = System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            existing.Amount,
+                            existing.ExpenseDate,
+                            existing.Description,
+                            existing.CategoryId
+                        }),
+                        PerformedByUserId = userId,
+                        PerformedAt = DateTime.UtcNow
+                    });
+                    await context.SaveChangesAsync();
+                }
+            }
+
             await expenseService.DeleteExpenseAsync(id);
             return NoContent();
         }

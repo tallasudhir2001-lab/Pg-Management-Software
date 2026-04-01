@@ -38,11 +38,11 @@
           <tbody>
             <tr>
               <td>Rent Collected</td>
-              <td class="text-right">₹{{ data.totalRentCollected | number:'1.0-0' }}</td>
+              <td class="text-right amt-green">₹{{ data.totalRentCollected | number:'1.0-0' }}</td>
             </tr>
             <tr>
               <td>Advance Received</td>
-              <td class="text-right">₹{{ data.totalAdvanceReceived | number:'1.0-0' }}</td>
+              <td class="text-right amt-green">₹{{ data.totalAdvanceReceived | number:'1.0-0' }}</td>
             </tr>
           </tbody>
           <tfoot>
@@ -60,7 +60,7 @@
           <tbody>
             <tr *ngFor="let cat of data.expenseByCategory">
               <td>{{ cat.category }}</td>
-              <td class="text-right">₹{{ cat.amount | number:'1.0-0' }}</td>
+              <td class="text-right amt-red">₹{{ cat.amount | number:'1.0-0' }}</td>
             </tr>
           </tbody>
           <tfoot>

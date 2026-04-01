@@ -55,11 +55,11 @@
             <td>{{ row.date | date:'dd MMM yyyy' }}</td>
             <td><span class="badge badge-blue">{{ row.category }}</span></td>
             <td>{{ row.description }}</td>
-            <td class="text-right">₹{{ row.amount | number:'1.0-0' }}</td>
+            <td class="text-right amt-red">₹{{ row.amount | number:'1.0-0' }}</td>
           </tr>
           <tr class="subtotal-row">
             <td colspan="3" class="text-right">{{ group.category }} Subtotal</td>
-            <td class="text-right">₹{{ group.subtotal | number:'1.0-0' }}</td>
+            <td class="text-right amt-red">₹{{ group.subtotal | number:'1.0-0' }}</td>
           </tr>
         </ng-container>
       </tbody>

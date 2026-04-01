@@ -55,14 +55,14 @@
           <td>{{ row.tenantName }}</td>
           <td>{{ row.roomNumber || '—' }}</td>
           <td>{{ row.paymentType }}</td>
-          <td class="text-right">₹{{ row.amount | number:'1.0-0' }}</td>
+          <td class="text-right amt-green">₹{{ row.amount | number:'1.0-0' }}</td>
           <td>{{ row.paymentMode }}</td>
         </tr>
       </tbody>
       <tfoot>
         <tr>
           <td colspan="5" class="text-right">Total Collected</td>
-          <td class="text-right">₹{{ data.totalAmount | number:'1.0-0' }}</td>
+          <td class="text-right amt-green">₹{{ data.totalAmount | number:'1.0-0' }}</td>
           <td></td>
         </tr>
       </tfoot>

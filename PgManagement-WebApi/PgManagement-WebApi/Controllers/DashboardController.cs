@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PgManagement_WebApi.Data;
 using PgManagement_WebApi.DTOs.Dashboard;
 using PgManagement_WebApi.Helpers;
+using PgManagement_WebApi.Models;
 
 namespace PgManagement_WebApi.Controllers
 {
@@ -217,6 +218,173 @@ namespace PgManagement_WebApi.Controllers
             return Ok(new DashboardExpenseSummaryDto
             {
                 TotalExpenses = totalExpenses
+            });
+        }
+
+        // ----------------------------------------------------
+        // 6️⃣ ALERTS (counts for toast banners)
+        // ----------------------------------------------------
+        [HttpGet("alerts")]
+        public async Task<IActionResult> GetAlerts()
+        {
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
+                return Unauthorized();
+
+            var today = DateTime.UtcNow.Date;
+
+            // Fetch all tenant-room stays
+            var tenantRooms = await context.TenantRooms
+                .AsNoTracking()
+                .Where(tr => pgIds.Contains(tr.PgId))
+                .Select(tr => new { tr.TenantId, tr.FromDate, tr.ToDate })
+                .ToListAsync();
+
+            var activeTenantIds = tenantRooms
+                .Where(tr => tr.ToDate == null)
+                .Select(tr => tr.TenantId)
+                .Distinct()
+                .ToHashSet();
+
+            var allTenantIdsWithStay = tenantRooms
+                .Select(tr => tr.TenantId)
+                .Distinct()
+                .ToList();
+
+            var movedOutTenantIds = allTenantIdsWithStay
+                .Where(id => !activeTenantIds.Contains(id))
+                .ToList();
+
+            // Fetch non-deleted, non-advance payments for these tenants
+            var payments = await context.Payments
+                .AsNoTracking()
+                .Where(p =>
+                    allTenantIdsWithStay.Contains(p.TenantId) &&
+                    !p.IsDeleted &&
+                    p.PaymentTypeCode != "ADVANCE_PAYMENT")
+                .Select(p => new { p.TenantId, PaidFrom = p.PaidFrom.Date, PaidUpto = p.PaidUpto.Date })
+                .ToListAsync();
+
+            var paymentsLookup = payments
+                .GroupBy(p => p.TenantId)
+                .ToDictionary(g => g.Key, g => g.Select(p => (p.PaidFrom, p.PaidUpto)).ToList());
+
+            var staysLookup = tenantRooms
+                .GroupBy(tr => tr.TenantId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Helper: check if a tenant has any unpaid rent period
+            bool HasPendingRent(string tenantId)
+            {
+                if (!staysLookup.TryGetValue(tenantId, out var stays)) return false;
+                var tenantPayments = paymentsLookup.TryGetValue(tenantId, out var tp)
+                    ? tp
+                    : new List<(DateTime, DateTime)>();
+
+                foreach (var stay in stays)
+                {
+                    var stayFrom = stay.FromDate.Date;
+                    var stayTo = stay.ToDate?.Date ?? today;
+                    var unpaid = DateRangeHelper.Subtract(stayFrom, stayTo, tenantPayments);
+                    if (unpaid.Any()) return true;
+                }
+                return false;
+            }
+
+            // 1) Moved out + pending rent
+            var movedOutWithPendingRent = movedOutTenantIds.Count(HasPendingRent);
+
+            // 2) Moved out + unsettled advance
+            var movedOutWithUnsettledAdvance = await context.Advances
+                .AsNoTracking()
+                .Where(a => movedOutTenantIds.Contains(a.TenantId) && !a.IsSettled && !a.IsDeleted)
+                .Select(a => a.TenantId)
+                .Distinct()
+                .CountAsync();
+
+            // 3) Active + pending rent
+            var activeWithPendingRent = activeTenantIds.Count(HasPendingRent);
+
+            return Ok(new DashboardAlertsDto
+            {
+                MovedOutWithPendingRent = movedOutWithPendingRent,
+                MovedOutWithUnsettledAdvance = movedOutWithUnsettledAdvance,
+                ActiveWithPendingRent = activeWithPendingRent
+            });
+        }
+
+        // ----------------------------------------------------
+        // 7️⃣ COLLECTION SUMMARY
+        // ----------------------------------------------------
+        [HttpGet("collection-summary")]
+        public async Task<IActionResult> GetCollectionSummary(
+            DateTime? from,
+            DateTime? to)
+        {
+            var pgIds = await this.GetEffectivePgIds(context);
+            if (!pgIds.Any())
+                return Unauthorized();
+
+            var today = DateTime.UtcNow.Date;
+            var start = from?.Date ?? new DateTime(today.Year, today.Month, 1);
+            var end = to?.Date ?? today;
+
+            // Get active tenants (those with an open stay)
+            var activeTenantIds = await context.TenantRooms
+                .AsNoTracking()
+                .Where(tr => pgIds.Contains(tr.PgId) && tr.ToDate == null)
+                .Select(tr => tr.TenantId)
+                .Distinct()
+                .ToListAsync();
+
+            if (!activeTenantIds.Any())
+            {
+                return Ok(new CollectionSummaryDto());
+            }
+
+            // Get current rent amounts for active tenants
+            var tenantRents = await context.TenantRentHistories
+                .AsNoTracking()
+                .Where(trh => activeTenantIds.Contains(trh.TenantId) && trh.ToDate == null)
+                .Include(trh => trh.RoomRentHistory)
+                .Select(trh => new { trh.TenantId, trh.RoomRentHistory.RentAmount })
+                .ToListAsync();
+
+            var expectedRent = tenantRents.Sum(r => r.RentAmount);
+
+            // Get payments in this period
+            var periodPayments = await context.Payments
+                .AsNoTracking()
+                .Where(p =>
+                    pgIds.Contains(p.PgId) &&
+                    !p.IsDeleted &&
+                    activeTenantIds.Contains(p.TenantId) &&
+                    p.PaymentTypeCode != "ADVANCE_PAYMENT" &&
+                    p.PaymentDate >= start &&
+                    p.PaymentDate <= end)
+                .GroupBy(p => p.TenantId)
+                .Select(g => new { TenantId = g.Key, Total = g.Sum(p => p.Amount) })
+                .ToListAsync();
+
+            var collectedRent = periodPayments.Sum(p => p.Total);
+            var paidTenantIds = periodPayments.Select(p => p.TenantId).ToHashSet();
+            var paidCount = paidTenantIds.Count;
+            var pendingCount = activeTenantIds.Count - paidCount;
+            var pendingRent = expectedRent - collectedRent;
+            if (pendingRent < 0) pendingRent = 0;
+
+            var collectionRate = expectedRent > 0
+                ? Math.Round((double)(collectedRent / expectedRent) * 100, 1)
+                : 0;
+
+            return Ok(new CollectionSummaryDto
+            {
+                ExpectedRent = expectedRent,
+                CollectedRent = collectedRent,
+                PendingRent = pendingRent,
+                CollectionRate = collectionRate,
+                PaidCount = paidCount,
+                PendingCount = pendingCount
             });
         }
 

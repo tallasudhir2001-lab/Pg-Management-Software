@@ -1,146 +1,390 @@
-<ng-container *ngIf="vm$ | async as vm; else loading">
-  <div class="dashboard-container">
-    <div class="dashboard-toolbar">
-  <div class="range-selector">
-    <button
-      *ngFor="let r of ranges"
-      type="button"
-      class="range-btn"
-      [class.active]="selectedRange === r.key"
-      (click)="onRangeChange(r.key)">
-      {{ r.label }}
-    </button>
-  </div>
-</div>
+<!-- ═══════════════════════════════════════════════════
+     ALERT BANNERS  (only visible when backend returns counts > 0)
+     ═══════════════════════════════════════════════════ -->
+@if (alerts) {
+  @if (
+    (alerts.movedOutWithPendingRent    > 0 && isAlertVisible('movedOutRent')) ||
+    (alerts.movedOutWithUnsettledAdvance > 0 && isAlertVisible('movedOutAdv')) ||
+    (alerts.activeWithPendingRent      > 0 && isAlertVisible('activeRent')) ||
+    (auditCount && auditCount.unreviewedCount > 0 && isAlertVisible('audit'))
+  ) {
+    <div class="alert-stack">
 
-    <!-- ================= KPI CARDS ================= -->
-    <div class="kpi-grid">
-  <div class="kpi-card primary">
-    <div class="kpi-label">Total Tenants</div>
-    <div class="kpi-value">{{ vm.summary.totalTenants }}</div>
-  </div>
+      <!-- RED — moved out + unpaid rent -->
+      @if (alerts.movedOutWithPendingRent > 0 && isAlertVisible('movedOutRent')) {
+        <div class="alert-toast toast-red">
+          <button class="toast-dismiss" (click)="dismissAlert('movedOutRent')" title="Dismiss">&#10005;</button>
+          <div class="toast-top">
+            <svg class="toast-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-5a1 1 0 00-1 1v2a1 1 0 002 0V9a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span class="toast-count">{{ alerts.movedOutWithPendingRent }}</span>
+          </div>
+          <p class="toast-title">Moved out — unpaid rent</p>
+          <p class="toast-desc">Dues must be collected before closing.</p>
+          <button class="toast-action red-action" (click)="goToMovedOutPendingRent()">Take Action &rarr;</button>
+        </div>
+      }
 
-  <div class="kpi-card success">
-    <div class="kpi-label">Active Tenants</div>
-    <div class="kpi-value">
-      {{ vm.summary.activeTenants }}
+      <!-- ORANGE — moved out + unsettled advance -->
+      @if (alerts.movedOutWithUnsettledAdvance > 0 && isAlertVisible('movedOutAdv')) {
+        <div class="alert-toast toast-orange">
+          <button class="toast-dismiss" (click)="dismissAlert('movedOutAdv')" title="Dismiss">&#10005;</button>
+          <div class="toast-top">
+            <svg class="toast-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span class="toast-count">{{ alerts.movedOutWithUnsettledAdvance }}</span>
+          </div>
+          <p class="toast-title">Moved out — unsettled advance</p>
+          <p class="toast-desc">Deposits need return or adjustment.</p>
+          <button class="toast-action orange-action" (click)="goToMovedOutUnsettledAdvance()">Take Action &rarr;</button>
+        </div>
+      }
+
+      <!-- INFO (theme) — active tenants with pending rent -->
+      @if (alerts.activeWithPendingRent > 0 && isAlertVisible('activeRent')) {
+        <div class="alert-toast toast-info">
+          <button class="toast-dismiss" (click)="dismissAlert('activeRent')" title="Dismiss">&#10005;</button>
+          <div class="toast-top">
+            <svg class="toast-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            <span class="toast-count">{{ alerts.activeWithPendingRent }}</span>
+          </div>
+          <p class="toast-title">Active — pending rent</p>
+          <p class="toast-desc">Follow up to collect rent.</p>
+          <button class="toast-action info-action" (click)="goToActivePendingRent()">Take Action &rarr;</button>
+        </div>
+      }
+
+      <!-- AMBER — unreviewed audit events -->
+      @if (auditCount && auditCount.unreviewedCount > 0 && isAlertVisible('audit')) {
+          <div class="alert-toast toast-amber">
+            <button class="toast-dismiss" (click)="dismissAlert('audit')" title="Dismiss">&#10005;</button>
+            <div class="toast-top">
+              <svg class="toast-icon" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 4a1 1 0 10-2 0v4a1 1 0 00.293.707l2 2a1 1 0 001.414-1.414L11 9.586V6z"/>
+              </svg>
+              <span class="toast-count">{{ auditCount.unreviewedCount }}</span>
+            </div>
+            <p class="toast-title">Audit events to review</p>
+            <p class="toast-desc">Financial changes need your review.</p>
+            <button class="toast-action amber-action" (click)="goToAuditLog()">Review &rarr;</button>
+          </div>
+      }
+
     </div>
-  </div>
+  }
+}
 
-  <div class="kpi-card">
-    <div class="kpi-label">Moved Out</div>
-    <div class="kpi-value text-muted">
-      {{ vm.summary.movedOutTenants }}
+<!-- ═══════════════════════════════════════════════════
+     MAIN DASHBOARD
+     ═══════════════════════════════════════════════════ -->
+@if (vm) {
+  <div class="dash-page">
+
+    <!-- ── Header ──────────────────────────────────── -->
+    <div class="dash-head">
+      <div>
+        <h1 class="dash-title">Dashboard</h1>
+        <p class="dash-sub">Your PG at a glance</p>
+      </div>
+
+      <div class="filter-area">
+        <!-- Preset + Custom tabs -->
+        <div class="range-tabs">
+          @for (r of ranges; track r.key) {
+            <button class="range-tab" [class.active]="selectedRange === r.key" (click)="onRangeChange(r.key)">{{ r.label }}</button>
+          }
+          <button class="range-tab custom-tab" [class.active]="selectedRange === 'custom'" (click)="onRangeChange('custom')">
+            {{ selectedRange === 'custom' && !showCustomPicker ? customRangeLabel : 'Custom' }}
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2a1 1 0 011-1h6a1 1 0 011 1v1h1a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1h1V2zM5 3v1h6V3H5zM3 5v8h10V5H3zm2 2h6v1H5V7zm0 2h6v1H5V9zm0 2h4v1H5v-1z"/></svg>
+          </button>
+        </div>
+
+        <!-- Custom date picker row (shown when Custom clicked) -->
+        @if (showCustomPicker) {
+          <div class="custom-picker-row">
+            <div class="date-field">
+              <label>From</label>
+              <input type="date" [(ngModel)]="customFrom" class="date-input" />
+            </div>
+            <span class="date-sep">&#8594;</span>
+            <div class="date-field">
+              <label>To</label>
+              <input type="date" [(ngModel)]="customTo" class="date-input" />
+            </div>
+            <button class="apply-btn" (click)="applyCustomRange()" [disabled]="!customFrom || !customTo">Apply</button>
+            <button class="cancel-btn" (click)="cancelCustomPicker()">Cancel</button>
+          </div>
+        }
+      </div>
     </div>
-  </div>
 
-  <div class="kpi-card primary">
-    <div class="kpi-label">Occupied Beds</div>
-    <div class="kpi-value">
-      {{ vm.summary.occupiedBeds }}
+    <!-- ══════════════════════════════════════════════
+         STATS BANNER — one card, horizontal sections
+         ══════════════════════════════════════════════ -->
+    <div class="stats-banner">
+
+      <!-- PEOPLE section -->
+      <div class="stat-section">
+        <div class="stat-cell">
+          <div class="stat-label">Active Tenants</div>
+          <div class="stat-val">{{ vm.summary.activeTenants }}</div>
+          <div class="stat-hint">of {{ vm.summary.totalTenants }} registered</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">Moved Out</div>
+          <div class="stat-val soft">{{ vm.summary.movedOutTenants }}</div>
+          <div class="stat-hint">this period</div>
+        </div>
+      </div>
+
+      <div class="banner-sep"></div>
+
+      <!-- SPACE section -->
+      <div class="stat-section">
+        <div class="stat-cell">
+          <div class="stat-label">Beds Occupied</div>
+          <div class="stat-val">{{ vm.summary.occupiedBeds }}</div>
+          <div class="stat-hint">{{ getOccupancyRate(vm) }}% occupancy rate</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">Beds Vacant</div>
+          <div class="stat-val amber">{{ vm.summary.vacantBeds }}</div>
+          <div class="stat-hint">{{ vm.summary.totalRooms }} total rooms</div>
+        </div>
+      </div>
+
+      <div class="banner-sep"></div>
+
+      <!-- FINANCIALS section -->
+      <div class="stat-section fin-section">
+        <div class="stat-cell">
+          <div class="stat-label">Revenue</div>
+          <div class="stat-val green">&#8377;{{ vm.summary.monthlyRevenue | number:'1.0-0' }}</div>
+          <div class="stat-hint">collected</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">Expenses</div>
+          <div class="stat-val red">&#8377;{{ vm.expenses.totalExpenses | number:'1.0-0' }}</div>
+          <div class="stat-hint">this period</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">Net Profit</div>
+          <div class="stat-val" [class.green]="getNetProfit(vm) >= 0" [class.red]="getNetProfit(vm) < 0">
+            &#8377;{{ getNetProfit(vm) | number:'1.0-0' }}
+          </div>
+          <div class="stat-hint">{{ getNetProfit(vm) >= 0 ? 'Looking good' : 'Review expenses' }}</div>
+        </div>
+      </div>
+
     </div>
-  </div>
 
-  <div class="kpi-card warning">
-    <div class="kpi-label">Vacant Beds</div>
-    <div class="kpi-value">
-      {{ vm.summary.vacantBeds }}
+    <!-- ══════════════════════════════════════════════
+         MID ROW
+         ══════════════════════════════════════════════ -->
+    <div class="mid-row">
+
+      <!-- Rent Collection -->
+      <div class="panel collection-panel">
+        <div class="panel-head">
+          <span class="panel-title">Rent Collection</span>
+          <button class="panel-link" (click)="goToActivePendingRent()">View Pending</button>
+        </div>
+        <div class="panel-body">
+
+          <div class="progress-wrap">
+            <div class="progress-track">
+              <div class="progress-fill" [style.width]="getCollectionFill(vm)"></div>
+            </div>
+            <span class="progress-pct">{{ vm.collection.collectionRate | number:'1.0-0' }}%</span>
+          </div>
+
+          <div class="coll-stats">
+            <div class="coll-stat">
+              <span class="coll-dot c-green"></span>
+              <div>
+                <div class="coll-stat-val">{{ vm.collection.paidCount }} tenants</div>
+                <div class="coll-stat-lbl">Paid</div>
+              </div>
+            </div>
+            <div class="coll-divider"></div>
+            <div class="coll-stat">
+              <span class="coll-dot c-red"></span>
+              <div>
+                <div class="coll-stat-val">{{ vm.collection.pendingCount }} tenants</div>
+                <div class="coll-stat-lbl">Pending</div>
+              </div>
+            </div>
+            <div class="coll-divider"></div>
+            <div class="coll-stat">
+              <span class="coll-dot c-grey"></span>
+              <div>
+                <div class="coll-stat-val">&#8377;{{ vm.collection.expectedRent | number:'1.0-0' }}</div>
+                <div class="coll-stat-lbl">Expected</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="coll-amounts">
+            <div class="coll-amount">
+              <div class="coll-amount-lbl">Collected</div>
+              <div class="coll-amount-val c-green-text">&#8377;{{ vm.collection.collectedRent | number:'1.0-0' }}</div>
+            </div>
+            <div class="coll-amount">
+              <div class="coll-amount-lbl">Pending</div>
+              <div class="coll-amount-val c-red-text">&#8377;{{ vm.collection.pendingRent | number:'1.0-0' }}</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Pending Actions -->
+      <div class="panel actions-panel">
+        <div class="panel-head">
+          <span class="panel-title">Pending Actions</span>
+        </div>
+        <div class="panel-body gap-actions">
+
+          <div class="action-item" (click)="goToMovedOutPendingRent()">
+            <div class="action-ico red-ico">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-5a1 1 0 00-1 1v2a1 1 0 002 0V9a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            </div>
+            <div class="action-text">
+              <span class="action-title">Unpaid rent after move-out</span>
+              <span class="action-desc">Collect before closing account</span>
+            </div>
+            <span class="action-arrow">&#8594;</span>
+          </div>
+
+          <div class="action-item" (click)="goToMovedOutUnsettledAdvance()">
+            <div class="action-ico orange-ico">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/></svg>
+            </div>
+            <div class="action-text">
+              <span class="action-title">Unsettled advance deposits</span>
+              <span class="action-desc">Return or adjust security deposit</span>
+            </div>
+            <span class="action-arrow">&#8594;</span>
+          </div>
+
+          <div class="action-item" (click)="goToActivePendingRent()">
+            <div class="action-ico blue-ico">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+            </div>
+            <div class="action-text">
+              <span class="action-title">Active tenants with pending rent</span>
+              <span class="action-desc">Send reminders or collect payment</span>
+            </div>
+            <span class="action-arrow">&#8594;</span>
+          </div>
+
+          <div class="action-item" (click)="navigateTo('/bookings')">
+            <div class="action-ico purple-ico">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+            </div>
+            <div class="action-text">
+              <span class="action-title">Review pending bookings</span>
+              <span class="action-desc">Confirm or cancel open bookings</span>
+            </div>
+            <span class="action-arrow">&#8594;</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="panel qa-panel">
+        <div class="panel-head">
+          <span class="panel-title">Quick Actions</span>
+        </div>
+        <div class="qa-grid">
+          <button class="qa-tile" (click)="navigateTo('/tenants/add')">
+            <span class="qa-ico teal-ico"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/></svg></span>
+            <span>Add Tenant</span>
+          </button>
+          <button class="qa-tile" (click)="navigateTo('/payments/add')">
+            <span class="qa-ico green-ico"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg></span>
+            <span>Collect Rent</span>
+          </button>
+          <button class="qa-tile" (click)="navigateTo('/expenses')">
+            <span class="qa-ico orange-ico"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/></svg></span>
+            <span>Add Expense</span>
+          </button>
+          <button class="qa-tile" (click)="navigateTo('/bookings/add')">
+            <span class="qa-ico purple-ico"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg></span>
+            <span>New Booking</span>
+          </button>
+          <button class="qa-tile" (click)="navigateTo('/room-list')">
+            <span class="qa-ico slate-ico"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg></span>
+            <span>View Rooms</span>
+          </button>
+          <button class="qa-tile" (click)="navigateTo('/reports')">
+            <span class="qa-ico blue-ico"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd"/></svg></span>
+            <span>Reports</span>
+          </button>
+        </div>
+      </div>
+
     </div>
-  </div>
 
-  <div class="kpi-card highlight">
-    <div class="kpi-label">Monthly Revenue</div>
-    <div class="kpi-value">
-      ₹{{ vm.summary.monthlyRevenue | number:'1.0-0' }}
-    </div>
-  </div>
-  <div class="kpi-card primary">
-  <div class="kpi-label">Total Expenses</div>
-  <div class="kpi-value text-danger">
-    ₹{{ vm.expenses.totalExpenses | number:'1.0-0' }}
-  </div>
-</div>
-
-<div class="kpi-card highlight">
-  <div class="kpi-label">Net Profit</div>
-  <div
-    class="kpi-value"
-    [class.text-success]="getNetProfit(vm) >= 0"
-    [class.text-danger]="getNetProfit(vm) < 0">
-    ₹{{ getNetProfit(vm) | number:'1.0-0' }}
-  </div>
-</div>
-
-</div>
-
-    <!-- ================= CHARTS SECTION ================= -->
-   <div class="charts-grid">
-
-  <!-- Revenue Trend -->
-  <div class="card">
-    <div class="card-header">Revenue Trend</div>
-    <div class="card-body">
-      <app-revenue-line-chart
-        [data]="vm.revenueTrend">
-      </app-revenue-line-chart>
-    </div>
-  </div>
-
-  <!-- Occupancy -->
-  <div class="card">
-    <div class="card-header">Occupancy</div>
-    <div class="card-body">
-      <app-occupancy-donut-chart
-        [occupied]="vm.occupancy.occupied"
-        [vacant]="vm.occupancy.vacant">
-      </app-occupancy-donut-chart>
-    </div>
-  </div>
-
-</div>
-
-
-    <!-- ================= RECENT PAYMENTS ================= -->
-    <div class="card">
-      <div class="card-header">Recent Payments</div>
-
-      <div class="card-body p-0">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Tenant</th>
-              <th>Date</th>
-              <th>Mode</th>
-              <th class="text-right">Amount</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr *ngFor="let p of vm.recentPayments">
-              <td>{{ p.tenantName }}</td>
-              <td>{{ p.paymentDate | date:'dd MMM yyyy' }}</td>
-              <td>{{ p.mode }}</td>
-              <td class="text-right">
-                ₹{{ p.amount | number:'1.0-0' }}
-              </td>
-            </tr>
-
-            <tr *ngIf="vm.recentPayments.length === 0">
-              <td colspan="4" class="empty-state">
-                No recent payments found
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- ══════════════════════════════════════════════
+         OVERDUE TENANTS — full width
+         ══════════════════════════════════════════════ -->
+    <div class="panel overdue-panel">
+      <div class="panel-head">
+        <span class="panel-title">Most Overdue Tenants</span>
+        <button class="panel-link" (click)="goToActivePendingRent()">View All Pending</button>
+      </div>
+      <div class="panel-body p-0">
+        @if (vm.overdueTenants.length > 0) {
+          <table class="dt">
+            <thead>
+              <tr>
+                <th>Tenant</th>
+                <th>Room</th>
+                <th>Contact</th>
+                <th>Overdue Since</th>
+                <th>Last Payment</th>
+                <th class="text-right">Days Overdue</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (t of vm.overdueTenants; track t.tenantId) {
+                <tr class="row-click" (click)="viewTenant(t.tenantId)">
+                  <td class="cell-name">{{ t.name }}</td>
+                  <td class="cell-muted">{{ t.roomNumber || '—' }}</td>
+                  <td class="cell-muted">{{ t.contactNumber }}</td>
+                  <td class="cell-muted">{{ t.overdueSince ? (t.overdueSince | date:'d MMM yyyy') : '—' }}</td>
+                  <td class="cell-muted">{{ t.lastPaymentDate ? (t.lastPaymentDate | date:'d MMM yyyy') : 'Never' }}</td>
+                  <td class="text-right">
+                    @if (t.daysOverdue && t.daysOverdue > 0) {
+                      <span class="overdue-chip" [class.critical]="t.daysOverdue > 30" [class.warning]="t.daysOverdue <= 30">
+                        {{ t.daysOverdue }}d
+                      </span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <p>All caught up — no overdue tenants</p>
+          </div>
+        }
       </div>
     </div>
 
   </div>
-</ng-container>
 
-<!-- ================= LOADING STATE ================= -->
-<ng-template #loading>
-  <div class="dashboard-loading">
-    Loading dashboard…
+} @else if (loading) {
+  <div class="dash-loading">
+    <div class="spinner"></div>
+    <p>Loading dashboard...</p>
   </div>
-</ng-template>
+}

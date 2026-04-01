@@ -14,7 +14,7 @@
     <div class="action-buttons">
       <!-- ✅ Clear button only shown when filters are active -->
       <button
-        *ngIf="filterStatus || selectedRoomId || filterRentPending || sortBy !== 'updated' || sortDir !== 'desc'"
+        *ngIf="filterStatus || selectedRoomId || filterRentPending || filterAdvancePending || sortBy !== 'updated' || sortDir !== 'desc'"
         class="clear-filters-btn" (click)="clearFilters()" title="Clear all filters">
         <img src="assets/icons/clear-filters.svg" alt="Clear Filters" />
       </button>

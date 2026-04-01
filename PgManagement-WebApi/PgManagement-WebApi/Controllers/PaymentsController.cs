@@ -811,6 +811,27 @@ namespace PgManagement_WebApi.Controllers
             payment.DeletedAt = DateTime.UtcNow;
             payment.DeletedByUserId = userId;
 
+            context.AuditEvents.Add(new AuditEvent
+            {
+                Id = Guid.NewGuid().ToString(),
+                PgId = pgId,
+                BranchId = payment.BranchId,
+                EventType = "PAYMENT_DELETED",
+                EntityType = "Payment",
+                EntityId = paymentId,
+                Description = $"Payment of ₹{payment.Amount} deleted (Tenant: {payment.TenantId})",
+                OldValue = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    payment.Amount,
+                    payment.PaidFrom,
+                    payment.PaidUpto,
+                    payment.PaymentModeCode,
+                    payment.TenantId
+                }),
+                PerformedByUserId = userId,
+                PerformedAt = DateTime.UtcNow
+            });
+
             await context.SaveChangesAsync();
 
             return Ok();
@@ -893,6 +914,12 @@ namespace PgManagement_WebApi.Controllers
                 }
             }
 
+            // Capture old values for audit
+            var oldAmount = payment.Amount;
+            var oldPaidFrom = payment.PaidFrom;
+            var oldPaidUpto = payment.PaidUpto;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "SYSTEM";
+
             payment.Amount = dto.Amount;
             payment.PaymentModeCode = dto.PaymentModeCode;
             payment.PaymentFrequencyCode = dto.PaymentFrequencyCode;
@@ -902,6 +929,44 @@ namespace PgManagement_WebApi.Controllers
             {
                 payment.PaidFrom = dto.PaidFrom;
                 payment.PaidUpto = dto.PaidUpto;
+            }
+
+            // Audit: amount change
+            if (oldAmount != dto.Amount)
+            {
+                context.AuditEvents.Add(new AuditEvent
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    PgId = pgId,
+                    BranchId = payment.BranchId,
+                    EventType = "PAYMENT_AMOUNT_CHANGED",
+                    EntityType = "Payment",
+                    EntityId = paymentId,
+                    Description = $"Payment amount changed from ₹{oldAmount} to ₹{dto.Amount}",
+                    OldValue = System.Text.Json.JsonSerializer.Serialize(new { Amount = oldAmount }),
+                    NewValue = System.Text.Json.JsonSerializer.Serialize(new { Amount = dto.Amount }),
+                    PerformedByUserId = userId,
+                    PerformedAt = DateTime.UtcNow
+                });
+            }
+
+            // Audit: period change
+            if (oldPaidFrom != payment.PaidFrom || oldPaidUpto != payment.PaidUpto)
+            {
+                context.AuditEvents.Add(new AuditEvent
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    PgId = pgId,
+                    BranchId = payment.BranchId,
+                    EventType = "PAYMENT_PERIOD_CHANGED",
+                    EntityType = "Payment",
+                    EntityId = paymentId,
+                    Description = $"Payment period changed from {oldPaidFrom:dd MMM yyyy}–{oldPaidUpto:dd MMM yyyy} to {payment.PaidFrom:dd MMM yyyy}–{payment.PaidUpto:dd MMM yyyy}",
+                    OldValue = System.Text.Json.JsonSerializer.Serialize(new { PaidFrom = oldPaidFrom, PaidUpto = oldPaidUpto }),
+                    NewValue = System.Text.Json.JsonSerializer.Serialize(new { payment.PaidFrom, payment.PaidUpto }),
+                    PerformedByUserId = userId,
+                    PerformedAt = DateTime.UtcNow
+                });
             }
 
             await context.SaveChangesAsync();

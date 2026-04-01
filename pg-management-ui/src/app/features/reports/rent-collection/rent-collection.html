@@ -58,12 +58,15 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let row of data.rows">
+        <tr *ngFor="let row of data.rows"
+            [class.row-overdue]="row.status === 'Overdue'"
+            [class.row-partial]="row.status === 'Partial'"
+            [class.row-paid]="row.status === 'Paid'">
           <td>{{ row.tenantName }}</td>
           <td>{{ row.roomNumber }}</td>
           <td class="text-right">₹{{ row.expectedRent | number:'1.0-0' }}</td>
-          <td class="text-right">₹{{ row.amountPaid | number:'1.0-0' }}</td>
-          <td class="text-right">₹{{ (row.expectedRent - row.amountPaid) | number:'1.0-0' }}</td>
+          <td class="text-right amt-green">₹{{ row.amountPaid | number:'1.0-0' }}</td>
+          <td class="text-right" [class.amt-red]="row.expectedRent - row.amountPaid > 0">₹{{ (row.expectedRent - row.amountPaid) | number:'1.0-0' }}</td>
           <td class="text-center"><span [ngClass]="statusClass(row.status)">{{ row.status }}</span></td>
         </tr>
       </tbody>
@@ -71,8 +74,8 @@
         <tr>
           <td colspan="2" class="text-right">Total</td>
           <td class="text-right">₹{{ data.totalExpected | number:'1.0-0' }}</td>
-          <td class="text-right">₹{{ data.totalCollected | number:'1.0-0' }}</td>
-          <td class="text-right">₹{{ data.totalPending | number:'1.0-0' }}</td>
+          <td class="text-right amt-green">₹{{ data.totalCollected | number:'1.0-0' }}</td>
+          <td class="text-right amt-red">₹{{ data.totalPending | number:'1.0-0' }}</td>
           <td></td>
         </tr>
       </tfoot>

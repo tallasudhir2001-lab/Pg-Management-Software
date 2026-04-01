@@ -55,7 +55,7 @@
           <td>{{ row.phone }}</td>
           <td>{{ row.checkInDate ? (row.checkInDate | date:'dd MMM yyyy') : '—' }}</td>
           <td>{{ row.moveOutDate ? (row.moveOutDate | date:'dd MMM yyyy') : '—' }}</td>
-          <td class="text-right">₹{{ row.monthlyRent | number:'1.0-0' }}</td>
+          <td class="text-right amt-bold">₹{{ row.monthlyRent | number:'1.0-0' }}</td>
           <td class="text-center"><span [ngClass]="statusClass(row.status)">{{ row.status }}</span></td>
         </tr>
       </tbody>

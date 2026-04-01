@@ -1,103 +1,197 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { forkJoin, Observable, BehaviorSubject } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
-import { DashboardService } from '../services/dashboard-service';
-import { DashboardSummary } from '../models/dashboard-summary.model';
-import { RevenueTrend } from '../models/revenue-trend.model';
-import { RecentPayment } from '../models/recent-payment.model';
-import { Occupancy } from '../models/occupancy.model';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SharedModule } from '../../../shared/shared.module';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { BehaviorSubject, forkJoin, of, Subscription } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
+
+import { DashboardService, DateRange } from '../services/dashboard-service';
+import { Tenantservice } from '../../tenant/services/tenantservice';
+import { DashboardSummary } from '../models/dashboard-summary.model';
+import { DashboardAlerts } from '../models/dashboard-alerts.model';
+import { CollectionSummary } from '../models/collection-summary.model';
+import { AuditCount } from '../../audit/models/audit-event.model';
+import { TenantListDto } from '../../tenant/models/tenant-list-dto';
 
 interface DashboardVm {
   summary: DashboardSummary;
   expenses: { totalExpenses: number };
-  revenueTrend: RevenueTrend[];
-  recentPayments: RecentPayment[];
-  occupancy: Occupancy;
+  collection: CollectionSummary;
+  overdueTenants: TenantListDto[];
 }
+
+const EMPTY_SUMMARY: DashboardSummary = {
+  activeTenants: 0, totalTenants: 0, movedOutTenants: 0,
+  occupiedBeds: 0, vacantBeds: 0, totalRooms: 0, monthlyRevenue: 0
+};
+
+const EMPTY_COLLECTION: CollectionSummary = {
+  expectedRent: 0, collectedRent: 0, pendingRent: 0,
+  collectionRate: 0, paidCount: 0, pendingCount: 0
+};
 
 @Component({
   selector: 'app-dashboard',
-  standalone:true,
-  imports: [CommonModule,SharedModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
-export class Dashboard {
+export class Dashboard implements OnInit, OnDestroy {
   private rangeSubject = new BehaviorSubject<string>('this-month');
-  selectedRange = 'this-month';
+  private previousRange = 'this-month';
+  private subs: Subscription[] = [];
 
-  ranges = [
-    { key: 'this-month', label: 'This Month' },
-    { key: 'last-month', label: 'Last Month' },
+  selectedRange = 'this-month';
+  showCustomPicker = false;
+  customFrom = '';
+  customTo = '';
+
+  dismissedAlerts = new Set<string>();
+
+  readonly ranges = [
+    { key: 'this-month',    label: 'This Month' },
+    { key: 'last-month',    label: 'Last Month' },
     { key: 'last-3-months', label: 'Last 3 Months' },
-    { key: 'this-year', label: 'This Year' }
+    { key: 'this-year',     label: 'This Year' },
   ];
 
-  onRangeChange(rangeKey: string) {
-  this.selectedRange = rangeKey;
-  this.rangeSubject.next(rangeKey);
-}
+  alerts: DashboardAlerts | null = null;
+  auditCount: AuditCount | null = null;
+  vm: DashboardVm | null = null;
+  loading = true;
 
+  constructor(
+    private dashboardService: DashboardService,
+    private tenantService: Tenantservice,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  readonly year = new Date().getFullYear();
-    vm$!: Observable<DashboardVm>;
+  ngOnInit(): void {
+    // Alerts
+    this.subs.push(
+      this.dashboardService.getAlerts().pipe(
+        catchError(() => of({ movedOutWithPendingRent: 0, movedOutWithUnsettledAdvance: 0, activeWithPendingRent: 0 }))
+      ).subscribe(data => {
+        this.alerts = data;
+        this.cdr.detectChanges();
+      })
+    );
 
-  constructor(private dashboardService: DashboardService) {
-    this.vm$ = this.rangeSubject.pipe(
-  switchMap(rangeKey => {
-    const range = this.getDateRange(rangeKey);
+    // Audit count
+    this.subs.push(
+      this.dashboardService.getUnreviewedAuditCount().pipe(
+        catchError(() => of({ unreviewedCount: 0 }))
+      ).subscribe(data => {
+        this.auditCount = data;
+        this.cdr.detectChanges();
+      })
+    );
 
-    return forkJoin({
-      summary: this.dashboardService.getSummary(range),
-      expenses: this.dashboardService.getExpensesSummary(range),
-      revenueTrend: this.dashboardService.getRevenueTrend(range),
-      recentPayments: this.dashboardService.getRecentPayments(5, range),
-      occupancy: this.dashboardService.getOccupancy() // current state
-    });
-  })
-);
-
+    // Main VM
+    this.subs.push(
+      this.rangeSubject.pipe(
+        switchMap(rangeKey => {
+          this.loading = true;
+          this.cdr.detectChanges();
+          const range = this.getDateRange(rangeKey);
+          return forkJoin({
+            summary:        this.dashboardService.getSummary(range).pipe(catchError(() => of(EMPTY_SUMMARY))),
+            expenses:       this.dashboardService.getExpensesSummary(range).pipe(catchError(() => of({ totalExpenses: 0 }))),
+            collection:     this.dashboardService.getCollectionSummary(range).pipe(catchError(() => of(EMPTY_COLLECTION))),
+            overdueTenants: this.tenantService.getTenants({
+              page: 1, pageSize: 10,
+              status: 'ACTIVE', rentPending: true,
+              sortBy: 'daysoverdue', sortDir: 'desc'
+            }).pipe(catchError(() => of({ items: [], totalCount: 0 }))),
+          });
+        }),
+      ).subscribe(data => {
+        this.vm = {
+          ...data,
+          overdueTenants: (data.overdueTenants as any).items as TenantListDto[]
+        };
+        this.loading = false;
+        this.cdr.detectChanges();
+      })
+    );
   }
-  private getDateRange(rangeKey: string): { from: Date; to: Date } {
-  const now = new Date();
 
-  switch (rangeKey) {
-    case 'this-month':
-      return {
-        from: new Date(now.getFullYear(), now.getMonth(), 1),
-        to: now
-      };
+  ngOnDestroy(): void {
+    this.subs.forEach(s => s.unsubscribe());
+  }
 
-    case 'last-month':
-      return {
-        from: new Date(now.getFullYear(), now.getMonth() - 1, 1),
-        to: new Date(now.getFullYear(), now.getMonth(), 0)
-      };
+  // ── Range ─────────────────────────────────────────────────
+  onRangeChange(key: string): void {
+    if (key === 'custom') {
+      if (this.selectedRange !== 'custom') {
+        this.previousRange = this.selectedRange;
+      }
+      this.selectedRange = 'custom';
+      this.showCustomPicker = true;
+      return;
+    }
+    this.showCustomPicker = false;
+    this.selectedRange = key;
+    this.rangeSubject.next(key);
+  }
 
-    case 'last-3-months':
-      return {
-        from: new Date(now.getFullYear(), now.getMonth() - 2, 1),
-        to: now
-      };
+  applyCustomRange(): void {
+    if (!this.customFrom || !this.customTo) return;
+    this.showCustomPicker = false;
+    this.rangeSubject.next('custom');
+  }
 
-    case 'this-year':
-      return {
-        from: new Date(now.getFullYear(), 0, 1),
-        to: now
-      };
+  cancelCustomPicker(): void {
+    this.selectedRange = this.previousRange;
+    this.showCustomPicker = false;
+  }
 
-    default:
-      return {
-        from: new Date(now.getFullYear(), now.getMonth(), 1),
-        to: now
-      };
+  get customRangeLabel(): string {
+    if (!this.customFrom || !this.customTo) return 'Custom';
+    const fmt = (d: string) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    return `${fmt(this.customFrom)} – ${fmt(this.customTo)}`;
+  }
+
+  // ── Alert helpers ──────────────────────────────────────────
+  dismissAlert(key: string): void       { this.dismissedAlerts.add(key); }
+  isAlertVisible(key: string): boolean  { return !this.dismissedAlerts.has(key); }
+
+  // ── Alert navigation ───────────────────────────────────────
+  goToMovedOutPendingRent():      void { this.router.navigate(['/tenant-list'], { queryParams: { status: 'MOVED OUT', rentPending: 'true' } }); }
+  goToMovedOutUnsettledAdvance(): void { this.router.navigate(['/tenant-list'], { queryParams: { status: 'MOVED OUT', advancePending: 'true' } }); }
+  goToActivePendingRent():        void { this.router.navigate(['/tenant-list'], { queryParams: { status: 'ACTIVE', rentPending: 'true' } }); }
+  goToAuditLog():                 void { this.router.navigate(['/audit-log']); }
+
+  // ── KPI helpers ────────────────────────────────────────────
+  getNetProfit(vm: DashboardVm): number {
+    return vm.summary.monthlyRevenue - vm.expenses.totalExpenses;
+  }
+
+  getOccupancyRate(vm: DashboardVm): number {
+    const total = vm.summary.occupiedBeds + vm.summary.vacantBeds;
+    return total === 0 ? 0 : Math.round((vm.summary.occupiedBeds / total) * 100);
+  }
+
+  getCollectionFill(vm: DashboardVm): string {
+    return `${Math.min(vm.collection.collectionRate, 100)}%`;
+  }
+
+  // ── Navigation ─────────────────────────────────────────────
+  navigateTo(path: string): void { this.router.navigate([path]); }
+  viewTenant(id: string): void   { this.router.navigate(['/tenants', id]); }
+
+  // ── Date range ─────────────────────────────────────────────
+  private getDateRange(key: string): DateRange {
+    const now = new Date();
+    switch (key) {
+      case 'this-month':    return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
+      case 'last-month':    return { from: new Date(now.getFullYear(), now.getMonth() - 1, 1), to: new Date(now.getFullYear(), now.getMonth(), 0) };
+      case 'last-3-months': return { from: new Date(now.getFullYear(), now.getMonth() - 2, 1), to: now };
+      case 'this-year':     return { from: new Date(now.getFullYear(), 0, 1), to: now };
+      case 'custom':        return { from: new Date(this.customFrom), to: new Date(this.customTo) };
+      default:              return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
+    }
   }
 }
-getNetProfit(vm: DashboardVm): number {
-  return vm.summary.monthlyRevenue - vm.expenses.totalExpenses;
-}
-
-}
-
