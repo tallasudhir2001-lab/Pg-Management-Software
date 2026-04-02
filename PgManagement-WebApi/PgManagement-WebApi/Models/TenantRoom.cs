@@ -14,6 +14,8 @@ namespace PgManagement_WebApi.Models
         public DateTime FromDate { get; set; }
         public DateTime? ToDate { get; set; }
 
+        public string StayType { get; set; } = "MONTHLY"; // MONTHLY or DAILY
+
         public Tenant Tenant { get; set; }
         public Room Room { get; set; }
     }

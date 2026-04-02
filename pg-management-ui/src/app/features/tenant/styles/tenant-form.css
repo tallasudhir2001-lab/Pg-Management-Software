@@ -857,6 +857,12 @@
 }
 .td-btn-changeroom:hover:not(:disabled) { background: #e0e7ff; }
 
+.td-btn-changestay {
+  background: #fef3c7;
+  color: #92400e;
+}
+.td-btn-changestay:hover:not(:disabled) { background: #fde68a; }
+
 .td-btn-moveout {
   background: #fee2e2;
   color: #991b1b;

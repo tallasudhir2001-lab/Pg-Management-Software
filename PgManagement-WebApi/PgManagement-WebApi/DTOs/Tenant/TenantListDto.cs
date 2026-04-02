@@ -17,5 +17,6 @@
         public DateTime? LastPaymentDate { get; set; }
         public DateTime? OverdueSince { get; set; }
         public int? DaysOverdue { get; set; }
+        public string StayType { get; set; } = "MONTHLY";
     }
 }

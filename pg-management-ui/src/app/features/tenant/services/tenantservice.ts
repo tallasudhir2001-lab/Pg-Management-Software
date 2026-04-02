@@ -98,6 +98,10 @@ changeRoom(tenantId: string, payload: any) {
   return this.http.post<void>(
     `${this.baseUrl}/${tenantId}/change-room`,payload);
 }
+changeStayType(tenantId: string, payload: { newStayType: string; effectiveDate: string }) {
+  return this.http.post<void>(
+    `${this.baseUrl}/${tenantId}/change-stay-type`, payload);
+}
 findByAadhar(aadhar: string) {
   return this.http.get<any>(`${this.baseUrl}/findby-aadhar/${aadhar}`);
 }

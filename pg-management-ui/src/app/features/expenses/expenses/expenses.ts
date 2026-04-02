@@ -23,6 +23,7 @@ export class Expenses implements OnInit {
   private refresh$ = new Subject<void>();
 
   // Pagination
+  pageSizeOptions = [5, 10, 25, 50];
   pageSize = 10;
   currentPage = 1;
   totalPages = 0;
@@ -202,6 +203,11 @@ export class Expenses implements OnInit {
   goToPage(page: number): void {
     if (page < 1 || page > this.totalPages) return;
     this.updateUrl({ page });
+  }
+
+  onPageSizeChange(newSize: number): void {
+    this.pageSize = newSize;
+    this.updateUrl({ page: 1 });
   }
 
   nextPage(): void {

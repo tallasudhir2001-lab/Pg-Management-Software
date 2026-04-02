@@ -41,6 +41,7 @@ export class TenantDetails implements OnInit{
   //loading state
   isChangingRoom = false;
   changeDate: string | null = null;
+  changeRoomStayType: string = 'MONTHLY';
 
 
   //tenant pending Rent Variables
@@ -54,7 +55,14 @@ export class TenantDetails implements OnInit{
   isCreateStayOpen = false;
   selectedRoomIdForStay: string | null = null;
   createStayDate: string | null = null;
+  createStayType: string = 'MONTHLY';
   isCreatingStay = false;
+
+  //change stay type
+  isChangeStayTypeOpen = false;
+  newStayType: string = 'DAILY';
+  changeStayTypeDate: string = new Date().toISOString().split('T')[0];
+  isChangingStayType = false;
 
   //move out
   isMoveOutOpen = false;
@@ -110,7 +118,8 @@ confirmCreateStay(): void {
   const payload = {
     tenantId: this.tenantId,
     roomId: this.selectedRoomIdForStay,
-    fromDate: this.createStayDate
+    fromDate: this.createStayDate,
+    stayType: this.createStayType
   };
 
   this.tenantService.createStay(payload).subscribe({
@@ -192,6 +201,7 @@ proceedMoveOut(): void {
   openChangeRoom(): void {
   this.isChangeRoomOpen = true;
   this.selectedRoomId = null;
+  this.changeRoomStayType = 'MONTHLY';
 
   // load available rooms
   this.rooms$ = this.roomService.getRooms({
@@ -216,7 +226,8 @@ confirmChangeRoom(): void {
 
   const payload = {
     newRoomId: this.selectedRoomId,
-    changeDate: this.changeDate
+    changeDate: this.changeDate,
+    stayType: this.changeRoomStayType
   };
 
   this.tenantService
@@ -236,6 +247,42 @@ confirmChangeRoom(): void {
       }
     });
 }
+
+  openChangeStayType(): void {
+    const activeStay = this.stays.find(s => !s.toDate);
+    const currentType = activeStay?.stayType || 'MONTHLY';
+    this.newStayType = currentType === 'MONTHLY' ? 'DAILY' : 'MONTHLY';
+    this.changeStayTypeDate = new Date().toISOString().split('T')[0];
+    this.isChangeStayTypeOpen = true;
+  }
+
+  closeChangeStayType(): void {
+    this.isChangeStayTypeOpen = false;
+  }
+
+  confirmChangeStayType(): void {
+    if (!this.changeStayTypeDate) return;
+
+    this.isChangingStayType = true;
+
+    this.tenantService
+      .changeStayType(this.tenantId, {
+        newStayType: this.newStayType,
+        effectiveDate: this.changeStayTypeDate
+      })
+      .subscribe({
+        next: () => {
+          this.isChangingStayType = false;
+          this.isChangeStayTypeOpen = false;
+          this.reload$.next();
+          this.toastService.showSuccess('Stay type changed successfully');
+        },
+        error: err => {
+          this.isChangingStayType = false;
+          this.toastService.showError(err?.error || 'Failed to change stay type');
+        }
+      });
+  }
 
  confirmMoveOut(): void {
   this.hasActiveAdvance = !!this.currentTenant?.advanceAmount;

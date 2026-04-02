@@ -129,7 +129,8 @@ namespace PgManagement_WebApi.Services
                     .OrderBy(r => r.EffectiveFrom)
                     .ToListAsync();
 
-                var slices = RentHelper.GetRentSlices(periodFrom, periodTo, rentHistories);
+                var slices = RentHelper.GetRentSlices(periodFrom, periodTo, rentHistories, stay.StayType,
+                    stayFromDate: stay.FromDate.Date, isActiveStay: stay.ToDate == null);
                 var expectedRent = slices.Sum(s => s.Amount);
 
                 // Get RENT payments for this tenant in this month range
@@ -232,7 +233,8 @@ namespace PgManagement_WebApi.Services
                 decimal outstanding = 0;
                 foreach (var range in unpaid)
                 {
-                    var slices = RentHelper.GetRentSlices(range.From, range.To, rentHistories);
+                    var slices = RentHelper.GetRentSlices(range.From, range.To, rentHistories, stay.StayType,
+                        stayFromDate: stay.FromDate.Date, isActiveStay: true); // overdue report is active stays only
                     outstanding += slices.Sum(s => s.Amount);
                 }
 

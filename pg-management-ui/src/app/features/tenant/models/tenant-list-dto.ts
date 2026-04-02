@@ -9,6 +9,7 @@ export interface TenantListDto {
   status: 'ACTIVE' | 'MOVED OUT' | 'NO STAY';
   checkedInAt?: string | null;
   isRentPending: boolean;
+  stayType?: string | null;
   lastPaymentDate?: string | null;
   overdueSince?: string | null;
   daysOverdue?: number | null;

@@ -151,6 +151,7 @@ namespace PgManagement_WebApi.Controllers
 
             // 2️⃣ Load stays (chronological)
             var stays = await context.TenantRooms
+                .Include(tr => tr.Room)
                 .Where(tr => tr.TenantId == dto.TenantId && tr.PgId == pgId)
                 .OrderBy(tr => tr.FromDate)
                 .ToListAsync();
@@ -166,8 +167,10 @@ namespace PgManagement_WebApi.Controllers
                     !p.IsDeleted && p.PaymentTypeCode == "RENT")
                 .ToListAsync();
 
-            // 4️⃣ Collect ALL unpaid ranges across stays
-            var allUnpaidRanges = new List<(DateTime From, DateTime To)>();
+            // 4️⃣ Find the FIRST stay with unpaid ranges (pay stays in order)
+            TenantRoom? payableStay = null;
+            DateTime payableFrom = DateTime.MinValue;
+            DateTime payableUpto = DateTime.MinValue;
 
             foreach (var stay in stays)
             {
@@ -184,42 +187,27 @@ namespace PgManagement_WebApi.Controllers
                 );
 
                 if (unpaidRanges.Any())
-                    allUnpaidRanges.AddRange(unpaidRanges);
+                {
+                    payableStay = stay;
+                    payableFrom = unpaidRanges.First().From;
+                    payableUpto = stay.ToDate?.Date ?? dto.PaidUpto;
+                    break; // first unpaid stay wins
+                }
             }
 
-            if (!allUnpaidRanges.Any())
+            if (payableStay == null)
                 return BadRequest("No pending rent exists for this tenant.");
 
-            // 5️⃣ Merge unpaid ranges into ONE continuous payable window
-            var ordered = allUnpaidRanges
-                .OrderBy(r => r.From)
-                .ToList();
-
-            var payableFrom = ordered.First().From;
-            var payableUpto = ordered.First().To;
-
-            foreach (var range in ordered.Skip(1))
-            {
-                if (range.From <= payableUpto.AddDays(1))
-                {
-                    if (range.To > payableUpto)
-                        payableUpto = range.To;
-                }
-                else
-                {
-                    break; // GAP found → cannot pay beyond this
-                }
-            }
-
-            // 6️⃣ Validate requested payment period
+            // 5️⃣ Validate requested payment period — must be within the first pending stay
             if (dto.PaidUpto < payableFrom || dto.PaidUpto > payableUpto)
             {
                 return BadRequest(
-                    $"Payment period must be between {payableFrom:dd MMM yyyy} and {payableUpto:dd MMM yyyy}."
+                    $"Payment period must be between {payableFrom:dd MMM yyyy} and {payableUpto:dd MMM yyyy}. " +
+                    $"Please complete payment for Room {payableStay.Room?.RoomNumber ?? payableStay.RoomId} first."
                 );
             }
 
-            // 7️⃣ Create payment (PaidFrom is enforced by backend)
+            // 6️⃣ Create payment (PaidFrom is enforced by backend)
             var payment = new Payment
             {
                 PaymentId = Guid.NewGuid().ToString(),
@@ -374,7 +362,10 @@ namespace PgManagement_WebApi.Controllers
                     var rentSlices = RentHelper.GetRentSlices(
                         range.From.Date,
                         range.To.Date,
-                        rentHistories
+                        rentHistories,
+                        stay.StayType,
+                        stayFromDate: stay.FromDate.Date,
+                        isActiveStay: stay.ToDate == null
                     );
 
                     foreach (var slice in rentSlices)
@@ -406,6 +397,60 @@ namespace PgManagement_WebApi.Controllers
         }
 
         private static DateTime Min(DateTime a, DateTime b) => a < b ? a : b;
+
+        // ─────────────────────────────────────────────────────────────────────
+        // GET calculate-rent — returns rent amount for a given paidFrom→paidUpto
+        // ─────────────────────────────────────────────────────────────────────
+        [HttpGet("calculate-rent/{tenantId}")]
+        public async Task<IActionResult> CalculateRent(
+            string tenantId,
+            [FromQuery] DateTime paidFrom,
+            [FromQuery] DateTime paidUpto)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId))
+                return Unauthorized();
+
+            if (paidFrom > paidUpto)
+                return BadRequest("paidFrom must be <= paidUpto");
+
+            // Find the stay that covers paidFrom
+            var stay = await context.TenantRooms
+                .Where(tr => tr.TenantId == tenantId && tr.PgId == pgId
+                    && tr.FromDate <= paidFrom
+                    && (tr.ToDate == null || tr.ToDate >= paidFrom))
+                .OrderByDescending(tr => tr.FromDate)
+                .FirstOrDefaultAsync();
+
+            if (stay == null)
+            {
+                // Try any stay that overlaps the range
+                stay = await context.TenantRooms
+                    .Where(tr => tr.TenantId == tenantId && tr.PgId == pgId
+                        && tr.FromDate <= paidUpto
+                        && (tr.ToDate == null || tr.ToDate >= paidFrom))
+                    .OrderByDescending(tr => tr.FromDate)
+                    .FirstOrDefaultAsync();
+            }
+
+            if (stay == null)
+                return NotFound("No stay found for the given period");
+
+            var rentHistories = await context.RoomRentHistories
+                .Where(r => r.RoomId == stay.RoomId
+                    && r.EffectiveFrom <= paidUpto
+                    && (r.EffectiveTo == null || r.EffectiveTo >= paidFrom))
+                .OrderBy(r => r.EffectiveFrom)
+                .ToListAsync();
+
+            // isActiveStay: false — the user explicitly chose paidUpto,
+            // so don't extend the period to the billing cycle end.
+            var slices = RentHelper.GetRentSlices(paidFrom, paidUpto, rentHistories, stay.StayType,
+                stayFromDate: stay.FromDate.Date, isActiveStay: false);
+            var amount = slices.Sum(s => s.Amount);
+
+            return Ok(new { amount = Decimal.Round(amount, 2), stayType = stay.StayType });
+        }
 
         // ─────────────────────────────────────────────────────────────────────
         // GET context/{tenantId}  — ORIGINAL, fully intact
@@ -444,15 +489,28 @@ namespace PgManagement_WebApi.Controllers
                 .ToListAsync();
 
             var pendingStays = new List<PendingStayContextDto>();
-            var allUnpaidRanges = new List<(DateTime From, DateTime To)>();
 
             // 4️⃣ Compute unpaid ranges per stay
             foreach (var stay in stays)
             {
                 var stayFrom = stay.FromDate.Date;
-                var stayTo = stay.ToDate.HasValue
-                    ? Min(stay.ToDate.Value, today)
-                    : today;
+                DateTime stayTo;
+
+                if (stay.ToDate.HasValue)
+                {
+                    stayTo = Min(stay.ToDate.Value, today);
+                }
+                else if ((stay.StayType ?? "MONTHLY") == "MONTHLY")
+                {
+                    // For MONTHLY active stays, extend to billing cycle end
+                    // so the full current cycle is payable
+                    var cycleDay = stay.FromDate.Day;
+                    stayTo = RentHelper.GetCycleEnd(today, cycleDay);
+                }
+                else
+                {
+                    stayTo = today;
+                }
 
                 if (stayFrom > stayTo)
                     continue;
@@ -465,8 +523,6 @@ namespace PgManagement_WebApi.Controllers
 
                 if (!unpaidRanges.Any())
                     continue;
-
-                allUnpaidRanges.AddRange(unpaidRanges);
 
                 var rentHistories = await context.RoomRentHistories
                     .Where(r =>
@@ -483,7 +539,10 @@ namespace PgManagement_WebApi.Controllers
                     var slices = RentHelper.GetRentSlices(
                         range.From,
                         range.To,
-                        rentHistories
+                        rentHistories,
+                        stay.StayType,
+                        stayFromDate: stay.FromDate.Date,
+                        isActiveStay: stay.ToDate == null
                     );
 
                     stayPending += slices.Sum(s => s.Amount);
@@ -500,18 +559,20 @@ namespace PgManagement_WebApi.Controllers
                     {
                         RoomId = stay.RoomId,
                         RoomNumber = stay.Room.RoomNumber,
-                        FromDate = stayFrom,
-                        ToDate = stayTo,
+                        FromDate = unpaidRanges.First().From,
+                        ToDate = unpaidRanges.Last().To,
+                        StayStartDate = stay.FromDate.Date,
                         PendingAmount = Decimal.Round(stayPending, 2),
                         IsActiveStay = stay.ToDate == null,
                         IsNextPayable = false, // set later
-                        RentPerMonth = currentRentHistory?.RentAmount ?? 0
+                        RentPerMonth = currentRentHistory?.RentAmount ?? 0,
+                        StayType = stay.StayType ?? "MONTHLY"
                     });
                 }
             }
 
             // 5️⃣ No pending rent at all
-            if (!allUnpaidRanges.Any())
+            if (!pendingStays.Any())
             {
                 var activeStayForRent = stays.FirstOrDefault(s => s.ToDate == null);
                 decimal activeRentPerMonth = 0;
@@ -540,41 +601,19 @@ namespace PgManagement_WebApi.Controllers
                     HasActiveStay = false,
                     AsOfDate = today,
                     RoomNumber = activeRoomNumber,
-                    RentPerMonth = activeRentPerMonth
+                    RentPerMonth = activeRentPerMonth,
+                    StayType = stays.LastOrDefault()?.StayType ?? "MONTHLY"
                 });
             }
 
-            // 6️⃣ Merge unpaid ranges into one continuous window
-            var ordered = allUnpaidRanges
-                .OrderBy(r => r.From)
-                .ToList();
+            // 6️⃣ Payment window = FIRST pending stay only
+            //    Different stays may have different rooms/rents, so the user
+            //    must complete payment for the earliest stay before moving on.
+            var firstPayableStay = pendingStays.First();
+            firstPayableStay.IsNextPayable = true;
 
-            var paidFrom = ordered.First().From;
-            var maxPaidUpto = ordered.First().To;
-
-            foreach (var range in ordered.Skip(1))
-            {
-                if (range.From <= maxPaidUpto.AddDays(1))
-                {
-                    if (range.To > maxPaidUpto)
-                        maxPaidUpto = range.To;
-                }
-                else
-                {
-                    break; // gap → stop
-                }
-            }
-
-            // 7️⃣ Mark stays that fall inside payable window
-            foreach (var stay in pendingStays)
-            {
-                if (stay.FromDate <= maxPaidUpto && stay.ToDate >= paidFrom)
-                {
-                    stay.IsNextPayable = true;
-                }
-            }
-
-            var activeStay = pendingStays.FirstOrDefault(s => s.IsActiveStay);
+            var paidFrom = firstPayableStay.FromDate;
+            var maxPaidUpto = firstPayableStay.ToDate;
 
             return Ok(new PaymentContextDto
             {
@@ -584,10 +623,12 @@ namespace PgManagement_WebApi.Controllers
                 PendingStays = pendingStays,
                 PaidFrom = paidFrom,
                 MaxPaidUpto = maxPaidUpto,
-                HasActiveStay = activeStay != null,
+                HasActiveStay = pendingStays.Any(s => s.IsActiveStay),
                 AsOfDate = today,
-                RoomNumber = activeStay?.RoomNumber,
-                RentPerMonth = activeStay?.RentPerMonth ?? 0
+                RoomNumber = firstPayableStay.RoomNumber,
+                RentPerMonth = firstPayableStay.RentPerMonth,
+                StayType = firstPayableStay.StayType,
+                StayStartDate = firstPayableStay.StayStartDate
             });
         }
 
@@ -764,7 +805,7 @@ namespace PgManagement_WebApi.Controllers
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // DELETE {paymentId}  — ORIGINAL, fully intact
+        // DELETE {paymentId}
         // ─────────────────────────────────────────────────────────────────────
         [AccessPoint("Payment", "Delete Payment")]
         [HttpDelete("{paymentId}")]
@@ -793,19 +834,71 @@ namespace PgManagement_WebApi.Controllers
                 return NotFound("Payment not found");
             }
 
-            var hasLaterPayments = await context.Payments.AnyAsync(p =>
-                p.TenantId == payment.TenantId &&
-                p.PgId == pgId &&
-                !p.IsDeleted &&
-                p.PaidFrom > payment.PaidFrom
-            );
+            // ── Type-specific validation & side-effects ──────────────────────
 
-            if (hasLaterPayments)
+            if (payment.PaymentTypeCode == "RENT")
             {
-                return BadRequest(
-                    "This payment cannot be deleted because newer payments exist."
+                // Only check newer RENT payments (advance payments are not sequential)
+                var hasLaterRentPayments = await context.Payments.AnyAsync(p =>
+                    p.TenantId == payment.TenantId &&
+                    p.PgId == pgId &&
+                    !p.IsDeleted &&
+                    p.PaymentTypeCode == "RENT" &&
+                    p.PaidFrom > payment.PaidFrom
                 );
+
+                if (hasLaterRentPayments)
+                    return BadRequest("This payment cannot be deleted because newer rent payments exist.");
             }
+            else if (payment.PaymentTypeCode == "ADVANCE_PAYMENT")
+            {
+                // Find the linked advance via the payment notes ("Advance created: {advanceId}")
+                var advance = await context.Advances
+                    .FirstOrDefaultAsync(a =>
+                        a.TenantId == payment.TenantId &&
+                        !a.IsSettled &&
+                        a.Amount == payment.Amount);
+
+                if (advance == null)
+                {
+                    // Advance is already settled — cannot delete the original payment
+                    var settledAdvance = await context.Advances
+                        .AnyAsync(a =>
+                            a.TenantId == payment.TenantId &&
+                            a.IsSettled &&
+                            a.Amount == payment.Amount);
+
+                    if (settledAdvance)
+                        return BadRequest("This advance payment cannot be deleted because the advance has already been settled. Delete the settlement first.");
+
+                    // Advance not found at all — allow deletion of orphan payment
+                }
+                else
+                {
+                    // Delete the unsettled advance along with the payment
+                    context.Advances.Remove(advance);
+                }
+            }
+            else if (payment.PaymentTypeCode == "ADVANCE_REFUND")
+            {
+                // Reverse the settlement — find the settled advance for this tenant
+                var advance = await context.Advances
+                    .FirstOrDefaultAsync(a =>
+                        a.TenantId == payment.TenantId &&
+                        a.IsSettled &&
+                        a.SettledDate != null);
+
+                if (advance != null)
+                {
+                    advance.IsSettled = false;
+                    advance.DeductedAmount = 0;
+                    advance.SettledDate = null;
+                    advance.SettledByUserId = null;
+                    advance.Notes = null;
+                }
+            }
+
+            // ── Soft-delete the payment ──────────────────────────────────────
 
             payment.IsDeleted = true;
             payment.DeletedAt = DateTime.UtcNow;
@@ -819,13 +912,14 @@ namespace PgManagement_WebApi.Controllers
                 EventType = "PAYMENT_DELETED",
                 EntityType = "Payment",
                 EntityId = paymentId,
-                Description = $"Payment of ₹{payment.Amount} deleted (Tenant: {payment.TenantId})",
+                Description = $"{payment.PaymentTypeCode} payment of ₹{payment.Amount} deleted (Tenant: {payment.TenantId})",
                 OldValue = System.Text.Json.JsonSerializer.Serialize(new
                 {
                     payment.Amount,
                     payment.PaidFrom,
                     payment.PaidUpto,
                     payment.PaymentModeCode,
+                    payment.PaymentTypeCode,
                     payment.TenantId
                 }),
                 PerformedByUserId = userId,

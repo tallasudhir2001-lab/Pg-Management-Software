@@ -29,6 +29,44 @@ body {
   box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
 
+/* ==============================
+   Pagination Footer (global)
+================================ */
+.pagination-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.page-size-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.page-size-selector select {
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #374151;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+  width: auto;
+  margin: 0;
+}
+
+.page-size-selector select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+}
+
 /* Headings */
 h2 {
   margin-bottom: 20px;

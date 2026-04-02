@@ -7,5 +7,6 @@
         public DateTime FromDate { get; set; }
         public DateTime? ToDate { get; set; }
         public string RoomNumber { get; set; } = default!;
+        public string StayType { get; set; } = "MONTHLY";
     }
 }

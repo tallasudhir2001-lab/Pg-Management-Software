@@ -18,6 +18,7 @@ import { HasAccessDirective } from '../../../shared/directives/has-access.direct
 })
 export class RoomList {
   rooms$!: Observable<PagedResults<Room>>; 
+  pageSizeOptions = [6, 9, 18, 36];
   pageSize = 9;
   totalPages = 0;
   currentPage = 1;
@@ -46,23 +47,25 @@ export class RoomList {
         const status = params.get('status') || '';
         const ac = params.get('ac') || '';
         const vacancies = params.get('vacancies') || '';
+        const pageSize = Number(params.get('pageSize')) || 9;
 
         // Sync UI state
+        this.pageSize = pageSize;
         this.currentPage = page;
         this.searchText = search;
         this.filterStatus = status;
         this.filterAc = ac;
         this.filterVacancies = vacancies;
 
-        return { page, search, status, ac, vacancies };
+        return { page, pageSize, search, status, ac, vacancies };
       }),
       distinctUntilChanged(
         (a, b) => JSON.stringify(a) === JSON.stringify(b)
       ),
-      switchMap(({ page, search, status, ac, vacancies }) => {
+      switchMap(({ page, pageSize, search, status, ac, vacancies }) => {
         return this.roomService.getRooms({
           page,
-          pageSize: this.pageSize,
+          pageSize,
           search,
           status,
           ac,
@@ -94,6 +97,11 @@ export class RoomList {
     if (this.currentPage > 1) {
       this.updateUrl({ page: this.currentPage - 1 });
     }
+  }
+
+  onPageSizeChange(newSize: number): void {
+    this.pageSize = newSize;
+    this.updateUrl({ page: 1, pageSize: newSize });
   }
 
   buildPages(): void {
@@ -169,6 +177,7 @@ export class RoomList {
   // URL update helper
   private updateUrl(params: {
     page?: number;
+    pageSize?: number;
     search?: string | null;
     status?: string | null;
     ac?: string | null;

@@ -48,6 +48,7 @@
             Checked In
             <span class="sort-arrow" [class.visible]="isSortedBy('checkedin')" [class.asc]="isSortAsc('checkedin')">▼</span>
           </th>
+          <th>Stay</th>
           <!-- last 3: fixed -->
           <th>Status</th>
           <th>Rent</th>
@@ -71,7 +72,9 @@
           <td class="cell-secondary">{{ t.contactNumber }}</td>
           <!-- col 4: checked in -->
           <td class="cell-secondary">{{ t.checkedInAt | date: 'd MMM y' }}</td>
-          <!-- col 5: status pill -->
+          <!-- col 5: stay type -->
+          <td class="cell-secondary">{{ t.stayType === 'DAILY' ? 'Daily' : 'Monthly' }}</td>
+          <!-- col 6: status pill -->
           <td>
             <span class="status-pill"
               [class.active]="t.status === 'ACTIVE'"
@@ -116,18 +119,27 @@
     </table>
   </div>
 
-  <!-- Pagination Info -->
-  <div class="pagination-info" [class.empty]="totalCount === 0">
-    <ng-container *ngIf="totalCount > 0; else noResults">
-      Showing
-      <span class="count-strong">{{ startItem }}</span>
-      –
-      <span class="count-strong">{{ endItem }}</span>
-      of
-      <span class="count-strong">{{ totalCount }}</span>
-      tenants
-    </ng-container>
-    <ng-template #noResults>No tenants found</ng-template>
+  <!-- Pagination Footer -->
+  <div class="pagination-footer">
+    <div class="page-size-selector">
+      <label>Rows per page:</label>
+      <select [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)">
+        <option *ngFor="let opt of pageSizeOptions" [ngValue]="opt">{{ opt }}</option>
+      </select>
+    </div>
+
+    <div class="pagination-info" [class.empty]="totalCount === 0">
+      <ng-container *ngIf="totalCount > 0; else noResults">
+        Showing
+        <span class="count-strong">{{ startItem }}</span>
+        –
+        <span class="count-strong">{{ endItem }}</span>
+        of
+        <span class="count-strong">{{ totalCount }}</span>
+        tenants
+      </ng-container>
+      <ng-template #noResults>No tenants found</ng-template>
+    </div>
   </div>
 
   <!-- Pagination Controls -->

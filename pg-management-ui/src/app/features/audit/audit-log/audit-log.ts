@@ -18,6 +18,7 @@ export class AuditLog implements OnInit {
   events: AuditEvent[] = [];
   totalCount = 0;
   page = 1;
+  pageSizeOptions = [10, 20, 50];
   pageSize = 20;
   statusFilter = '';
   entityTypeFilter = '';
@@ -136,6 +137,12 @@ export class AuditLog implements OnInit {
   goToPage(p: number): void {
     if (p < 1 || p > this.totalPages) return;
     this.page = p;
+    this.loadEvents();
+  }
+
+  onPageSizeChange(newSize: number): void {
+    this.pageSize = newSize;
+    this.page = 1;
     this.loadEvents();
   }
 

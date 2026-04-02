@@ -83,13 +83,22 @@
         </table>
     </div>
 
-    <!-- Pagination Info -->
-    <div class="pagination-info" [class.empty]="totalCount === 0">
-        <ng-container *ngIf="totalCount > 0; else noResults">
-            Showing <span class="count-strong">{{ startItem }}</span> – <span class="count-strong">{{ endItem }}</span>
-            of <span class="count-strong">{{ totalCount }}</span> payments
-        </ng-container>
-        <ng-template #noResults>No payments found</ng-template>
+    <!-- Pagination Footer -->
+    <div class="pagination-footer">
+        <div class="page-size-selector">
+            <label>Rows per page:</label>
+            <select [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)">
+                <option *ngFor="let opt of pageSizeOptions" [ngValue]="opt">{{ opt }}</option>
+            </select>
+        </div>
+
+        <div class="pagination-info" [class.empty]="totalCount === 0">
+            <ng-container *ngIf="totalCount > 0; else noResults">
+                Showing <span class="count-strong">{{ startItem }}</span> – <span class="count-strong">{{ endItem }}</span>
+                of <span class="count-strong">{{ totalCount }}</span> payments
+            </ng-container>
+            <ng-template #noResults>No payments found</ng-template>
+        </div>
     </div>
 
     <!-- Pagination Controls -->

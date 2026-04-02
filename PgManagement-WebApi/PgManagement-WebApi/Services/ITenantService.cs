@@ -20,10 +20,18 @@ namespace PgManagement_WebApi.Services
         Task<(bool success, string? error, int statusCode)> CreateStayInternal(string tenantId,
     string roomId,
     DateTime fromDate,
-    string pgId);
+    string pgId,
+    string stayType = "MONTHLY");
         Task<(bool success, object? result, int statusCode)> ChangeRoomAsync(
     string tenantId,
     string newRoomId,
-    string pgId,DateTime changeDate);
+    string pgId, DateTime changeDate,
+    string stayType = "MONTHLY");
+
+        Task<(bool success, object? result, int statusCode)> ChangeStayTypeAsync(
+    string tenantId,
+    string newStayType,
+    string pgId,
+    DateTime effectiveDate);
     }
 }

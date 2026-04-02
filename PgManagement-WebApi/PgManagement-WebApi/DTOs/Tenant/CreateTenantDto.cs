@@ -18,5 +18,6 @@ namespace PgManagement_WebApi.DTOs.Tenant
         public string Notes { get; set; }
         [Required]
         public string Email { get; set; }
+        public string StayType { get; set; } = "MONTHLY";
     }
 }

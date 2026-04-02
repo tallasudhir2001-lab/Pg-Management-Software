@@ -111,7 +111,8 @@ namespace PgManagement_WebApi.Services
                     tenant.TenantId,
                     dto.RoomId,
                     fromDate,
-                    pgId
+                    pgId,
+                    dto.StayType ?? "MONTHLY"
                 );
 
                 if (!ok)
@@ -172,7 +173,8 @@ namespace PgManagement_WebApi.Services
                 tenantId,
                 dto.RoomId,
                 fromDate,
-                pgId
+                pgId,
+                dto.StayType ?? "MONTHLY"
             );
 
             if (!ok)
@@ -190,7 +192,8 @@ namespace PgManagement_WebApi.Services
     string tenantId,
     string roomId,
     DateTime fromDate,
-    string pgId)
+    string pgId,
+    string stayType = "MONTHLY")
         {
             // 1️⃣ Validate room
             var (valid, error, status) = await roomService.ValidateRoomAsync(roomId, pgId);
@@ -211,7 +214,8 @@ namespace PgManagement_WebApi.Services
                 TenantId = tenantId,
                 RoomId = roomId,
                 PgId = pgId,
-                FromDate = fromDate
+                FromDate = fromDate,
+                StayType = stayType?.ToUpper() == "DAILY" ? "DAILY" : "MONTHLY"
             });
 
             // 4️⃣ Create TenantRentHistory
@@ -229,7 +233,8 @@ namespace PgManagement_WebApi.Services
         public async Task<(bool success, object? result, int statusCode)> ChangeRoomAsync(
     string tenantId,
     string newRoomId,
-    string pgId, DateTime changeDate)
+    string pgId, DateTime changeDate,
+    string stayType = "MONTHLY")
         {
             // 1️⃣ Get active stay
             var activeAssignment = await context.TenantRooms
@@ -274,13 +279,84 @@ namespace PgManagement_WebApi.Services
                 tenantId,
                 newRoomId,
                 roomChangeDate,
-                pgId
+                pgId,
+                activeAssignment.StayType
             );
 
             if (!ok)
                 return (false, error, status);
 
             // 5️⃣ Update tenant metadata
+            var tenant = await context.Tenants
+                .FirstOrDefaultAsync(t =>
+                    t.TenantId == tenantId &&
+                    t.PgId == pgId &&
+                    !t.isDeleted);
+
+            if (tenant != null)
+            {
+                tenant.UpdatedAt = DateTime.Now;
+            }
+
+            await context.SaveChangesAsync();
+            await tx.CommitAsync();
+
+            return (true, null, 204);
+        }
+
+        public async Task<(bool success, object? result, int statusCode)> ChangeStayTypeAsync(
+            string tenantId,
+            string newStayType,
+            string pgId,
+            DateTime effectiveDate)
+        {
+            var activeAssignment = await context.TenantRooms
+                .FirstOrDefaultAsync(tr =>
+                    tr.TenantId == tenantId &&
+                    tr.PgId == pgId &&
+                    tr.ToDate == null);
+
+            if (activeAssignment == null)
+                return (false, "Tenant does not have an active stay.", 400);
+
+            if (activeAssignment.StayType == newStayType)
+                return (false, $"Tenant is already on {newStayType} stay.", 400);
+
+            var changeDate = effectiveDate.Date;
+            var previousDay = changeDate.AddDays(-1);
+
+            if (changeDate < activeAssignment.FromDate.Date)
+                return (false, "Effective date cannot be before current stay start date.", 400);
+
+            using var tx = await context.Database.BeginTransactionAsync();
+
+            // Close current stay
+            activeAssignment.ToDate = previousDay;
+
+            // Close active rent history
+            var activeRent = await context.TenantRentHistories
+                .FirstOrDefaultAsync(trh =>
+                    trh.TenantId == tenantId &&
+                    trh.ToDate == null);
+
+            if (activeRent != null)
+            {
+                activeRent.ToDate = previousDay;
+            }
+
+            // Create new stay in the same room with new stay type
+            var (ok, error, status) = await CreateStayInternal(
+                tenantId,
+                activeAssignment.RoomId,
+                changeDate,
+                pgId,
+                newStayType
+            );
+
+            if (!ok)
+                return (false, error, status);
+
+            // Update tenant metadata
             var tenant = await context.Tenants
                 .FirstOrDefaultAsync(t =>
                     t.TenantId == tenantId &&

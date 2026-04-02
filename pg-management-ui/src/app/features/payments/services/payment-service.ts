@@ -108,4 +108,14 @@ export class PaymentService {
   sendReceiptWhatsApp(paymentId: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.baseUrl}/${paymentId}/send-receipt-whatsapp`, {});
   }
+
+  calculateRent(tenantId: string, paidFrom: string, paidUpto: string): Observable<{ amount: number; stayType: string }> {
+    const params = new HttpParams()
+      .set('paidFrom', paidFrom)
+      .set('paidUpto', paidUpto);
+    return this.http.get<{ amount: number; stayType: string }>(
+      `${this.baseUrl}/calculate-rent/${tenantId}`,
+      { params }
+    );
+  }
 }

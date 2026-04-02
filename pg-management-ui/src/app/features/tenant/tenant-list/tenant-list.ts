@@ -21,6 +21,7 @@ export class TenantList implements OnInit{
   tenants$!: Observable<PagedResults<TenantListDto>>;
 
   //pagination
+  pageSizeOptions = [5, 10, 25, 50];
   pageSize = 10;
   currentPage = 1;
   totalPages = 0;
@@ -76,8 +77,10 @@ export class TenantList implements OnInit{
         const advancePending = advancePendingParam ? advancePendingParam : null;
         const sortByParam = params.get('sortBy') || 'updated';
         const sortDirParam = (params.get('sortDir') as 'asc' | 'desc') || 'desc';
+        const pageSize = Number(params.get('pageSize')) || 10;
 
         //  sync UI
+        this.pageSize = pageSize;
         this.currentPage = page;
         this.searchText = search;
         this.filterStatus = tenantStatus as any;
@@ -95,15 +98,15 @@ export class TenantList implements OnInit{
           this.selectedRoomLabel = '';
         }
 
-        return { page, search, tenantStatus, roomId, rentPending, advancePending, sortBy: sortByParam, sortDir: sortDirParam};
+        return { page, pageSize, search, tenantStatus, roomId, rentPending, advancePending, sortBy: sortByParam, sortDir: sortDirParam};
       }),
       distinctUntilChanged(
         (a, b) => JSON.stringify(a) === JSON.stringify(b)
       ),
-      switchMap(({ page, search, tenantStatus, roomId, rentPending, advancePending, sortBy, sortDir }) =>
+      switchMap(({ page, pageSize, search, tenantStatus, roomId, rentPending, advancePending, sortBy, sortDir }) =>
         this.tenantService.getTenants({
           page,
-          pageSize: this.pageSize,
+          pageSize,
           search,
           status: tenantStatus,
           roomId: roomId ?? undefined,
@@ -124,6 +127,11 @@ export class TenantList implements OnInit{
   // 🔍 Search
   onSearchChange(value: string): void {
     this.updateUrl({ search: value?value:null, page: 1 });
+  }
+
+  onPageSizeChange(newSize: number): void {
+    this.pageSize = newSize;
+    this.updateUrl({ page: 1, pageSize: newSize });
   }
 
   //  Pagination helper methods -- start
@@ -168,6 +176,7 @@ prevPage(): void {
 
   private updateUrl(params: {
   page?: number;
+  pageSize?: number;
   search?: string | null;
   status?: string | null;
   roomId?: string | null;

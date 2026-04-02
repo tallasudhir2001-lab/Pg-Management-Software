@@ -17,6 +17,8 @@ namespace PgManagement_WebApi.DTOs.Payment
 
         public string? RoomNumber { get; set; }
         public decimal RentPerMonth { get; set; }
+        public string StayType { get; set; } = "MONTHLY";
+        public DateTime? StayStartDate { get; set; }
     }
 
 }

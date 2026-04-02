@@ -20,22 +20,30 @@
 
 /* Summary Sidebar */
 .summary-card {
-  /* A lighter, more vibrant version of #0F1041 */
   background: #252766; 
   color: white;
   padding: 24px;
   border-radius: 20px;
-  /* Updated shadow to match the lighter hue */
   box-shadow: 0 10px 25px rgba(37, 39, 102, 0.2); 
 }
 
 .summary-card .section-title {
   color: white;
   margin-top: 0;
-  /* Softened the border to blend with the new background */
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   padding-bottom: 12px;
   margin-bottom: 16px;
+}
+
+.summary-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.summary-row .summary-item {
+  flex: 1;
+  margin-bottom: 0;
 }
 
 .summary-item {
@@ -45,32 +53,107 @@
 }
 
 .summary-item .label {
-  font-size: 12px;
-  opacity: 0.7;
+  font-size: 11px;
+  opacity: 0.6;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .summary-item .value {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
 }
 
-.summary-item.highlight .value {
-  font-size: 24px;
-  color: #4ade80; /* Success green for money */
+/* Stay Type Pill */
+.stay-type-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  width: fit-content;
+}
+.stay-type-pill.monthly {
+  background: rgba(99, 102, 241, 0.25);
+  color: #c7d2fe;
+}
+.stay-type-pill.daily {
+  background: rgba(251, 191, 36, 0.25);
+  color: #fde68a;
+}
+
+/* Total Pending Block */
+.pending-amount-block {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pending-label {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.pending-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f87171;
+}
+
+/* Due Info Row */
+.due-info-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.due-info-item {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.due-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.6;
+}
+
+.due-value {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.due-value.allowed-till {
+  color: #4ade80;
 }
 
 .coverage-box {
-  /* Slightly more opaque to stand out against the lighter blue */
-  background: rgba(255, 255, 255, 0.12);
-  padding: 15px;
-  border-radius: 12px;
-  margin-top: 20px;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.coverage-label { font-size: 11px; opacity: 0.8; margin: 0; }
-.coverage-dates { font-size: 14px; font-weight: 500; margin: 5px 0 0; }
+.coverage-label { font-size: 10px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
+.coverage-dates { font-size: 14px; font-weight: 600; margin: 0; color: #4ade80; }
 
 /* Pending Stays Section */
 .pending-stays-section {
@@ -89,17 +172,22 @@
 }
 
 .stay-card {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
   transition: all 0.2s;
-  border: 2px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .stay-card.next-payable {
-  background: rgba(74, 222, 128, 0.15);
+  background: rgba(74, 222, 128, 0.12);
   border-color: rgba(74, 222, 128, 0.3);
+}
+
+.stay-card.gap-stay {
+  background: rgba(251, 146, 60, 0.12);
+  border-color: rgba(251, 146, 60, 0.3);
 }
 
 .stay-card.active-stay {
@@ -115,8 +203,8 @@
   color: #0F1041;
   font-size: 9px;
   font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
+  padding: 2px 7px;
+  border-radius: 4px;
   letter-spacing: 0.5px;
 }
 
@@ -140,33 +228,39 @@
 }
 
 .stay-rent {
-  font-size: 12px;
-  opacity: 0.75;
-  margin-bottom: 8px;
-  letter-spacing: 0.02em;
-}
-
-.stay-period {
-  font-size: 12px;
-  opacity: 0.7;
-  margin-bottom: 4px;
+  font-size: 11px;
+  opacity: 0.65;
+  margin-bottom: 6px;
 }
 
 .stay-dates {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  opacity: 0.9;
+  opacity: 0.85;
 }
 
 .next-payable-badge {
   display: inline-block;
   background: #4ade80;
   color: #0F1041;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 8px;
-  margin-top: 8px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-top: 6px;
+  letter-spacing: 0.5px;
+}
+
+.active-badge {
+  display: inline-block;
+  background: #22c55e;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
   letter-spacing: 0.5px;
 }
 
@@ -283,4 +377,23 @@ select.form-input {
   .payment-container { grid-template-columns: 1fr; }
   .form-grid { grid-template-columns: 1fr; }
   .full-width { grid-column: span 1; }
+}
+
+/* Amount calculation indicator */
+.amount-wrapper {
+  position: relative;
+}
+.calc-indicator {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #6366f1;
+  font-weight: 500;
+  animation: pulse-calc 1s ease-in-out infinite;
+}
+@keyframes pulse-calc {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }

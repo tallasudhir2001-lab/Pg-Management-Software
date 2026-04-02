@@ -4,5 +4,6 @@
     {
         public string newRoomId { get; set; }
         public DateTime changeDate { get; set; }
+        public string StayType { get; set; } = "MONTHLY";
     }
 }

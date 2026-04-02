@@ -34,5 +34,6 @@ export interface Stay {
   roomNumber: string;
   fromDate: string;
   toDate: string | null;
+  stayType?: string;
 }
 

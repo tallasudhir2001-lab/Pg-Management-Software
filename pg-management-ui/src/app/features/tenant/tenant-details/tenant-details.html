@@ -49,6 +49,10 @@
                   <button type="button" class="td-btn-action td-btn-changeroom"
                     (click)="openChangeRoom()" title="Change Room">Change Room</button>
                 </ng-container>
+                <ng-container *hasAccess="'Tenant.ChangeStayType'">
+                  <button type="button" class="td-btn-action td-btn-changestay"
+                    (click)="openChangeStayType()" title="Change Stay Type">Change Stay Type</button>
+                </ng-container>
                 <ng-container *hasAccess="'Tenant.MoveOutTenant'">
                   <button type="button" class="td-btn-action td-btn-moveout"
                     (click)="confirmMoveOut()" title="Move Out Tenant">Move Out</button>
@@ -242,6 +246,9 @@
           <div class="td-stay-row">
             <span class="td-stay-room">
               Room {{ stay.roomNumber }}
+              <span style="font-size: 11px; color: #6b7280; margin-left: 6px;">
+                ({{ stay.stayType === 'DAILY' ? 'Daily' : 'Monthly' }})
+              </span>
               @if (!stay.toDate) {
                 <span class="td-current-tag">Current</span>
               }
@@ -312,11 +319,50 @@
           </select>
           <label class="floating-label" [class.filled]="!!selectedRoomId">Select New Room</label>
         </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label>Stay Type</label>
+          <select class="form-input" [(ngModel)]="changeRoomStayType">
+            <option value="MONTHLY">Monthly</option>
+            <option value="DAILY">Daily</option>
+          </select>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" (click)="closeChangeRoom()">Cancel</button>
         <button class="btn-save" [disabled]="!selectedRoomId || isChangingRoom"
           (click)="confirmChangeRoom()">Change Room</button>
+      </div>
+    </div>
+  }
+
+  <!-- Change Stay Type -->
+  @if (isChangeStayTypeOpen) {
+    <div class="modal-backdrop"></div>
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Change Stay Type</h3>
+        <button type="button" class="icon-btn modal-close" (click)="closeChangeStayType()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 12px; color: #64748b; font-size: 0.9rem;">
+          This will end the current stay and create a new stay in the same room with the selected stay type.
+        </p>
+        <div class="form-group" style="margin-top: 12px;">
+          <label>Effective Date</label>
+          <input type="date" class="form-input" [(ngModel)]="changeStayTypeDate" />
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label>New Stay Type</label>
+          <select class="form-input" [(ngModel)]="newStayType">
+            <option value="MONTHLY">Monthly</option>
+            <option value="DAILY">Daily</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="closeChangeStayType()">Cancel</button>
+        <button class="btn-save" [disabled]="isChangingStayType"
+          (click)="confirmChangeStayType()">Change Stay Type</button>
       </div>
     </div>
   }
@@ -346,6 +392,13 @@
         <div class="form-group">
           <label>Start Date</label>
           <input type="date" class="form-input" [(ngModel)]="createStayDate" />
+        </div>
+        <div class="form-group">
+          <label>Stay Type</label>
+          <select class="form-input" [(ngModel)]="createStayType">
+            <option value="MONTHLY">Monthly</option>
+            <option value="DAILY">Daily</option>
+          </select>
         </div>
       </div>
       <div class="modal-actions">

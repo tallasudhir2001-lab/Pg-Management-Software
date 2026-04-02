@@ -95,7 +95,8 @@ namespace PgManagement_WebApi.Controllers
                     RoomId = tr.RoomId,
                     FromDate = tr.FromDate,
                     ToDate = tr.ToDate,
-                    RoomNumber = tr.Room.RoomNumber
+                    RoomNumber = tr.Room.RoomNumber,
+                    StayType = tr.StayType
                 })
                 .ToListAsync();
 
@@ -189,7 +190,8 @@ namespace PgManagement_WebApi.Controllers
                     IsRentPending = activeStay != null || stays.Any() ? hasPending : false,
                     LastPaymentDate = lastPaymentDate,
                     OverdueSince = activeStay != null ? overdueSince : null,
-                    DaysOverdue = activeStay != null ? daysOverdue : null
+                    DaysOverdue = activeStay != null ? daysOverdue : null,
+                    StayType = activeStay?.StayType ?? lastStay?.StayType ?? "MONTHLY"
                 });
             }
 
@@ -313,7 +315,8 @@ namespace PgManagement_WebApi.Controllers
                                 tr.RoomId,
                                 RoomNumber = tr.Room.RoomNumber,
                                 tr.FromDate,
-                                tr.ToDate
+                                tr.ToDate,
+                                tr.StayType
                             })
                             .ToListAsync();
             var advances = await context.Advances
@@ -404,7 +407,24 @@ namespace PgManagement_WebApi.Controllers
                 return Unauthorized();
 
             var (success, result, statusCode) =
-                await tenantService.ChangeRoomAsync(tenantId, dto.newRoomId, pgId, dto.changeDate);
+                await tenantService.ChangeRoomAsync(tenantId, dto.newRoomId, pgId, dto.changeDate, dto.StayType);
+
+            if (!success)
+                return StatusCode(statusCode, result);
+
+            return NoContent();
+        }
+
+        [AccessPoint("Tenant", "Change Stay Type")]
+        [HttpPost("{tenantId}/change-stay-type")]
+        public async Task<IActionResult> ChangeStayType(string tenantId, [FromBody] ChangeStayTypeDto dto)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId))
+                return Unauthorized();
+
+            var (success, result, statusCode) =
+                await tenantService.ChangeStayTypeAsync(tenantId, dto.NewStayType, pgId, dto.EffectiveDate);
 
             if (!success)
                 return StatusCode(statusCode, result);

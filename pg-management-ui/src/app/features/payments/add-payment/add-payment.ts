@@ -1,4 +1,4 @@
-import { Component, input, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, ChangeDetectorRef, input, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Observable, tap } from 'rxjs';
 import { PaymentService } from '../services/payment-service';
@@ -36,13 +36,15 @@ export class AddPayment implements OnChanges {
   frequencies = PAYMENT_FREQUENCIES;
 
   saving = false;
+  calculatingRent = false;
 
   constructor(
     private fb: FormBuilder,
     private paymentService: PaymentService,
     private route: ActivatedRoute,
     private router:Router,
-    private toastService:ToastService
+    private toastService:ToastService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -78,10 +80,14 @@ export class AddPayment implements OnChanges {
       return;
     }
 
+    // Calculate initial paidUpto based on stay type and billing cycle
+    const cycleDay = ctx.stayStartDate ? new Date(ctx.stayStartDate).getDate() : 1;
+    const initialPaidUpto = this.calculatePaidUpto(ctx.paidFrom!, ctx.maxPaidUpto, ctx.stayType, cycleDay);
+
     this.form = this.fb.group({
-      frequency: ['MONTHLY', Validators.required],
+      frequency: [ctx.stayType === 'DAILY' ? 'DAILY' : 'MONTHLY', Validators.required],
       paidFrom: [{ value: ctx.paidFrom, disabled: true }],
-      paidUpto: [ctx.maxPaidUpto, Validators.required],
+      paidUpto: [initialPaidUpto, Validators.required],
       amount: [ctx.pendingAmount, [Validators.required, Validators.min(1)]],
       paymentModeCode: [null, Validators.required],
       notes: ['']
@@ -89,19 +95,100 @@ export class AddPayment implements OnChanges {
 
     this.form.get('frequency')!
       .valueChanges
-      .subscribe(freq => this.updatePaidUpto(freq, ctx));
+      .subscribe(freq => this.onFrequencyChange(freq, ctx));
+
+    // Auto-calculate amount when paidUpto changes
+    this.form.get('paidUpto')!
+      .valueChanges
+      .subscribe(paidUpto => this.onPaidUptoChange(paidUpto, ctx));
+
+    // Calculate initial amount based on the auto-populated paidUpto
+    this.recalculateAmount(ctx.paidFrom!, initialPaidUpto);
   }
 
-  private updatePaidUpto(freq: string, ctx: PaymentContext) {
+  /**
+   * Calculate paidUpto based on billing cycle.
+   * MONTHLY: cycle anchored on stayStartDate.day (e.g. 29th → 29 Mar–28 Apr, 29 Apr–28 May).
+   * DAILY: same day as paidFrom.
+   */
+  private calculatePaidUpto(paidFrom: string, maxPaidUpto: string | null, stayType: string, cycleDay: number): string {
+    const from = new Date(paidFrom);
+    let upto: Date;
+
+    if (stayType === 'MONTHLY') {
+      upto = this.getCycleEnd(from, cycleDay);
+    } else {
+      // DAILY: same day
+      upto = new Date(from);
+    }
+
+    // Cap at maxPaidUpto
+    if (maxPaidUpto) {
+      const max = new Date(maxPaidUpto);
+      if (upto > max) {
+        upto = max;
+      }
+    }
+
+    // Format as YYYY-MM-DD using local date parts (not UTC) to avoid timezone shift
+    const yy = upto.getFullYear();
+    const mm = String(upto.getMonth() + 1).padStart(2, '0');
+    const dd = String(upto.getDate()).padStart(2, '0');
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  /**
+   * Get the end of the billing cycle that contains 'date'.
+   * Cycle starts on cycleDay of some month, ends on cycleDay-1 of next month.
+   * E.g. cycleDay=29: cycle is 29th → 28th of next month.
+   * cycleDay=1: cycle is 1st → last day of same month.
+   */
+  private getCycleEnd(date: Date, cycleDay: number): Date {
+    // Find the cycle start that contains this date
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+
+    let cycleStartYear: number, cycleStartMonth: number;
+    const adjustedDay = Math.min(cycleDay, new Date(year, month + 1, 0).getDate());
+
+    if (day >= adjustedDay) {
+      cycleStartYear = year;
+      cycleStartMonth = month;
+    } else {
+      // Cycle started previous month
+      const prev = new Date(year, month - 1, 1);
+      cycleStartYear = prev.getFullYear();
+      cycleStartMonth = prev.getMonth();
+    }
+
+    // Next cycle start = cycleDay of next month from cycle start
+    const nextMonth = cycleStartMonth + 1;
+    const nextYear = cycleStartYear + Math.floor(nextMonth / 12);
+    const nextMonthAdj = nextMonth % 12;
+    const daysInNextMonth = new Date(nextYear, nextMonthAdj + 1, 0).getDate();
+    const nextCycleDay = Math.min(cycleDay, daysInNextMonth);
+    const nextCycleStart = new Date(nextYear, nextMonthAdj, nextCycleDay);
+
+    // Cycle end = next cycle start - 1 day
+    const cycleEnd = new Date(nextCycleStart);
+    cycleEnd.setDate(cycleEnd.getDate() - 1);
+    return cycleEnd;
+  }
+
+  private onFrequencyChange(freq: string, ctx: PaymentContext) {
     if (!ctx.paidFrom) return;
-    
+
     const from = new Date(ctx.paidFrom);
-    let upto = new Date(from);
+    const cycleDay = ctx.stayStartDate ? new Date(ctx.stayStartDate).getDate() : 1;
+    let upto: Date;
 
     if (freq === 'MONTHLY') {
-      upto = new Date(from.getFullYear(), from.getMonth() + 1, 0);
+      upto = this.getCycleEnd(from, cycleDay);
     } else if (freq === 'DAILY') {
       upto = new Date(from);
+    } else {
+      return; // CUSTOM — don't auto-set
     }
 
     if (ctx.maxPaidUpto) {
@@ -111,7 +198,32 @@ export class AddPayment implements OnChanges {
       }
     }
 
-    this.form.patchValue({ paidUpto: upto.toISOString().substring(0, 10) });
+    const yy = upto.getFullYear();
+    const mm = String(upto.getMonth() + 1).padStart(2, '0');
+    const dd = String(upto.getDate()).padStart(2, '0');
+    this.form.patchValue({ paidUpto: `${yy}-${mm}-${dd}` });
+    // amount will auto-update via paidUpto valueChanges subscription
+  }
+
+  private onPaidUptoChange(paidUpto: string, ctx: PaymentContext) {
+    if (!ctx.paidFrom || !paidUpto) return;
+    this.recalculateAmount(ctx.paidFrom, paidUpto);
+  }
+
+  private recalculateAmount(paidFrom: string, paidUpto: string) {
+    this.calculatingRent = true;
+    this.cdr.detectChanges();
+    this.paymentService.calculateRent(this.tenantId, paidFrom, paidUpto).subscribe({
+      next: (result) => {
+        this.form.patchValue({ amount: result.amount }, { emitEvent: false });
+        this.calculatingRent = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.calculatingRent = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   save(ctx: PaymentContext) {

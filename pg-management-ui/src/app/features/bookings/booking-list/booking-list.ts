@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Observable } from 'rxjs';
 import { PagedResults } from '../../../shared/models/page-results.model';
@@ -14,7 +15,7 @@ import { HasAccessDirective } from '../../../shared/directives/has-access.direct
 @Component({
   selector: 'app-booking-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, SettleAdvanceModal, HasAccessDirective],
+  imports: [CommonModule, FormsModule, RouterModule, SettleAdvanceModal, HasAccessDirective],
   templateUrl: './booking-list.html',
   styleUrl: './booking-list.css',
 })
@@ -23,6 +24,7 @@ export class BookingList implements OnInit {
 
   // Pagination
   currentPage = 1;
+  pageSizeOptions = [5, 10, 25, 50];
   pageSize = 10;
   totalCount = 0;
   totalPages = 0;
@@ -111,6 +113,12 @@ export class BookingList implements OnInit {
 
   goToPage(page: number): void {
     this.currentPage = page;
+    this.loadBookings();
+  }
+
+  onPageSizeChange(newSize: number): void {
+    this.pageSize = newSize;
+    this.currentPage = 1;
     this.loadBookings();
   }
 
