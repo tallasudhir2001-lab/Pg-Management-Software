@@ -138,7 +138,7 @@ namespace PgManagement_WebApi.Controllers
             if (string.IsNullOrEmpty(pgId) || string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var today = DateTime.UtcNow.Date;
+            var today = DateTime.Now.Date;
 
             // 1️⃣ Validate tenant
             var tenantExists = await context.Tenants.AnyAsync(t =>
@@ -289,7 +289,7 @@ namespace PgManagement_WebApi.Controllers
             if (string.IsNullOrEmpty(pgId))
                 return Unauthorized();
 
-            var asOf = (asOfDate ?? DateTime.UtcNow).Date;
+            var asOf = (asOfDate ?? DateTime.Now).Date;
 
             // 1️ Validate tenant
             var tenantExists = await context.Tenants.AnyAsync(t =>
@@ -462,7 +462,7 @@ namespace PgManagement_WebApi.Controllers
             if (string.IsNullOrEmpty(pgId))
                 return Unauthorized();
 
-            var today = DateTime.UtcNow.Date;
+            var today = DateTime.Now.Date;
 
             // 1️⃣ Validate tenant
             var tenant = await context.Tenants

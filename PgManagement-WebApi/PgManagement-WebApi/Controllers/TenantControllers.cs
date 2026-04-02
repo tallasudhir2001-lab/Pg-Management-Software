@@ -43,7 +43,7 @@ namespace PgManagement_WebApi.Controllers
      string sortBy = "updated",
      string sortDir = "desc")
         {
-            var today = DateTime.UtcNow.Date;
+            var today = DateTime.Now.Date;
 
             var pgIds = await this.GetEffectivePgIds(context);
             if (!pgIds.Any())
@@ -142,7 +142,9 @@ namespace PgManagement_WebApi.Controllers
                     ? paymentsLookup[tenant.TenantId]
                     : [];
 
-                var tenantPayments = tenantPaymentList.Select(p => (p.PaidFrom, p.PaidUpto));
+                var tenantPayments = tenantPaymentList
+                    .Where(p => p.PaymentTypeCode == "RENT")
+                    .Select(p => (p.PaidFrom, p.PaidUpto));
 
                 var lastPaymentDate = tenantPaymentList
                     .Where(p => p.PaymentTypeCode != "ADVANCE_PAYMENT")
