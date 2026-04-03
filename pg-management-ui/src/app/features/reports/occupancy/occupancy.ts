@@ -47,7 +47,9 @@ export class OccupancyReport {
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {
-    this.asOfDate = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    this.asOfDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   }
 
   private buildParams(): HttpParams {

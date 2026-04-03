@@ -40,6 +40,7 @@ namespace PgManagement_WebApi.Controllers
      string? roomId = null,
      bool? rentPending = null,
      bool? advancePending = null,
+     bool? overdueCheckout = null,
      string sortBy = "updated",
      string sortDir = "desc")
         {
@@ -232,6 +233,26 @@ namespace PgManagement_WebApi.Controllers
                 result = result.Where(x => unsettledSet.Contains(x.TenantId)).ToList();
             }
 
+            if (overdueCheckout.HasValue && overdueCheckout.Value)
+            {
+                try
+                {
+                    var overdueCheckoutTenantIds = await context.TenantRooms
+                        .AsNoTracking()
+                        .Where(tr =>
+                            tr.ToDate == null &&
+                            tr.ExpectedCheckOutDate != null &&
+                            tr.ExpectedCheckOutDate.Value < today)
+                        .Select(tr => tr.TenantId)
+                        .Distinct()
+                        .ToListAsync();
+
+                    var overdueSet = overdueCheckoutTenantIds.ToHashSet();
+                    result = result.Where(x => overdueSet.Contains(x.TenantId)).ToList();
+                }
+                catch { /* Column may not exist yet if migration hasn't run */ }
+            }
+
             // Sort by computed fields (post-processing)
             if (sortBy.Equals("daysoverdue", StringComparison.OrdinalIgnoreCase))
             {
@@ -309,18 +330,38 @@ namespace PgManagement_WebApi.Controllers
             if (tenant == null)
                 return NotFound();
 
-            var stays = await context.TenantRooms
-                            .Where(tr => tr.TenantId == tenantId && pgIds.Contains(tr.PgId))
-                            .OrderBy(tr => tr.FromDate)
-                            .Select(tr => new
-                            {
-                                tr.RoomId,
-                                RoomNumber = tr.Room.RoomNumber,
-                                tr.FromDate,
-                                tr.ToDate,
-                                tr.StayType
-                            })
-                            .ToListAsync();
+            object stays;
+            try
+            {
+                stays = await context.TenantRooms
+                                .Where(tr => tr.TenantId == tenantId && pgIds.Contains(tr.PgId))
+                                .OrderBy(tr => tr.FromDate)
+                                .Select(tr => new
+                                {
+                                    tr.RoomId,
+                                    RoomNumber = tr.Room.RoomNumber,
+                                    tr.FromDate,
+                                    tr.ToDate,
+                                    tr.StayType,
+                                    tr.ExpectedCheckOutDate
+                                })
+                                .ToListAsync();
+            }
+            catch
+            {
+                stays = await context.TenantRooms
+                                .Where(tr => tr.TenantId == tenantId && pgIds.Contains(tr.PgId))
+                                .OrderBy(tr => tr.FromDate)
+                                .Select(tr => new
+                                {
+                                    tr.RoomId,
+                                    RoomNumber = tr.Room.RoomNumber,
+                                    tr.FromDate,
+                                    tr.ToDate,
+                                    tr.StayType
+                                })
+                                .ToListAsync();
+            }
             var advances = await context.Advances
                             .Where(a => a.TenantId == tenantId)
                             .OrderByDescending(a => a.PaidDate)
@@ -435,6 +476,32 @@ namespace PgManagement_WebApi.Controllers
         }
 
         [AccessPoint("Tenant", "Move Out Tenant")]
+        [HttpPut("{tenantId}/expected-checkout")]
+        public async Task<IActionResult> SetExpectedCheckOut(string tenantId, [FromBody] SetExpectedCheckOutDto dto)
+        {
+            var pgId = User.FindFirst("pgId")?.Value;
+            if (string.IsNullOrEmpty(pgId))
+                return Unauthorized();
+
+            var activeRoom = await context.TenantRooms
+                .FirstOrDefaultAsync(tr =>
+                    tr.TenantId == tenantId &&
+                    tr.PgId == pgId &&
+                    tr.ToDate == null);
+
+            if (activeRoom == null)
+                return BadRequest("Tenant does not have an active stay.");
+
+            if (dto.ExpectedCheckOutDate.HasValue && dto.ExpectedCheckOutDate.Value.Date <= DateTime.UtcNow.Date)
+                return BadRequest("Expected checkout date must be in the future.");
+
+            activeRoom.ExpectedCheckOutDate = dto.ExpectedCheckOutDate?.Date;
+
+            await context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        [AccessPoint("Tenant", "Move Out Tenant")]
         [HttpPost("{tenantId}/move-out")]
         public async Task<IActionResult> MoveOutTenant(string tenantId, [FromBody] MoveOutDto dto)
         {
@@ -475,6 +542,7 @@ namespace PgManagement_WebApi.Controllers
                     $"Move-out date cannot be before the latest payment's paid-up date ({latestPayment.PaidUpto:dd MMM yyyy}). Please select a date on or after that.");
 
             activeRoom.ToDate = moveOutDate;
+            activeRoom.ExpectedCheckOutDate = null; // Clear expected checkout on actual move-out
 
             // 3️⃣ Close active rent history
             var activeRent = await context.TenantRentHistories

@@ -72,7 +72,7 @@ export class Dashboard implements OnInit, OnDestroy {
     // Alerts
     this.subs.push(
       this.dashboardService.getAlerts().pipe(
-        catchError(() => of({ movedOutWithPendingRent: 0, movedOutWithUnsettledAdvance: 0, activeWithPendingRent: 0 }))
+        catchError(() => of({ movedOutWithPendingRent: 0, movedOutWithUnsettledAdvance: 0, activeWithPendingRent: 0, overdueExpectedCheckouts: 0, overdueBookings: 0 }))
       ).subscribe(data => {
         this.alerts = data;
         this.cdr.detectChanges();
@@ -162,6 +162,8 @@ export class Dashboard implements OnInit, OnDestroy {
   goToMovedOutPendingRent():      void { this.router.navigate(['/tenant-list'], { queryParams: { status: 'MOVED OUT', rentPending: 'true' } }); }
   goToMovedOutUnsettledAdvance(): void { this.router.navigate(['/tenant-list'], { queryParams: { status: 'MOVED OUT', advancePending: 'true' } }); }
   goToActivePendingRent():        void { this.router.navigate(['/tenant-list'], { queryParams: { status: 'ACTIVE', rentPending: 'true' } }); }
+  goToOverdueExpectedCheckouts(): void { this.router.navigate(['/tenant-list'], { queryParams: { status: 'ACTIVE', overdueCheckout: 'true' } }); }
+  goToOverdueBookings():          void { this.router.navigate(['/bookings'], { queryParams: { status: 'Active', overdue: 'true' } }); }
   goToAuditLog():                 void { this.router.navigate(['/audit-log']); }
 
   // ── KPI helpers ────────────────────────────────────────────

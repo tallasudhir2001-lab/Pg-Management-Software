@@ -54,6 +54,10 @@
                     (click)="openChangeStayType()" title="Change Stay Type">Change Stay Type</button>
                 </ng-container>
                 <ng-container *hasAccess="'Tenant.MoveOutTenant'">
+                  <button type="button" class="td-btn-action td-btn-expected-checkout"
+                    (click)="openExpectedCheckout()" title="Set Expected Checkout Date">Expected Checkout</button>
+                </ng-container>
+                <ng-container *hasAccess="'Tenant.MoveOutTenant'">
                   <button type="button" class="td-btn-action td-btn-moveout"
                     (click)="confirmMoveOut()" title="Move Out Tenant">Move Out</button>
                 </ng-container>
@@ -98,6 +102,18 @@
                 <label class="td-detail-label">Moved Out</label>
                 <span class="td-detail-value">{{ tenant.movedOutAt | date:'d MMM yyyy' }}</span>
               </div>
+            }
+            @if (tenant.status === 'ACTIVE') {
+              @for (stay of stays; track stay.fromDate) {
+                @if (!stay.toDate && stay.expectedCheckOutDate) {
+                  <div class="td-detail-group">
+                    <label class="td-detail-label">Expected Checkout</label>
+                    <span class="td-detail-value td-expected-checkout">
+                      {{ stay.expectedCheckOutDate | date:'d MMM yyyy' }}
+                    </span>
+                  </div>
+                }
+              }
             }
             <div class="td-detail-group">
               <label class="td-detail-label">Advance</label>
@@ -257,6 +273,11 @@
               {{ stay.fromDate | date:'d MMM yyyy' }}
               <span class="td-arrow">→</span>
               {{ stay.toDate ? (stay.toDate | date:'d MMM yyyy') : 'Present' }}
+              @if (!stay.toDate && stay.expectedCheckOutDate) {
+                <span class="td-expected-tag" title="Expected checkout date">
+                  (Expected: {{ stay.expectedCheckOutDate | date:'d MMM yyyy' }})
+                </span>
+              }
             </span>
           </div>
         }
@@ -431,6 +452,38 @@
       <div class="modal-actions">
         <button class="btn-cancel" (click)="closeMoveOut()">Cancel</button>
         <button class="btn-save" (click)="proceedMoveOut()">Move Out</button>
+      </div>
+    </div>
+  }
+
+  <!-- Expected Checkout -->
+  @if (isExpectedCheckoutOpen) {
+    <div class="modal-backdrop"></div>
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Expected Checkout Date</h3>
+        <button class="icon-btn modal-close" (click)="closeExpectedCheckout()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 12px; color: #64748b; font-size: 0.9rem;">
+          Set the date when the tenant has informed they plan to move out.
+          This allows bookings against the freed bed from the next day.
+        </p>
+        <div class="form-group">
+          <label>Expected Checkout Date</label>
+          <input type="date" class="form-input" [(ngModel)]="expectedCheckoutDate" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        @if (stays.length && stays[stays.length - 1].expectedCheckOutDate) {
+          <button class="btn-cancel" style="color: #b91c1c;" (click)="clearExpectedCheckout()"
+            [disabled]="isSavingExpectedCheckout">Clear Date</button>
+        }
+        <button class="btn-cancel" (click)="closeExpectedCheckout()">Cancel</button>
+        <button class="btn-save" [disabled]="!expectedCheckoutDate || isSavingExpectedCheckout"
+          (click)="saveExpectedCheckout()">
+          {{ isSavingExpectedCheckout ? 'Saving...' : 'Save' }}
+        </button>
       </div>
     </div>
   }

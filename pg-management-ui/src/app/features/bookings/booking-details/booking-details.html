@@ -111,7 +111,16 @@
       <button class="modal-close-btn" (click)="cancelCheckIn()">✕</button>
     </div>
     <div class="confirm-modal-body">
-      <p style="margin-bottom: 14px;">Select the actual check-in date for this tenant.</p>
+      <p style="margin-bottom: 14px;">Select the room and actual check-in date for this tenant.</p>
+      <div class="form-group" style="margin: 0 0 14px;">
+        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Room</label>
+        <select class="form-input" [(ngModel)]="checkInRoomId">
+          <option *ngFor="let room of (checkInRooms$ | async)" [value]="room.roomId"
+            [class.booked-room]="pendingCheckInBooking && room.roomId === pendingCheckInBooking.roomId">
+            Room {{ room.roomNumber }} ({{ room.vacancies }} beds available){{ pendingCheckInBooking && room.roomId === pendingCheckInBooking.roomId ? ' — Booked' : '' }}
+          </option>
+        </select>
+      </div>
       <div class="form-group" style="margin: 0;">
         <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Check-in Date</label>
         <input type="date" class="form-input" [(ngModel)]="checkInDate" />
@@ -119,7 +128,7 @@
     </div>
     <div class="confirm-modal-actions">
       <button class="btn-discard" (click)="cancelCheckIn()">Cancel</button>
-      <button class="btn-save-action" (click)="confirmCheckIn()" [disabled]="!checkInDate || checkingIn">
+      <button class="btn-save-action" (click)="confirmCheckIn()" [disabled]="!checkInDate || !checkInRoomId || checkingIn">
         {{ checkingIn ? 'Checking In...' : 'Confirm Check In' }}
       </button>
     </div>

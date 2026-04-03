@@ -187,13 +187,28 @@ namespace PgManagement_WebApi.Services
                                 && tr.FromDate <= dto.ScheduledCheckInDate
                                 && (tr.ToDate == null || tr.ToDate >= dto.ScheduledCheckInDate));
 
+            // Count tenants who have an expected checkout date on or before the booking's check-in date
+            // These beds are considered "will be freed" so we subtract them from occupied count
+            int expectedCheckouts = 0;
+            try
+            {
+                expectedCheckouts = await _context.TenantRooms
+                    .CountAsync(tr => tr.RoomId == dto.RoomId
+                                    && tr.ToDate == null
+                                    && tr.ExpectedCheckOutDate != null
+                                    && tr.ExpectedCheckOutDate.Value < dto.ScheduledCheckInDate);
+            }
+            catch { /* Column may not exist yet if migration hasn't run */ }
+
+            var effectiveOccupied = occupiedBeds - expectedCheckouts;
+
             var activeBookingsForRoom = await _context.Bookings
                 .CountAsync(b => b.RoomId == dto.RoomId
                               && b.Status == BookingStatus.Active
                               && b.ScheduledCheckInDate.Date == dto.ScheduledCheckInDate.Date
                               && !b.IsDeleted);
 
-            if (occupiedBeds + activeBookingsForRoom >= roomCapacity)
+            if (effectiveOccupied + activeBookingsForRoom >= roomCapacity)
                 throw new InvalidOperationException("No vacancy available in this room for the selected date.");
 
             using var tx = await _context.Database.BeginTransactionAsync();

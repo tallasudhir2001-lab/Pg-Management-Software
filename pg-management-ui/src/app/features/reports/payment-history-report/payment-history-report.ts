@@ -48,8 +48,9 @@ export class PaymentHistoryReport {
     private cdr: ChangeDetectorRef
   ) {
     const now = new Date();
-    this.fromDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    this.toDate = now.toISOString().split('T')[0];
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    this.fromDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`;
+    this.toDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   }
 
   private buildParams(): HttpParams {

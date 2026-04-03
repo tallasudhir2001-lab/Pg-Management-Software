@@ -72,6 +72,11 @@ export class TenantDetails implements OnInit{
   // payment history collapsible
   paymentHistoryExpanded = false;
 
+  // expected checkout
+  isExpectedCheckoutOpen = false;
+  expectedCheckoutDate: string = '';
+  isSavingExpectedCheckout = false;
+
 
 
   constructor(
@@ -292,6 +297,52 @@ confirmChangeRoom(): void {
 
 
 //action icons methods end
+
+  openExpectedCheckout(): void {
+    const activeStay = this.stays.find(s => !s.toDate);
+    this.expectedCheckoutDate = activeStay?.expectedCheckOutDate?.substring(0, 10) || '';
+    this.isExpectedCheckoutOpen = true;
+  }
+
+  closeExpectedCheckout(): void {
+    this.isExpectedCheckoutOpen = false;
+  }
+
+  saveExpectedCheckout(): void {
+    if (!this.expectedCheckoutDate) {
+      this.toastService.showError('Please select an expected checkout date.');
+      return;
+    }
+    this.isSavingExpectedCheckout = true;
+    this.tenantService.setExpectedCheckOut(this.tenantId, this.expectedCheckoutDate).subscribe({
+      next: () => {
+        this.isSavingExpectedCheckout = false;
+        this.isExpectedCheckoutOpen = false;
+        this.toastService.showSuccess('Expected checkout date set.');
+        this.reload$.next();
+      },
+      error: err => {
+        this.isSavingExpectedCheckout = false;
+        this.toastService.showError(err?.error || 'Failed to set expected checkout date.');
+      }
+    });
+  }
+
+  clearExpectedCheckout(): void {
+    this.isSavingExpectedCheckout = true;
+    this.tenantService.setExpectedCheckOut(this.tenantId, null).subscribe({
+      next: () => {
+        this.isSavingExpectedCheckout = false;
+        this.isExpectedCheckoutOpen = false;
+        this.toastService.showSuccess('Expected checkout date cleared.');
+        this.reload$.next();
+      },
+      error: err => {
+        this.isSavingExpectedCheckout = false;
+        this.toastService.showError(err?.error || 'Failed to clear expected checkout date.');
+      }
+    });
+  }
 
   save(): void {
   if (this.mode !== 'edit') return;

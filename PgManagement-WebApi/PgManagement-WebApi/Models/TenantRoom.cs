@@ -14,6 +14,13 @@ namespace PgManagement_WebApi.Models
         public DateTime FromDate { get; set; }
         public DateTime? ToDate { get; set; }
 
+        /// <summary>
+        /// Optional date when the tenant has informed they plan to move out.
+        /// Used to allow future bookings against the freed bed.
+        /// Set to null when: tenant checks out, or management clears it.
+        /// </summary>
+        public DateTime? ExpectedCheckOutDate { get; set; }
+
         public string StayType { get; set; } = "MONTHLY"; // MONTHLY or DAILY
 
         public Tenant Tenant { get; set; }

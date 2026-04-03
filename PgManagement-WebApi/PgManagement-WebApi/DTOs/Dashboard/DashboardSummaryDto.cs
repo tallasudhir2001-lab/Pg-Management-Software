@@ -34,6 +34,8 @@
         public int MovedOutWithPendingRent { get; set; }
         public int MovedOutWithUnsettledAdvance { get; set; }
         public int ActiveWithPendingRent { get; set; }
+        public int OverdueExpectedCheckouts { get; set; }
+        public int OverdueBookings { get; set; }
     }
 
     public class CollectionSummaryDto

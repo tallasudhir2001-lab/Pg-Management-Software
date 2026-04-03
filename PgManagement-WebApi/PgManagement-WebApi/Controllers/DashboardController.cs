@@ -305,11 +305,36 @@ namespace PgManagement_WebApi.Controllers
             // 3) Active + pending rent
             var activeWithPendingRent = activeTenantIds.Count(HasPendingRent);
 
+            // 4) Overdue expected checkouts — active tenants past their expected checkout date
+            int overdueExpectedCheckouts = 0;
+            try
+            {
+                overdueExpectedCheckouts = await context.TenantRooms
+                    .AsNoTracking()
+                    .CountAsync(tr =>
+                        pgIds.Contains(tr.PgId) &&
+                        tr.ToDate == null &&
+                        tr.ExpectedCheckOutDate != null &&
+                        tr.ExpectedCheckOutDate.Value < today);
+            }
+            catch { /* Column may not exist yet if migration hasn't run */ }
+
+            // 5) Overdue bookings — active bookings past their scheduled check-in date
+            var overdueBookings = await context.Bookings
+                .AsNoTracking()
+                .CountAsync(b =>
+                    pgIds.Contains(b.PgId) &&
+                    b.Status == BookingStatus.Active &&
+                    !b.IsDeleted &&
+                    b.ScheduledCheckInDate.Date < today);
+
             return Ok(new DashboardAlertsDto
             {
                 MovedOutWithPendingRent = movedOutWithPendingRent,
                 MovedOutWithUnsettledAdvance = movedOutWithUnsettledAdvance,
-                ActiveWithPendingRent = activeWithPendingRent
+                ActiveWithPendingRent = activeWithPendingRent,
+                OverdueExpectedCheckouts = overdueExpectedCheckouts,
+                OverdueBookings = overdueBookings
             });
         }
 

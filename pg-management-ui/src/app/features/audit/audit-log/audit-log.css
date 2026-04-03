@@ -220,36 +220,36 @@
 }
 
 .review-btn {
-  width: 2rem;
-  height: 2rem;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: 6px;
-  border: 1px solid #d1fae5;
-  background: #ecfdf5;
-  color: #059669;
+  border: 1.5px solid #34d399;
+  background: #d1fae5;
+  color: #047857;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all .15s;
 }
-.review-btn:hover { background: #d1fae5; border-color: #a7f3d0; }
-.review-btn svg { width: .85rem; height: .85rem; }
+.review-btn:hover { background: #a7f3d0; border-color: #059669; color: #065f46; }
+.review-btn svg { width: 1rem; height: 1rem; }
 
 .expand-btn {
-  width: 2rem;
-  height: 2rem;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  color: #9ca3af;
+  border: 1.5px solid #d1d5db;
+  background: #f3f4f6;
+  color: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all .15s;
 }
-.expand-btn:hover { background: #f9fafb; color: #6b7280; }
-.expand-btn svg { width: .85rem; height: .85rem; transition: transform .2s; }
+.expand-btn:hover { background: #e5e7eb; color: #374151; border-color: #9ca3af; }
+.expand-btn svg { width: 1rem; height: 1rem; transition: transform .2s; }
 .expand-btn.expanded svg { transform: rotate(180deg); }
 
 /* ── Expanded details ── */

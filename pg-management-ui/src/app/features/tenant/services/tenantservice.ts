@@ -30,6 +30,7 @@ export class Tenantservice {
   roomId?: string;
   rentPending?: boolean;
   advancePending?: boolean;
+  overdueCheckout?: boolean;
   sortBy?: string;
   sortDir?: string;
 }) {
@@ -57,6 +58,10 @@ export class Tenantservice {
 
   if (params.advancePending !== undefined) {
     httpParams = httpParams.set('advancePending', params.advancePending);
+  }
+
+  if (params.overdueCheckout !== undefined) {
+    httpParams = httpParams.set('overdueCheckout', params.overdueCheckout);
   }
 
   if (params.sortBy) {
@@ -109,6 +114,13 @@ createStay(payload: any) {
   return this.http.post(
     `${this.baseUrl}/${payload.tenantId}/create-stay`,
     payload
+  );
+}
+
+setExpectedCheckOut(tenantId: string, date: string | null) {
+  return this.http.put<void>(
+    `${this.baseUrl}/${tenantId}/expected-checkout`,
+    { expectedCheckOutDate: date }
   );
 }
 

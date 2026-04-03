@@ -35,5 +35,6 @@ export interface Stay {
   fromDate: string;
   toDate: string | null;
   stayType?: string;
+  expectedCheckOutDate?: string | null;
 }
 

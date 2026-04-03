@@ -59,6 +59,8 @@ export class BookingDetails implements OnInit, OnChanges {
   checkingIn = false;
   showCheckInModal = false;
   checkInDate = '';
+  checkInRoomId = '';
+  checkInRooms$!: Observable<Room[]>;
   pendingCheckInBooking: BookingDetailsModel | null = null;
 
   constructor(
@@ -261,18 +263,22 @@ export class BookingDetails implements OnInit, OnChanges {
   checkIn(booking: BookingDetailsModel): void {
     this.pendingCheckInBooking = booking;
     this.checkInDate = booking.scheduledCheckInDate.substring(0, 10);
+    this.checkInRoomId = booking.roomId;
+    this.checkInRooms$ = this.roomService
+      .getRooms({ page: 1, pageSize: 100 })
+      .pipe(map(res => res.items));
     this.showCheckInModal = true;
     this.cdr.detectChanges();
   }
 
   confirmCheckIn(): void {
-    if (!this.pendingCheckInBooking || !this.checkInDate) return;
+    if (!this.pendingCheckInBooking || !this.checkInDate || !this.checkInRoomId) return;
     this.checkingIn = true;
     this.showCheckInModal = false;
     const booking = this.pendingCheckInBooking;
     this.tenantService.createStay({
       tenantId: booking.tenantId,
-      roomId: booking.roomId,
+      roomId: this.checkInRoomId,
       fromDate: this.checkInDate,
     }).subscribe({
       next: () => {
@@ -291,6 +297,7 @@ export class BookingDetails implements OnInit, OnChanges {
     this.showCheckInModal = false;
     this.pendingCheckInBooking = null;
     this.checkInDate = '';
+    this.checkInRoomId = '';
   }
 
   // ── Helpers ────────────────────────────────────────────

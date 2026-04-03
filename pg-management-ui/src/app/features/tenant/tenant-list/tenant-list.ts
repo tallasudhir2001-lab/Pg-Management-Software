@@ -75,6 +75,8 @@ export class TenantList implements OnInit{
         const rentPending = rentPendingParam ? rentPendingParam : null;
         const advancePendingParam = params.get('advancePending');
         const advancePending = advancePendingParam ? advancePendingParam : null;
+        const overdueCheckoutParam = params.get('overdueCheckout');
+        const overdueCheckout = overdueCheckoutParam ? overdueCheckoutParam : null;
         const sortByParam = params.get('sortBy') || 'updated';
         const sortDirParam = (params.get('sortDir') as 'asc' | 'desc') || 'desc';
         const pageSize = Number(params.get('pageSize')) || 10;
@@ -98,12 +100,12 @@ export class TenantList implements OnInit{
           this.selectedRoomLabel = '';
         }
 
-        return { page, pageSize, search, tenantStatus, roomId, rentPending, advancePending, sortBy: sortByParam, sortDir: sortDirParam};
+        return { page, pageSize, search, tenantStatus, roomId, rentPending, advancePending, overdueCheckout, sortBy: sortByParam, sortDir: sortDirParam};
       }),
       distinctUntilChanged(
         (a, b) => JSON.stringify(a) === JSON.stringify(b)
       ),
-      switchMap(({ page, pageSize, search, tenantStatus, roomId, rentPending, advancePending, sortBy, sortDir }) =>
+      switchMap(({ page, pageSize, search, tenantStatus, roomId, rentPending, advancePending, overdueCheckout, sortBy, sortDir }) =>
         this.tenantService.getTenants({
           page,
           pageSize,
@@ -112,6 +114,7 @@ export class TenantList implements OnInit{
           roomId: roomId ?? undefined,
           rentPending: rentPending === 'true' ? true : rentPending === 'false' ? false : undefined,
           advancePending: advancePending === 'true' ? true : undefined,
+          overdueCheckout: overdueCheckout === 'true' ? true : undefined,
           sortBy,
           sortDir
         })

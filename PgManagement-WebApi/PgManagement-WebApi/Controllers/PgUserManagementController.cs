@@ -101,6 +101,8 @@ namespace PgManagement_WebApi.Controllers
 
             // Owner/Admin see all users across the branch; others see only current PG
             var scopePgIds = IsOwnerOrAdmin ? await GetBranchPgIds() : [PgId!];
+            // Always show full branch PG assignments so the PG-edit checkboxes reflect reality
+            var branchPgIds = IsOwnerOrAdmin ? scopePgIds : await GetBranchPgIds();
 
             var userIds = await _context.UserPgs
                 .Where(up => scopePgIds.Contains(up.PgId))
@@ -113,7 +115,7 @@ namespace PgManagement_WebApi.Controllers
             {
                 var user = await _userManager.FindByIdAsync(uid);
                 if (user != null)
-                    result.Add(await BuildUserDto(user, scopePgIds));
+                    result.Add(await BuildUserDto(user, branchPgIds));
             }
 
             return Ok(result);

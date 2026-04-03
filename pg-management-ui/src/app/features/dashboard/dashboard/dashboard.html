@@ -6,6 +6,8 @@
     (alerts.movedOutWithPendingRent    > 0 && isAlertVisible('movedOutRent')) ||
     (alerts.movedOutWithUnsettledAdvance > 0 && isAlertVisible('movedOutAdv')) ||
     (alerts.activeWithPendingRent      > 0 && isAlertVisible('activeRent')) ||
+    (alerts.overdueExpectedCheckouts   > 0 && isAlertVisible('overdueCheckout')) ||
+    (alerts.overdueBookings             > 0 && isAlertVisible('overdueBookings')) ||
     (auditCount && auditCount.unreviewedCount > 0 && isAlertVisible('audit'))
   ) {
     <div class="alert-stack">
@@ -55,6 +57,38 @@
           <p class="toast-title">Active — pending rent</p>
           <p class="toast-desc">Follow up to collect rent.</p>
           <button class="toast-action info-action" (click)="goToActivePendingRent()">Take Action &rarr;</button>
+        </div>
+      }
+
+      <!-- ORANGE-RED — overdue expected checkouts -->
+      @if (alerts.overdueExpectedCheckouts > 0 && isAlertVisible('overdueCheckout')) {
+        <div class="alert-toast toast-orange">
+          <button class="toast-dismiss" (click)="dismissAlert('overdueCheckout')" title="Dismiss">&#10005;</button>
+          <div class="toast-top">
+            <svg class="toast-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+            </svg>
+            <span class="toast-count">{{ alerts.overdueExpectedCheckouts }}</span>
+          </div>
+          <p class="toast-title">Overdue expected checkouts</p>
+          <p class="toast-desc">Tenants past their expected checkout date. Update or clear the date.</p>
+          <button class="toast-action orange-action" (click)="goToOverdueExpectedCheckouts()">Take Action &rarr;</button>
+        </div>
+      }
+
+      <!-- RED — overdue bookings -->
+      @if (alerts.overdueBookings > 0 && isAlertVisible('overdueBookings')) {
+        <div class="alert-toast toast-red">
+          <button class="toast-dismiss" (click)="dismissAlert('overdueBookings')" title="Dismiss">&#10005;</button>
+          <div class="toast-top">
+            <svg class="toast-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+            </svg>
+            <span class="toast-count">{{ alerts.overdueBookings }}</span>
+          </div>
+          <p class="toast-title">Overdue bookings</p>
+          <p class="toast-desc">Bookings past check-in date. Cancel or terminate them.</p>
+          <button class="toast-action red-action" (click)="goToOverdueBookings()">Take Action &rarr;</button>
         </div>
       }
 
