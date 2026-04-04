@@ -7,7 +7,10 @@
   </div>
   <h1 class="settings-title">⚙️ Settings</h1>
 
-  <div *ngIf="loading" class="settings-loading">Loading settings...</div>
+  <div *ngIf="loading" class="page-loading">
+    <div class="spinner"></div>
+    <p>Loading settings...</p>
+  </div>
 
   <div *ngIf="!loading" class="settings-content">
 

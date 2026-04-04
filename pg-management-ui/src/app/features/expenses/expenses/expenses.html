@@ -1,3 +1,9 @@
+<div class="page-loading" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Loading expenses...</p>
+</div>
+
+<div [hidden]="loading">
 <div class="expenses-page">
     <!-- Page Header -->
     <div class="page-header">
@@ -287,4 +293,5 @@
             </button>
         </div>
     </aside>
+</div>
 </div>

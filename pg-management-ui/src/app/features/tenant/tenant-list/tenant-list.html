@@ -1,3 +1,9 @@
+<div class="page-loading" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Loading tenants...</p>
+</div>
+
+<div [hidden]="loading">
 <div class="tenant-list-page">
 
   <!-- Page Title -->
@@ -235,4 +241,5 @@
       <button class="filter-btn filter-btn-primary" (click)="applyFilters()">Apply</button>
     </div>
   </aside>
+</div>
 </div>

@@ -56,7 +56,10 @@
   </div>
 
   <!-- Users Table -->
-  <div *ngIf="loading" class="pgu-state">Loading users...</div>
+  <div *ngIf="loading" class="page-loading">
+    <div class="spinner"></div>
+    <p>Loading users...</p>
+  </div>
 
   <div *ngIf="!loading" class="pgu-table-wrap">
     <table class="pgu-table">

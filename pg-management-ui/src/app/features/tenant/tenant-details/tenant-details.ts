@@ -98,7 +98,8 @@ ngOnInit(): void {
     tap(t => {
       this.editableTenant = { ...t };
       this.stays = t.stays || [];
-      this.currentTenant = t; 
+      this.currentTenant = t;
+      this.isLoading = false;
     })
   );
  this.pendingRent$ = this.reload$.pipe(

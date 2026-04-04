@@ -1,3 +1,9 @@
+<div class="page-loading" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Loading payments...</p>
+</div>
+
+<div [hidden]="loading">
 <div class="payment-history-page">
     <!-- Search + Actions Row -->
     <div class="payment-actions">
@@ -196,4 +202,5 @@
             <button class="filter-btn filter-btn-primary" (click)="applyFilters()">Apply</button>
         </div>
     </aside>
+</div>
 </div>

@@ -21,6 +21,7 @@ import { HasAccessDirective } from '../../../shared/directives/has-access.direct
 })
 export class BookingList implements OnInit {
   bookings$!: Observable<PagedResults<BookingListItem>>;
+  loading = true;
 
   // Pagination
   currentPage = 1;
@@ -79,6 +80,7 @@ export class BookingList implements OnInit {
       this.totalCount = res.totalCount;
       this.totalPages = Math.ceil(res.totalCount / this.pageSize);
       this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+      this.loading = false;
     });
   }
 

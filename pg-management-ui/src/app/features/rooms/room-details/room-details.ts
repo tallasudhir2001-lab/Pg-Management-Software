@@ -36,6 +36,7 @@ export class RoomDetails implements OnInit {
   room$!: Observable<Room>;
   tenants$!: Observable<RoomTenant[]>;
   bookings: BookingListItem[] = [];
+  loading = true;
 
   model!: Room;
   isSaving = false;
@@ -63,7 +64,7 @@ export class RoomDetails implements OnInit {
   ngOnInit(): void {
     this.roomId = this.route.snapshot.paramMap.get('id')!;
     this.room$ = this.roomService.getRoomById(this.roomId).pipe(
-      tap(room => { this.model = { ...room }; })
+      tap(room => { this.model = { ...room }; this.loading = false; })
     );
     this.tenants$ = this.roomService.getTenantsByRoom(this.roomId);
     this.loadBookings();

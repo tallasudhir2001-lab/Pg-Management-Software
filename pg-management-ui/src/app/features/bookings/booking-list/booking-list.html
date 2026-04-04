@@ -1,3 +1,9 @@
+<div class="page-loading" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Loading bookings...</p>
+</div>
+
+<div [hidden]="loading">
 <div class="payment-history-page">
   <!-- Page Header -->
   <div class="page-header">
@@ -204,4 +210,5 @@
       <button class="filter-btn filter-btn-primary" (click)="applyFilters()">Apply</button>
     </div>
   </aside>
+</div>
 </div>

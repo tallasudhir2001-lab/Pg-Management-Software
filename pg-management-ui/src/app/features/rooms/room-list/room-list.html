@@ -1,3 +1,9 @@
+<div class="page-loading" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Loading rooms...</p>
+</div>
+
+<div [hidden]="loading">
 <div class="page-header">
   <h2>Rooms</h2>
   <div class="header-filters">
@@ -86,6 +92,7 @@
         Next
       </button>
     </div>
+  </div>
   </div>
 </div>
 
@@ -184,4 +191,5 @@
     <button class="filter-btn filter-btn-secondary" (click)="showFilters = false">Cancel</button>
     <button class="filter-btn filter-btn-primary" (click)="applyFilters()">Apply Filters</button>
   </div>
+</div>
 </div>

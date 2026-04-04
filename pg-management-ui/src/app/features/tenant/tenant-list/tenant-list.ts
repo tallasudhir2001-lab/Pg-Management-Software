@@ -19,6 +19,7 @@ import { HasAccessDirective } from '../../../shared/directives/has-access.direct
 })
 export class TenantList implements OnInit{
   tenants$!: Observable<PagedResults<TenantListDto>>;
+  loading = true;
 
   //pagination
   pageSizeOptions = [5, 10, 25, 50];
@@ -123,6 +124,7 @@ export class TenantList implements OnInit{
           this.totalCount = result.totalCount;
         this.totalPages = Math.ceil(result.totalCount / this.pageSize);
         this.buildPages();
+        this.loading = false;
       })
     );
   }

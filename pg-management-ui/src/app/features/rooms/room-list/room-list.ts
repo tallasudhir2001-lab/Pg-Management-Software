@@ -17,7 +17,8 @@ import { HasAccessDirective } from '../../../shared/directives/has-access.direct
   styleUrl: './room-list.css',
 })
 export class RoomList {
-  rooms$!: Observable<PagedResults<Room>>; 
+  rooms$!: Observable<PagedResults<Room>>;
+  loading = true;
   pageSizeOptions = [6, 9, 18, 36];
   pageSize = 9;
   totalPages = 0;
@@ -75,6 +76,7 @@ export class RoomList {
       tap(result => {
         this.totalPages = Math.ceil(result.totalCount / this.pageSize);
         this.buildPages();
+        this.loading = false;
       })
     );
   }

@@ -1,4 +1,10 @@
-@if (tenant$ | async; as tenant) {
+<div class="page-loading" *ngIf="isLoading">
+  <div class="spinner"></div>
+  <p>Loading tenant details...</p>
+</div>
+
+<div [hidden]="isLoading">
+<ng-container *ngIf="(tenant$ | async) as tenant">
 
 <div class="td-page">
 
@@ -501,4 +507,5 @@
 
 </div>
 
-}
+</ng-container>
+</div>

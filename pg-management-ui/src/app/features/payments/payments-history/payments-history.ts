@@ -45,6 +45,7 @@ export class PaymentsHistory implements OnInit {
 
   // Expose mode options to template
   readonly paymentModes = PAYMENT_MODES;
+  loading = true;
 
   // Pagination
   pageSizeOptions = [5, 10, 25, 50];
@@ -149,6 +150,7 @@ export class PaymentsHistory implements OnInit {
         this.totalCount = result.totalCount;
         this.totalPages = Math.ceil(result.totalCount / this.pageSize);
         this.buildPages();
+        this.loading = false;
       })
     );
   }
