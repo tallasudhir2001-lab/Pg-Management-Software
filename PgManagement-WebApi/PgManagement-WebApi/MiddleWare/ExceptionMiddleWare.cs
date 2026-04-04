@@ -18,7 +18,14 @@
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                var userId = context.User?.FindFirst("userId")?.Value ?? "anonymous";
+                var method = context.Request.Method;
+                var path = context.Request.Path;
+
+                _logger.LogError(ex,
+                    "Unhandled exception on {Method} {Path} by user {UserId}",
+                    method, path, userId);
+
                 await HandleExceptionAsync(context, ex);
             }
         }

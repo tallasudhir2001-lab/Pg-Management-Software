@@ -11,12 +11,13 @@ namespace PgManagement_WebApi.Services
     {
         private readonly ApplicationDbContext context;
         private readonly IRoomService roomService;
+        private readonly ILogger<TenantService> _logger;
 
-
-        public TenantService(ApplicationDbContext context, IRoomService roomService)
+        public TenantService(ApplicationDbContext context, IRoomService roomService, ILogger<TenantService> logger)
         {
             this.context = context;
             this.roomService = roomService;
+            _logger = logger;
         }
 
         public async Task<(bool success, object? result, int statusCode)>
@@ -123,6 +124,7 @@ namespace PgManagement_WebApi.Services
             await context.SaveChangesAsync();
             await tx.CommitAsync();
 
+            _logger.LogInformation("Tenant {TenantId} created in PG {PgId}", tenant.TenantId, pgId);
             return (true, new { tenantId = tenant.TenantId }, 200);
         }
 
@@ -710,6 +712,7 @@ namespace PgManagement_WebApi.Services
             await context.SaveChangesAsync();
             await tx.CommitAsync();
 
+            _logger.LogInformation("Tenant {TenantId} moved out of PG {PgId}", tenantId, pgId);
             return (true, "OK", 204);
         }
 
@@ -770,6 +773,8 @@ namespace PgManagement_WebApi.Services
             tenant.isDeleted = true;
             tenant.DeletedAt = DateTime.UtcNow;
             await context.SaveChangesAsync();
+
+            _logger.LogInformation("Tenant {TenantId} deleted from PG {PgId}", tenantId, pgId);
             return (true, "OK", 204);
         }
 

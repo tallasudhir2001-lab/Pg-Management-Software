@@ -4,11 +4,13 @@ namespace PgManagement_WebApi.Services
     {
         private readonly IEmailProvider _emailProvider;
         private readonly IReportService _reportService;
+        private readonly ILogger<EmailNotificationService> _logger;
 
-        public EmailNotificationService(IEmailProvider emailProvider, IReportService reportService)
+        public EmailNotificationService(IEmailProvider emailProvider, IReportService reportService, ILogger<EmailNotificationService> logger)
         {
             _emailProvider = emailProvider;
             _reportService = reportService;
+            _logger = logger;
         }
 
         public async Task SendPaymentReceiptAsync(string paymentId, string pgId, string recipientEmail)
@@ -33,6 +35,9 @@ namespace PgManagement_WebApi.Services
                 html,
                 pdfBytes,
                 $"{receiptData.ReceiptNumber}.pdf");
+
+            _logger.LogInformation("Payment receipt {ReceiptNumber} emailed to {Email} for PG {PgId}",
+                receiptData.ReceiptNumber, recipientEmail, pgId);
         }
 
         public async Task SendReportAsync(string reportTitle, byte[] pdfBytes, string recipientEmail)
@@ -49,6 +54,8 @@ namespace PgManagement_WebApi.Services
                 html,
                 pdfBytes,
                 $"{reportTitle.Replace(" ", "_")}.pdf");
+
+            _logger.LogInformation("Report {ReportTitle} emailed to {Email}", reportTitle, recipientEmail);
         }
     }
 }

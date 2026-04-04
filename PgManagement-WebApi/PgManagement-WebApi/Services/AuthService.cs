@@ -18,12 +18,14 @@ namespace PgManagement_WebApi.Services
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IConfiguration configuration)
+        public AuthService(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IConfiguration configuration, ILogger<AuthService> logger)
         {
             _context = context;
             _userManager = userManager;
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<(bool success, object result, int statusCode)> LoginAsync(LoginRequestDto request)
@@ -35,16 +37,23 @@ namespace PgManagement_WebApi.Services
                 user = await _userManager.FindByNameAsync(request.UserNameOrEmail);
 
             if (user == null)
+            {
+                _logger.LogWarning("Login failed: user not found for {UserNameOrEmail}", request.UserNameOrEmail);
                 return (false, "Invalid credentials", 401);
+            }
 
             var isValid = await _userManager.CheckPasswordAsync(user, request.Password);
             if (!isValid)
+            {
+                _logger.LogWarning("Login failed: invalid password for user {UserId}", user.Id);
                 return (false, "Invalid credentials", 401);
+            }
 
             var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
 
             if (isAdmin)
             {
+                _logger.LogInformation("Admin login successful for user {UserId}", user.Id);
                 var adminToken = GenerateAdminJwt(user);
                 var adminRefresh = await CreateRefreshToken(user.Id, pgId: null);
                 return (true, new { isAdmin = true, token = adminToken, refreshToken = adminRefresh }, 200);

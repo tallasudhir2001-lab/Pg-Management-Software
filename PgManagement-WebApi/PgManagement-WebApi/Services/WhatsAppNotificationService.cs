@@ -4,11 +4,13 @@ namespace PgManagement_WebApi.Services
     {
         private readonly IWhatsAppProvider _whatsAppProvider;
         private readonly IReportService _reportService;
+        private readonly ILogger<WhatsAppNotificationService> _logger;
 
-        public WhatsAppNotificationService(IWhatsAppProvider whatsAppProvider, IReportService reportService)
+        public WhatsAppNotificationService(IWhatsAppProvider whatsAppProvider, IReportService reportService, ILogger<WhatsAppNotificationService> logger)
         {
             _whatsAppProvider = whatsAppProvider;
             _reportService = reportService;
+            _logger = logger;
         }
 
         public async Task SendPaymentReceiptAsync(string paymentId, string pgId, string phoneNumber)
@@ -26,6 +28,9 @@ namespace PgManagement_WebApi.Services
                 pdfBytes,
                 $"{receiptData.ReceiptNumber}.pdf",
                 caption);
+
+            _logger.LogInformation("Payment receipt {ReceiptNumber} sent via WhatsApp to {Phone} for PG {PgId}",
+                receiptData.ReceiptNumber, phoneNumber, pgId);
         }
     }
 }

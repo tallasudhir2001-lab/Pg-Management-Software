@@ -12,11 +12,13 @@ namespace PgManagement_WebApi.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<AdminService> _logger;
 
-        public AdminService(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public AdminService(ApplicationDbContext context, UserManager<ApplicationUser> userManager, ILogger<AdminService> logger)
         {
             _context = context;
             _userManager = userManager;
+            _logger = logger;
         }
 
         private static string SanitiseUserName(string email)
@@ -172,6 +174,7 @@ namespace PgManagement_WebApi.Services
 
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("PG {PgId} registered with name {PgName}", pg.PgId, pg.Name);
             return (true, new PgResisterResponseDto
             {
                 UserId = user?.Id ?? string.Empty,
@@ -191,6 +194,8 @@ namespace PgManagement_WebApi.Services
 
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("Subscription updated for PG {PgId}: Email={EmailEnabled}, WhatsApp={WhatsAppEnabled}",
+                pgId, dto.IsEmailSubscriptionEnabled, dto.IsWhatsappSubscriptionEnabled);
             return (true, new PgSubscriptionDto
             {
                 PgId = pg.PgId,

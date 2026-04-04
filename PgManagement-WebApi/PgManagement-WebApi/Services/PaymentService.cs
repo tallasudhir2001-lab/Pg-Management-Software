@@ -16,19 +16,22 @@ namespace PgManagement_WebApi.Services
         private readonly IEmailNotificationService _emailService;
         private readonly IWhatsAppNotificationService _whatsAppService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<PaymentService> _logger;
 
         public PaymentService(
             ApplicationDbContext context,
             IReportService reportService,
             IEmailNotificationService emailService,
             IWhatsAppNotificationService whatsAppService,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            ILogger<PaymentService> logger)
         {
             _context = context;
             _reportService = reportService;
             _emailService = emailService;
             _whatsAppService = whatsAppService;
             _serviceProvider = serviceProvider;
+            _logger = logger;
         }
 
         public async Task<(bool success, object result, int statusCode)> CreatePaymentAsync(
@@ -109,6 +112,9 @@ namespace PgManagement_WebApi.Services
 
             _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Payment {PaymentId} created for tenant {TenantId} in PG {PgId}, amount {Amount}",
+                payment.PaymentId, dto.TenantId, pgId, payment.Amount);
 
             // Auto-send receipt in background
             var paymentId = payment.PaymentId;
@@ -593,6 +599,8 @@ namespace PgManagement_WebApi.Services
             });
 
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Payment {PaymentId} deleted in PG {PgId} by user {UserId}",
+                paymentId, pgId, userId);
             return (true, "OK", 200);
         }
 
@@ -680,6 +688,8 @@ namespace PgManagement_WebApi.Services
             }
 
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Payment {PaymentId} updated in PG {PgId} by user {UserId}",
+                paymentId, pgId, userId);
             return (true, "OK", 200);
         }
 

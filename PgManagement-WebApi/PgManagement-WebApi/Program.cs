@@ -14,10 +14,15 @@ using Hangfire;
 using Hangfire.SqlServer;
 using QuestPDF.Infrastructure;
 using System.Text;
+using Serilog;
 
 QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+builder.Host.UseSerilog((context, loggerConfig) =>
+    loggerConfig.ReadFrom.Configuration(context.Configuration));
 
 // Add services to the container.
 builder.Services.AddHttpContextAccessor();
@@ -173,6 +178,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseMiddleware<ExceptionMiddleWare>();
+app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseCors("AllowAngular");
 app.UseAuthentication();
