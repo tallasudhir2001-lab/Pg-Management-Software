@@ -267,6 +267,15 @@ button:hover {
   box-shadow: none;
 }
 
+/* Sidebar Version */
+.sidebar-version {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+  padding: 8px 0 4px;
+  letter-spacing: 0.5px;
+}
+
 /* Nav group styles */
 .nav-group {
   margin-bottom: 8px;

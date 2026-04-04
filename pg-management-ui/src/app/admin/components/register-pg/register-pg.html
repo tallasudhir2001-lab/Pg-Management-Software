@@ -16,6 +16,12 @@
       </label>
     </div>
 
+    <!-- New branch name -->
+    <div class="rp-field" *ngIf="!isExistingBranch">
+      <label>Branch Name</label>
+      <input type="text" [(ngModel)]="branchName" placeholder="Leave blank to use PG name" class="rp-input" />
+    </div>
+
     <!-- Existing branch dropdown -->
     <div class="rp-field rp-field--branch" *ngIf="isExistingBranch">
       <label>Select Branch <span class="required">*</span></label>

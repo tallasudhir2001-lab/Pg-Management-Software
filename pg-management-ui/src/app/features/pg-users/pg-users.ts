@@ -58,7 +58,7 @@ export class PgUserManagement implements OnInit {
 
   constructor(private http: HttpClient, private toast: ToastService, private cdr: ChangeDetectorRef, private router: Router) {}
 
-  goBack(): void { this.router.navigate(['/configurations']); }
+  goBack(): void { this.router.navigate(['/settings']); }
 
   ngOnInit(): void {
     this.loadBranchPgs();

@@ -189,7 +189,18 @@
     <div class="td-right-col">
 
       <!-- Pending Rent -->
-      @if (pendingRent$ | async; as pending) {
+      @if (pendingRentError) {
+        <div class="pending-rent-card" style="border-left: 3px solid #ef4444;">
+          <div class="pending-header-row">
+            <div class="pending-left">
+              <div class="pending-title-block">
+                <h3>Pending Rent</h3>
+                <p style="color: #ef4444; font-size: 13px; margin-top: 4px;">{{ pendingRentError }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      } @else if (pendingRent$ | async; as pending) {
         <div class="pending-rent-card">
           <div class="pending-header-row">
             <div class="pending-left">

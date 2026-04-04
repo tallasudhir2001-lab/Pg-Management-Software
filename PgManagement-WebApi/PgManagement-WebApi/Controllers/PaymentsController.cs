@@ -76,7 +76,6 @@ namespace PgManagement_WebApi.Controllers
             return Ok(result);
         }
 
-        [AccessPoint("Payment", "View Pending Rent")]
         [HttpGet("pending/{tenantId}")]
         public async Task<IActionResult> GetPendingRent(string tenantId, [FromQuery] DateTime? asOfDate)
         {
@@ -96,7 +95,6 @@ namespace PgManagement_WebApi.Controllers
             return Ok(result);
         }
 
-        [AccessPoint("Payment", "Create Payment")]
         [HttpGet("context/{tenantId}")]
         public async Task<IActionResult> GetPaymentContext(string tenantId)
         {
@@ -107,7 +105,6 @@ namespace PgManagement_WebApi.Controllers
             return Ok(result);
         }
 
-        [AccessPoint("Payment", "View Payment History")]
         [HttpGet("tenant/{tenantId}")]
         public async Task<IActionResult> GetPaymentHistoryForTenant(string tenantId)
         {

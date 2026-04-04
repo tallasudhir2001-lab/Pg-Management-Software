@@ -36,11 +36,14 @@
       </div>
       <a routerLink="/expenses" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Expenses</a>
       <a routerLink="/reports" routerLinkActive="active">Reports</a>
-      @if (showConfigurations) {
-        <a routerLink="/configurations" routerLinkActive="active">Configurations</a>
+      @if (showSettings) {
+        <a routerLink="/settings" routerLinkActive="active">Settings</a>
       }
     </nav>
 
+    <div class="sidebar-version" *ngIf="appVersion">
+      v{{ appVersion }}
+    </div>
     <button class="logout-btn" (click)="logout()">Logout</button>
   </aside>
 

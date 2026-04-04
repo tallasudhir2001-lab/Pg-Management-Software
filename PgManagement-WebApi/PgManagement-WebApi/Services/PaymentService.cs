@@ -110,6 +110,40 @@ namespace PgManagement_WebApi.Services
                 CreatedAt = DateTime.UtcNow
             };
 
+            // Audit: check for amount mismatch on MONTHLY stays
+            if (string.Equals(payableStay.StayType, "MONTHLY", StringComparison.OrdinalIgnoreCase))
+            {
+                var rentHistories = await _context.RoomRentHistories
+                    .Where(r => r.RoomId == payableStay.RoomId
+                        && r.EffectiveFrom <= dto.PaidUpto
+                        && (r.EffectiveTo == null || r.EffectiveTo >= payableFrom))
+                    .OrderBy(r => r.EffectiveFrom)
+                    .ToListAsync();
+
+                var expectedSlices = RentHelper.GetRentSlices(
+                    payableFrom, dto.PaidUpto, rentHistories, "MONTHLY",
+                    stayFromDate: payableStay.FromDate.Date, isActiveStay: payableStay.ToDate == null);
+                var expectedAmount = expectedSlices.Sum(s => s.Amount);
+
+                if (dto.Amount != expectedAmount)
+                {
+                    _context.AuditEvents.Add(new AuditEvent
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        PgId = pgId,
+                        BranchId = branchId,
+                        EventType = "PAYMENT_AMOUNT_MISMATCH",
+                        EntityType = "Payment",
+                        EntityId = payment.PaymentId,
+                        Description = $"Payment created with ₹{dto.Amount} instead of expected ₹{expectedAmount} for period {payableFrom:dd MMM yyyy}–{dto.PaidUpto:dd MMM yyyy} (Room: {payableStay.Room?.RoomNumber})",
+                        OldValue = JsonSerializer.Serialize(new { ExpectedAmount = expectedAmount }),
+                        NewValue = JsonSerializer.Serialize(new { ActualAmount = dto.Amount }),
+                        PerformedByUserId = userId,
+                        PerformedAt = DateTime.UtcNow
+                    });
+                }
+            }
+
             _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
 
@@ -671,6 +705,44 @@ namespace PgManagement_WebApi.Services
                     NewValue = JsonSerializer.Serialize(new { Amount = dto.Amount }),
                     PerformedByUserId = userId, PerformedAt = DateTime.UtcNow
                 });
+
+                // Also audit if the new amount mismatches expected rent for MONTHLY stays
+                var stay = await _context.TenantRooms
+                    .Include(tr => tr.Room)
+                    .Where(tr => tr.TenantId == payment.TenantId && tr.PgId == pgId
+                        && tr.FromDate <= payment.PaidFrom
+                        && (tr.ToDate == null || tr.ToDate >= payment.PaidFrom))
+                    .OrderByDescending(tr => tr.FromDate)
+                    .FirstOrDefaultAsync();
+
+                if (stay != null && string.Equals(stay.StayType, "MONTHLY", StringComparison.OrdinalIgnoreCase))
+                {
+                    var rentHistories = await _context.RoomRentHistories
+                        .Where(r => r.RoomId == stay.RoomId
+                            && r.EffectiveFrom <= payment.PaidUpto
+                            && (r.EffectiveTo == null || r.EffectiveTo >= payment.PaidFrom))
+                        .OrderBy(r => r.EffectiveFrom)
+                        .ToListAsync();
+
+                    var expectedSlices = RentHelper.GetRentSlices(
+                        payment.PaidFrom, payment.PaidUpto, rentHistories, "MONTHLY",
+                        stayFromDate: stay.FromDate.Date, isActiveStay: stay.ToDate == null);
+                    var expectedAmount = expectedSlices.Sum(s => s.Amount);
+
+                    if (dto.Amount != expectedAmount)
+                    {
+                        _context.AuditEvents.Add(new AuditEvent
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            PgId = pgId, BranchId = payment.BranchId,
+                            EventType = "PAYMENT_AMOUNT_MISMATCH", EntityType = "Payment", EntityId = paymentId,
+                            Description = $"Payment updated to ₹{dto.Amount} instead of expected ₹{expectedAmount} for period {payment.PaidFrom:dd MMM yyyy}–{payment.PaidUpto:dd MMM yyyy} (Room: {stay.Room?.RoomNumber})",
+                            OldValue = JsonSerializer.Serialize(new { ExpectedAmount = expectedAmount }),
+                            NewValue = JsonSerializer.Serialize(new { ActualAmount = dto.Amount }),
+                            PerformedByUserId = userId, PerformedAt = DateTime.UtcNow
+                        });
+                    }
+                }
             }
 
             if (oldPaidFrom != payment.PaidFrom || oldPaidUpto != payment.PaidUpto)

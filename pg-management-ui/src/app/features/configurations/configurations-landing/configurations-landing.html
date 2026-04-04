@@ -1,5 +1,5 @@
 <div class="landing-page">
-  <h2 class="page-title">Configurations</h2>
+  <h2 class="page-title">Settings</h2>
   <p class="page-subtitle">Manage users, notification preferences and other settings for your PG.</p>
 
   <div class="card-grid">
@@ -13,5 +13,20 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
       </svg>
     </a>
+  </div>
+
+  <!-- About Section -->
+  <div class="about-section" *ngIf="appVersion">
+    <h3 class="about-title">ℹ️ About</h3>
+    <div class="about-grid">
+      <div class="about-item">
+        <span class="about-label">Version</span>
+        <span class="about-value">v{{ appVersion.version }}</span>
+      </div>
+      <div class="about-item">
+        <span class="about-label">Build Date</span>
+        <span class="about-value">{{ appVersion.buildDate }}</span>
+      </div>
+    </div>
   </div>
 </div>

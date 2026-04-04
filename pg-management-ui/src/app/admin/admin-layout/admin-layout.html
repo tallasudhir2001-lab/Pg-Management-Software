@@ -9,6 +9,9 @@
       <a routerLink="/admin/role-access" routerLinkActive="active">Role Permissions</a>
     </nav>
 
+    <div class="sidebar-version" *ngIf="appVersion">
+      v{{ appVersion }}
+    </div>
     <button class="logout-btn" (click)="logout()">Logout</button>
   </aside>
 

@@ -18,7 +18,6 @@ namespace PgManagement_WebApi.Controllers
             _reportSubscriptionService = reportSubscriptionService;
         }
 
-        [AccessPoint("Settings", "View Report Subscriptions")]
         [HttpGet("report-options")]
         public IActionResult GetReportOptions()
         {

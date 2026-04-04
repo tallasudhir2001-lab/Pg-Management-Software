@@ -113,6 +113,6 @@ export class ReportSubscriptions implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/configurations']);
+    this.router.navigate(['/settings']);
   }
 }

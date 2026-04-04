@@ -11,60 +11,43 @@ namespace PgManagement_WebApi.Data
         {
             context.Database.Migrate();
 
-            if (!await context.PaymentModes.AnyAsync())
+            // Payment Modes
+            await SeedIfMissingAsync(context.PaymentModes, m => m.Code, new List<PaymentMode>
             {
-                var modes = new List<PaymentMode>
-                {
-                    new PaymentMode { Code = "CASH", Description = "Cash Payment" },
-                    new PaymentMode { Code = "UPI", Description = "UPI Transfer" },
-                    new PaymentMode { Code = "BANK", Description = "Bank Transfer" }
-                };
-                await context.PaymentModes.AddRangeAsync(modes);
-                await context.SaveChangesAsync();
-            }
-            if(!await context.PaymentFrequencies.AnyAsync())
-            {
-                var frequencies = new List<PaymentFrequency> {
+                new PaymentMode { Code = "CASH", Description = "Cash Payment" },
+                new PaymentMode { Code = "UPI", Description = "UPI Transfer" },
+                new PaymentMode { Code = "BANK", Description = "Bank Transfer" }
+            });
+            await context.SaveChangesAsync();
 
+            // Payment Frequencies
+            await SeedIfMissingAsync(context.PaymentFrequencies, f => f.Code, new List<PaymentFrequency>
+            {
                 new PaymentFrequency { Code = "MONTHLY", Description = "Monthly", RequiresUnitCount = true },
                 new PaymentFrequency { Code = "DAILY", Description = "Daily", RequiresUnitCount = true },
                 new PaymentFrequency { Code = "CUSTOM", Description = "Custom Period", RequiresUnitCount = false },
                 new PaymentFrequency { Code = "ONETIME", Description = "One Time", RequiresUnitCount = false }
-                };
-                await context.PaymentFrequencies.AddRangeAsync(frequencies);
-                await context.SaveChangesAsync();
-            }
+            });
+            await context.SaveChangesAsync();
 
-            foreach (var roleName in new[] { "Owner", "Manager", "Staff" })
+            // Roles
+            foreach (var roleName in new[] { "Owner", "Manager", "Staff", "Admin" })
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
                     await roleManager.CreateAsync(new IdentityRole(roleName));
             }
 
-            //Payment Types
-            if (!await context.PaymentTypes.AnyAsync())
+            // Payment Types
+            await SeedIfMissingAsync(context.PaymentTypes, t => t.Code, new List<PaymentType>
             {
-                var types = new List<PaymentType>
-                {
-                    new PaymentType { Code = "RENT", Name = "Rent Payment" },
-                    new PaymentType { Code = "ADVANCE_PAYMENT", Name = "Advance Payment" },
-                    new PaymentType { Code = "ADVANCE_REFUND", Name = "Advance Refund" }
-                };
+                new PaymentType { Code = "RENT", Name = "Rent Payment" },
+                new PaymentType { Code = "ADVANCE_PAYMENT", Name = "Advance Payment" },
+                new PaymentType { Code = "ADVANCE_REFUND", Name = "Advance Refund" }
+            });
+            await context.SaveChangesAsync();
 
-                await context.PaymentTypes.AddRangeAsync(types);
-                await context.SaveChangesAsync();
-            }
-
-
-            //adding admin role
-            if (!await roleManager.RoleExistsAsync("Admin"))
-            {
-                await roleManager.CreateAsync(new IdentityRole("Admin"));
-            }
-            //Expense categories
-            if (!await context.ExpenseCategories.AnyAsync())
-            {
-                var categories = new List<ExpenseCategory>
+            // Expense Categories
+            await SeedIfMissingAsync(context.ExpenseCategories, c => c.Name, new List<ExpenseCategory>
             {
                 new ExpenseCategory { Name = "Electricity", IsActive = true, CreatedAt = DateTime.UtcNow },
                 new ExpenseCategory { Name = "Water", IsActive = true, CreatedAt = DateTime.UtcNow },
@@ -76,11 +59,8 @@ namespace PgManagement_WebApi.Data
                 new ExpenseCategory { Name = "Housekeeping", IsActive = true, CreatedAt = DateTime.UtcNow },
                 new ExpenseCategory { Name = "Groceries", IsActive = true, CreatedAt = DateTime.UtcNow },
                 new ExpenseCategory { Name = "Others", IsActive = true, CreatedAt = DateTime.UtcNow }
-            };
-
-                await context.ExpenseCategories.AddRangeAsync(categories);
-                await context.SaveChangesAsync();
-            }
+            });
+            await context.SaveChangesAsync();
 
             //creating admin user
             var adminEmail = "admin@pgapp.com";
@@ -99,6 +79,17 @@ namespace PgManagement_WebApi.Data
             if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
                 await userManager.AddToRoleAsync(adminUser, "Admin");
 
+        }
+
+        private static async Task SeedIfMissingAsync<TEntity, TKey>(
+            DbSet<TEntity> dbSet,
+            Func<TEntity, TKey> keySelector,
+            List<TEntity> seedItems) where TEntity : class
+        {
+            var existingKeys = await dbSet.Select(e => keySelector(e)).ToListAsync();
+            var missing = seedItems.Where(item => !existingKeys.Contains(keySelector(item))).ToList();
+            if (missing.Count > 0)
+                await dbSet.AddRangeAsync(missing);
         }
 
     }

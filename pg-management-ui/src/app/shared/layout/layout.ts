@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { Auth } from '../../core/services/auth';
 import { PermissionService } from '../../core/services/permission.service';
 import { BranchViewService } from '../../core/services/branch-view.service';
+import { VersionService } from '../../core/services/version.service';
 import { jwtDecode } from 'jwt-decode';
 
 @Component({
@@ -17,12 +18,14 @@ import { jwtDecode } from 'jwt-decode';
 export class Layout implements OnInit {
   paymentsExpanded = false;
   userRole: string = '';
+  appVersion: string = '';
 
   constructor(
     private auth: Auth,
     private router: Router,
     private permissionService: PermissionService,
-    public branchView: BranchViewService
+    public branchView: BranchViewService,
+    private versionService: VersionService
   ) {
     const token = this.auth.getToken();
     if (token) {
@@ -35,14 +38,15 @@ export class Layout implements OnInit {
 
   ngOnInit(): void {
     this.branchView.checkCanToggle();
+    this.versionService.getVersion().subscribe(v => this.appVersion = v.version);
   }
 
   get isOwner(): boolean {
     return this.userRole === 'Owner';
   }
 
-  get showConfigurations(): boolean {
-    return this.isOwner || this.permissionService.hasAccess('Configurations.GetConfigurations');
+  get showSettings(): boolean {
+    return this.isOwner || this.permissionService.hasAccess('Settings.GetSettings');
   }
 
   togglePayments() {

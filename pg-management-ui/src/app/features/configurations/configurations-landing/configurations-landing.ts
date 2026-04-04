@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../../../core/services/auth';
 import { PermissionService } from '../../../core/services/permission.service';
+import { VersionService, AppVersion } from '../../../core/services/version.service';
 
 interface ConfigCard {
   title: string;
@@ -18,25 +19,26 @@ interface ConfigCard {
   templateUrl: './configurations-landing.html',
   styleUrl: './configurations-landing.css'
 })
-export class ConfigurationsLanding {
+export class ConfigurationsLanding implements OnInit {
   options: ConfigCard[] = [];
+  appVersion: AppVersion | null = null;
 
-  constructor(private auth: Auth, private permissionService: PermissionService) {
+  constructor(private auth: Auth, private permissionService: PermissionService, private versionService: VersionService) {
     if (this.auth.isOwner() || this.permissionService.hasAccess('PgUser.GetUsers')) {
       this.options.push({
         title: 'Manage Users',
         description: 'Add, remove or update users and assign roles for your PG.',
         icon: '👥',
-        route: '/configurations/manage-users'
+        route: '/settings/manage-users'
       });
     }
 
     if (this.auth.isOwner() || this.permissionService.hasAccess('Settings.GetNotificationSettings')) {
       this.options.push({
-        title: 'Notification Settings',
-        description: 'Configure automatic payment receipts via email or WhatsApp.',
+        title: 'Payment Notifications',
+        description: 'Auto-send payment receipts to tenants via email or WhatsApp.',
         icon: '🔔',
-        route: '/configurations/notifications'
+        route: '/settings/notifications'
       });
     }
 
@@ -45,8 +47,12 @@ export class ConfigurationsLanding {
         title: 'Report Subscriptions',
         description: 'Choose which daily reports each user receives via email.',
         icon: '📊',
-        route: '/configurations/report-subscriptions'
+        route: '/settings/report-subscriptions'
       });
     }
+  }
+
+  ngOnInit(): void {
+    this.versionService.getVersion().subscribe(v => this.appVersion = v);
   }
 }

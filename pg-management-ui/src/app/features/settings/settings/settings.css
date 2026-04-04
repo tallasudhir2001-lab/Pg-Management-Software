@@ -237,3 +237,34 @@
   font-size: 13px;
   border: 1px solid #fecaca;
 }
+
+/* About Card */
+.about-card {
+  margin-top: 24px;
+}
+
+.about-grid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.about-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.about-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.about-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f1041;
+}

@@ -295,7 +295,7 @@ namespace PgManagement_WebApi.Jobs
                     <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0 16px 0;"/>
                     <p style="color:#9ca3af;font-size:12px;margin:0;">
                       This is an automated report from PG Management Software.
-                      To change your report preferences, visit Configurations → Report Subscriptions.
+                      To change your report preferences, visit Settings → Report Subscriptions.
                     </p>
                   </div>
                 </div>

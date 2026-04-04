@@ -70,7 +70,7 @@ namespace PgManagement_WebApi.Controllers
             return NoContent();
         }
 
-        [AccessPoint("Tenant", "Move Out Tenant")]
+        [AccessPoint("Tenant", "Set Expected Checkout")]
         [HttpPut("{tenantId}/expected-checkout")]
         public async Task<IActionResult> SetExpectedCheckOut(string tenantId, [FromBody] SetExpectedCheckOutDto dto)
         {

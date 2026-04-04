@@ -10,8 +10,12 @@
         public string Password { get; set; }
         /// <summary>
         /// If provided, links the new PG to this existing branch.
-        /// If null, a new branch is auto-created with the same name as the PG.
+        /// If null, a new branch is auto-created.
         /// </summary>
         public string? BranchId { get; set; }
+        /// <summary>
+        /// Name for the new branch. Used only when BranchId is null.
+        /// </summary>
+        public string? BranchName { get; set; }
     }
 }

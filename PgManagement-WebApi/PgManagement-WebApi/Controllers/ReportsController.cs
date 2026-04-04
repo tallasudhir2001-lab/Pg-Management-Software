@@ -37,7 +37,6 @@ namespace PgManagement_WebApi.Controllers
             return File(pdf, "application/pdf", $"RentCollection_{d.Year}_{d.Month:D2}.pdf");
         }
 
-        [AccessPoint("Report", "Rent Collection Report")]
         [HttpGet("rent-collection/data")]
         public async Task<IActionResult> RentCollectionData(
             [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null,
@@ -59,7 +58,6 @@ namespace PgManagement_WebApi.Controllers
             return File(pdf, "application/pdf", $"OverdueRent_{d:yyyyMMdd}.pdf");
         }
 
-        [AccessPoint("Report", "Overdue Rent Report")]
         [HttpGet("overdue-rent/data")]
         public async Task<IActionResult> OverdueRentData([FromQuery] DateTime? asOfDate = null)
         {
@@ -79,7 +77,6 @@ namespace PgManagement_WebApi.Controllers
             return File(pdf, "application/pdf", $"Occupancy_{d:yyyyMMdd}.pdf");
         }
 
-        [AccessPoint("Report", "Occupancy Report")]
         [HttpGet("occupancy/data")]
         public async Task<IActionResult> OccupancyData([FromQuery] DateTime? asOfDate = null)
         {
@@ -97,7 +94,6 @@ namespace PgManagement_WebApi.Controllers
             return File(pdf, "application/pdf", $"TenantList_{status}.pdf");
         }
 
-        [AccessPoint("Report", "Tenant List Report")]
         [HttpGet("tenant-list/data")]
         public async Task<IActionResult> TenantListData([FromQuery] string status = "ACTIVE")
         {
@@ -114,7 +110,6 @@ namespace PgManagement_WebApi.Controllers
             return File(pdf, "application/pdf", "AdvanceBalance.pdf");
         }
 
-        [AccessPoint("Report", "Advance Balance Report")]
         [HttpGet("advance-balance/data")]
         public async Task<IActionResult> AdvanceBalanceData()
         {
@@ -133,7 +128,6 @@ namespace PgManagement_WebApi.Controllers
             return File(pdf, "application/pdf", $"Expenses_{d.Year}_{d.Month:D2}.pdf");
         }
 
-        [AccessPoint("Report", "Expense Report")]
         [HttpGet("expenses/data")]
         public async Task<IActionResult> ExpensesData(
             [FromQuery] DateTime? fromDate = null, [FromQuery] string? category = null)
@@ -153,7 +147,6 @@ namespace PgManagement_WebApi.Controllers
             return File(pdf, "application/pdf", $"ProfitLoss_{d.Year}_{d.Month:D2}.pdf");
         }
 
-        [AccessPoint("Report", "Profit & Loss Report")]
         [HttpGet("profit-loss/data")]
         public async Task<IActionResult> ProfitLossData([FromQuery] DateTime? fromDate = null)
         {
@@ -176,7 +169,6 @@ namespace PgManagement_WebApi.Controllers
             return File(pdf, "application/pdf", $"PaymentHistory_{from:yyyyMMdd}_{to:yyyyMMdd}.pdf");
         }
 
-        [AccessPoint("Report", "Payment History Report")]
         [HttpGet("payment-history/data")]
         public async Task<IActionResult> PaymentHistoryData(
             [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null,

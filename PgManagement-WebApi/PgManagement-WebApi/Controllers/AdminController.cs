@@ -45,5 +45,13 @@ namespace PgManagement_WebApi.Controllers
             if (!success) return StatusCode(statusCode, result);
             return Ok(result);
         }
+
+        [HttpPut("pgs/{pgId}/details")]
+        public async Task<IActionResult> UpdatePgDetails(string pgId, UpdatePgDetailsDto dto)
+        {
+            var (success, result, statusCode) = await _adminService.UpdatePgDetailsAsync(pgId, dto);
+            if (!success) return StatusCode(statusCode, result);
+            return Ok(result);
+        }
     }
 }

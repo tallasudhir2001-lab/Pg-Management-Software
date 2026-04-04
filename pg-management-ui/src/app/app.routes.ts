@@ -81,10 +81,10 @@ export const routes: Routes = [
             { path: 'reports/advance-balance', component: AdvanceBalanceReport },
             { path: 'reports/expenses', component: ExpenseReport },
             { path: 'reports/profit-loss', component: ProfitLossReport },
-            { path: 'configurations', component: ConfigurationsLanding },
-            { path: 'configurations/manage-users', component: PgUserManagement, canActivate: [permissionGuard], data: { requiredPermission: 'PgUser.GetUsers' } },
-            { path: 'configurations/notifications', component: Settings, canActivate: [permissionGuard], data: { requiredPermission: 'Settings.GetNotificationSettings' } },
-            { path: 'configurations/report-subscriptions', component: ReportSubscriptions, canActivate: [permissionGuard], data: { requiredPermission: 'Settings.GetReportSubscriptions' } },
+            { path: 'settings', component: ConfigurationsLanding },
+            { path: 'settings/manage-users', component: PgUserManagement, canActivate: [permissionGuard], data: { requiredPermission: 'PgUser.GetUsers' } },
+            { path: 'settings/notifications', component: Settings, canActivate: [permissionGuard], data: { requiredPermission: 'Settings.GetNotificationSettings' } },
+            { path: 'settings/report-subscriptions', component: ReportSubscriptions, canActivate: [permissionGuard], data: { requiredPermission: 'Settings.GetReportSubscriptions' } },
             { path: 'audit-log', component: AuditLog, canActivate: [permissionGuard], data: { requiredPermission: 'Audit.GetAuditEvents' } }
 
         ]

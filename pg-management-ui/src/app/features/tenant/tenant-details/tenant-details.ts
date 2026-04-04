@@ -5,7 +5,7 @@ import { TenantListDto } from '../models/tenant-list-dto';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Tenantservice } from '../services/tenantservice';
 import { Stay, TenantDetailsModel } from '../models/tenant-details.model';
-import { map, Observable, startWith, Subject, switchMap, tap } from 'rxjs';
+import { catchError, map, Observable, of, startWith, Subject, switchMap, tap } from 'rxjs';
 import { UpdateTenantDto } from '../models/update-tenant-dto';
 import { Room } from '../../rooms/models/room.model';
 import { Roomservice } from '../../rooms/services/roomservice';
@@ -104,7 +104,14 @@ ngOnInit(): void {
  this.pendingRent$ = this.reload$.pipe(
   startWith(void 0),
   switchMap(() =>
-    this.tenantService.getPendingRent(this.tenantId)
+    this.tenantService.getPendingRent(this.tenantId).pipe(
+      catchError(err => {
+        this.pendingRentLoading = false;
+        this.pendingRentError = err?.error || err?.message || 'Failed to load pending rent';
+        console.error('Pending rent API error:', err);
+        return of(null as any);
+      })
+    )
   ),
   tap(() => this.pendingRentLoading = false)
 );

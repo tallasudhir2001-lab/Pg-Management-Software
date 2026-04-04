@@ -9,6 +9,7 @@
       <thead>
         <tr>
           <th>PG Name</th>
+          <th>Branch</th>
           <th>Address</th>
           <th>Contact</th>
           <th>Owner</th>
@@ -16,11 +17,13 @@
           <th>Users</th>
           <th>📧 Email</th>
           <th>💬 WhatsApp</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let pg of pgs">
           <td class="pgl-name">{{ pg.name }}</td>
+          <td>{{ pg.branchName || '—' }}</td>
           <td>{{ pg.address }}</td>
           <td>{{ pg.contactNumber }}</td>
           <td>{{ pg.ownerName || '—' }}</td>
@@ -46,11 +49,51 @@
               <span class="toggle-slider"></span>
             </label>
           </td>
+          <td>
+            <button class="pgl-btn pgl-btn--edit" (click)="openEdit(pg)">Edit</button>
+          </td>
         </tr>
         <tr *ngIf="pgs.length === 0">
-          <td colspan="8" class="pgl-empty">No PGs registered yet.</td>
+          <td colspan="10" class="pgl-empty">No PGs registered yet.</td>
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- Edit Panel Overlay -->
+<div class="pgl-overlay" *ngIf="editingPg" (click)="closeEdit()"></div>
+<div class="pgl-panel" *ngIf="editingPg">
+  <div class="pgl-panel-header">
+    <h2>Edit PG Details</h2>
+    <button class="pgl-panel-close" (click)="closeEdit()">&times;</button>
+  </div>
+  <div class="pgl-panel-body">
+    <div class="pgl-form-field">
+      <label>PG Name</label>
+      <input type="text" [(ngModel)]="editForm.name" class="pgl-form-input" />
+    </div>
+    <div class="pgl-form-field">
+      <label>Branch Name</label>
+      <input type="text" [(ngModel)]="editForm.branchName" class="pgl-form-input" />
+    </div>
+    <div class="pgl-form-field">
+      <label>Address</label>
+      <input type="text" [(ngModel)]="editForm.address" class="pgl-form-input" />
+    </div>
+    <div class="pgl-form-field">
+      <label>Contact Number</label>
+      <input type="text" [(ngModel)]="editForm.contactNumber" class="pgl-form-input" />
+    </div>
+    <div class="pgl-form-field">
+      <label>Owner Email</label>
+      <input type="email" [(ngModel)]="editForm.ownerEmail" class="pgl-form-input" />
+    </div>
+  </div>
+  <div class="pgl-panel-footer">
+    <button class="pgl-btn pgl-btn--cancel" (click)="closeEdit()">Cancel</button>
+    <button class="pgl-btn pgl-btn--save" (click)="saveEdit()" [disabled]="saving">
+      {{ saving ? 'Saving...' : 'Save Changes' }}
+    </button>
   </div>
 </div>

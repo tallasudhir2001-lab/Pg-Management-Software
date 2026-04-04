@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using PgManagement_WebApi;
 using PgManagement_WebApi.Data;
 using PgManagement_WebApi.Identity;
 using PgManagement_WebApi.MiddleWare;
-using PgManagement_WebApi.Options;
 using PgManagement_WebApi.Services;
 using PgManagement_WebApi.Jobs;
 using PgManagement_WebApi.Filters;
@@ -25,42 +25,7 @@ builder.Host.UseSerilog((context, loggerConfig) =>
     loggerConfig.ReadFrom.Configuration(context.Configuration));
 
 // Add services to the container.
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddScoped<IExpenseService, ExpenseService>();
-builder.Services.AddScoped<IExpenseCategoryService, ExpenseCategoryService>();
-builder.Services.AddScoped<ITenantService, TenantService>();
-builder.Services.AddScoped<IRoomService, RoomService>();
-builder.Services.AddScoped<IAdvanceService, AdvanceService>();
-builder.Services.AddScoped<IBookingService, BookingService>();
-builder.Services.AddScoped<IAccessPointDiscoveryService, AccessPointDiscoveryService>();
-builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddScoped<IEmailNotificationService, EmailNotificationService>();
-builder.Services.AddScoped<IPaymentModeService, PaymentModeService>();
-builder.Services.AddScoped<IPaymentTypeService, PaymentTypeService>();
-builder.Services.AddScoped<IBranchService, BranchService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<ISettingsService, SettingsService>();
-builder.Services.AddScoped<IAuditService, AuditService>();
-builder.Services.AddScoped<IDashboardService, DashboardService>();
-builder.Services.AddScoped<IAccessPointAdminService, AccessPointAdminService>();
-builder.Services.AddScoped<IReportSubscriptionService, ReportSubscriptionService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IAdminService, AdminService>();
-builder.Services.AddScoped<IPgUserManagementService, PgUserManagementService>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
-builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
-
-var emailProvider = builder.Configuration["Email:Provider"];
-if (emailProvider == "AwsSes")
-    builder.Services.AddScoped<IEmailProvider, AwsSesEmailProvider>();
-else
-    builder.Services.AddScoped<IEmailProvider, SmtpEmailProvider>();
-
-// WhatsApp
-builder.Services.Configure<WhatsAppOptions>(builder.Configuration.GetSection("WhatsApp"));
-builder.Services.AddHttpClient<IWhatsAppProvider, WhatsAppCloudApiProvider>();
-builder.Services.AddScoped<IWhatsAppNotificationService, WhatsAppNotificationService>();
+builder.Services.AddApplicationServices(builder.Configuration);
 
 // Hangfire
 builder.Services.AddHangfire(config => config

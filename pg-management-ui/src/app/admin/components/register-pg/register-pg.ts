@@ -13,6 +13,7 @@ import { ToastService } from '../../../shared/toast/toast-service';
 })
 export class RegisterPg implements OnInit {
   pgName = '';
+  branchName = '';
   address = '';
   contactNumber = '';
   ownerName = '';
@@ -71,6 +72,7 @@ export class RegisterPg implements OnInit {
       pgName: this.pgName,
       address: this.address,
       contactNumber: this.contactNumber,
+      branchName: this.branchName || this.pgName,
     };
 
     if (this.isExistingBranch) {
@@ -88,7 +90,7 @@ export class RegisterPg implements OnInit {
     this.adminservice.registerPg(payload).subscribe({
       next: () => {
         this.saving = false;
-        this.pgName = this.address = this.contactNumber = '';
+        this.pgName = this.branchName = this.address = this.contactNumber = '';
         this.ownerName = this.ownerEmail = this.password = '';
         this.selectedBranchId = '';
         this.branchMode = 'new';

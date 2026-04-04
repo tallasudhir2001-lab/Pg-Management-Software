@@ -22,7 +22,6 @@ namespace PgManagement_WebApi.Controllers
         private string? BranchId => User.FindFirst("branchId")?.Value;
         private bool IsOwnerOrAdmin => User.IsInRole("Owner") || User.IsInRole("Admin");
 
-        [AccessPoint("PgUser", "Manage Users")]
         [HttpGet("pgs")]
         public async Task<IActionResult> GetBranchPgs()
         {

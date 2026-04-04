@@ -104,7 +104,10 @@ namespace PgManagement_WebApi.Services
             }
             else
             {
-                branch = new Branch { Name = request.PgName };
+                var branchName = !string.IsNullOrWhiteSpace(request.BranchName)
+                    ? request.BranchName
+                    : request.PgName;
+                branch = new Branch { Name = branchName };
                 _context.Branches.Add(branch);
             }
 
@@ -203,6 +206,62 @@ namespace PgManagement_WebApi.Services
                 IsEmailSubscriptionEnabled = pg.IsEmailSubscriptionEnabled,
                 IsWhatsappSubscriptionEnabled = pg.IsWhatsappSubscriptionEnabled
             }, 200);
+        }
+
+        public async Task<(bool success, object result, int statusCode)> UpdatePgDetailsAsync(
+            string pgId, UpdatePgDetailsDto dto)
+        {
+            var pg = await _context.PGs
+                .Include(p => p.Branch)
+                .FirstOrDefaultAsync(p => p.PgId == pgId);
+
+            if (pg == null)
+                return (false, "PG not found.", 404);
+
+            pg.Name = dto.Name;
+            pg.Address = dto.Address;
+            pg.ContactNumber = dto.ContactNumber;
+
+            if (pg.Branch != null && !string.IsNullOrWhiteSpace(dto.BranchName))
+            {
+                pg.Branch.Name = dto.BranchName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(dto.OwnerEmail))
+            {
+                var ownerUserPg = await _context.UserPgs
+                    .Where(up => up.PgId == pgId)
+                    .Include(up => up.User)
+                    .ToListAsync();
+
+                ApplicationUser? currentOwner = null;
+                foreach (var up in ownerUserPg)
+                {
+                    if (await _userManager.IsInRoleAsync(up.User, "Owner"))
+                    {
+                        currentOwner = up.User;
+                        break;
+                    }
+                }
+
+                if (currentOwner != null && !string.Equals(currentOwner.Email, dto.OwnerEmail, StringComparison.OrdinalIgnoreCase))
+                {
+                    var existingUser = await _userManager.FindByEmailAsync(dto.OwnerEmail);
+                    if (existingUser != null && existingUser.Id != currentOwner.Id)
+                        return (false, "Another user with this email already exists.", 400);
+
+                    currentOwner.Email = dto.OwnerEmail;
+                    currentOwner.NormalizedEmail = dto.OwnerEmail.ToUpperInvariant();
+                    currentOwner.UserName = SanitiseUserName(dto.OwnerEmail);
+                    currentOwner.NormalizedUserName = currentOwner.UserName.ToUpperInvariant();
+                    await _userManager.UpdateAsync(currentOwner);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("PG details updated for {PgId}", pgId);
+            return (true, "PG details updated successfully.", 200);
         }
     }
 }

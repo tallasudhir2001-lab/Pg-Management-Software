@@ -81,3 +81,45 @@
 .report-card:hover .card-arrow {
   color: #6366f1;
 }
+
+/* About Section */
+.about-section {
+  margin-top: 40px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.about-title {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.about-grid {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.about-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.about-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.about-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f1041;
+}

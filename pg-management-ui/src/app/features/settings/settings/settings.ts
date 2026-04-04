@@ -26,7 +26,7 @@ export class Settings implements OnInit {
 
   constructor(private settingsService: SettingsService, private cdr: ChangeDetectorRef, private router: Router) {}
 
-  goBack(): void { this.router.navigate(['/configurations']); }
+  goBack(): void { this.router.navigate(['/settings']); }
 
   ngOnInit(): void {
     this.settingsService.getNotificationSettings().subscribe({
