@@ -649,5 +649,39 @@ namespace PgManagement_WebApi.Services
 
         private static DateTime Max(DateTime a, DateTime b) => a > b ? a : b;
         private static DateTime Min(DateTime a, DateTime b) => a < b ? a : b;
+
+        public async Task<(bool enabled, string? error)> CheckEmailSubscriptionAsync(string pgId)
+        {
+            var pg = await _db.PGs.FindAsync(pgId);
+            if (pg == null) return (false, "PG not found.");
+            if (!pg.IsEmailSubscriptionEnabled)
+                return (false, "Email subscription is not enabled for this PG. Please purchase an email subscription to use this feature.");
+            return (true, null);
+        }
+
+        public async Task<(bool enabled, string? error)> CheckWhatsAppSubscriptionAsync(string pgId)
+        {
+            var pg = await _db.PGs.FindAsync(pgId);
+            if (pg == null) return (false, "PG not found.");
+            if (!pg.IsWhatsappSubscriptionEnabled)
+                return (false, "WhatsApp subscription is not enabled for this PG.");
+            return (true, null);
+        }
+
+        public async Task<object> GetAvailableRecipientsAsync(string pgId)
+        {
+            var users = await _db.UserPgs
+                .Where(up => up.PgId == pgId)
+                .Include(up => up.User)
+                .Select(up => new
+                {
+                    up.UserId,
+                    Name = up.User.FullName ?? up.User.UserName ?? "",
+                    up.User.Email,
+                    up.User.PhoneNumber
+                })
+                .ToListAsync();
+            return users;
+        }
     }
 }

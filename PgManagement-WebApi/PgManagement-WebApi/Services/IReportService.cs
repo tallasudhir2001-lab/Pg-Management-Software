@@ -23,5 +23,9 @@ namespace PgManagement_WebApi.Services
         Task<ExpenseReportDto> GetExpenseReportDataAsync(string pgId, int month, int year, string? categories);
         Task<ProfitLossReportDto> GetProfitLossDataAsync(string pgId, int month, int year);
         Task<PaymentHistoryReportDto> GetPaymentHistoryDataAsync(string pgId, DateTime fromDate, DateTime toDate, string? types, string? modes, string? tenantId);
+
+        Task<(bool enabled, string? error)> CheckEmailSubscriptionAsync(string pgId);
+        Task<(bool enabled, string? error)> CheckWhatsAppSubscriptionAsync(string pgId);
+        Task<object> GetAvailableRecipientsAsync(string pgId);
     }
 }

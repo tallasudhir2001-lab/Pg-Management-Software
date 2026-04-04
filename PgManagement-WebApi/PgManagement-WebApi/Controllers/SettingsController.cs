@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PgManagement_WebApi.Attributes;
-using PgManagement_WebApi.Data;
 using PgManagement_WebApi.DTOs.Settings;
-using PgManagement_WebApi.Models;
+using PgManagement_WebApi.Services;
 
 namespace PgManagement_WebApi.Controllers
 {
@@ -13,14 +11,13 @@ namespace PgManagement_WebApi.Controllers
     [Authorize]
     public class SettingsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ISettingsService _settingsService;
 
-        public SettingsController(ApplicationDbContext context)
+        public SettingsController(ISettingsService settingsService)
         {
-            _context = context;
+            _settingsService = settingsService;
         }
 
-        // GET api/settings/notifications
         [AccessPoint("Settings", "View Notification Settings")]
         [HttpGet("notifications")]
         public async Task<IActionResult> GetNotificationSettings()
@@ -28,23 +25,11 @@ namespace PgManagement_WebApi.Controllers
             var pgId = User.FindFirst("pgId")?.Value;
             if (string.IsNullOrEmpty(pgId)) return Unauthorized();
 
-            var pg = await _context.PGs.FindAsync(pgId);
-            if (pg == null) return NotFound("PG not found.");
-
-            var settings = await _context.NotificationSettings
-                .FirstOrDefaultAsync(ns => ns.PgId == pgId);
-
-            return Ok(new NotificationSettingsResponseDto
-            {
-                AutoSendPaymentReceipt = settings?.AutoSendPaymentReceipt ?? false,
-                SendViaEmail = settings?.SendViaEmail ?? true,
-                SendViaWhatsapp = settings?.SendViaWhatsapp ?? false,
-                IsEmailSubscriptionEnabled = pg.IsEmailSubscriptionEnabled,
-                IsWhatsappSubscriptionEnabled = pg.IsWhatsappSubscriptionEnabled
-            });
+            var (success, result, statusCode) = await _settingsService.GetNotificationSettingsAsync(pgId);
+            if (!success) return StatusCode(statusCode, result);
+            return Ok(result);
         }
 
-        // PUT api/settings/notifications
         [AccessPoint("Settings", "Update Notification Settings")]
         [HttpPut("notifications")]
         public async Task<IActionResult> UpdateNotificationSettings(NotificationSettingsDto dto)
@@ -52,43 +37,11 @@ namespace PgManagement_WebApi.Controllers
             var pgId = User.FindFirst("pgId")?.Value;
             if (string.IsNullOrEmpty(pgId)) return Unauthorized();
 
-            var pg = await _context.PGs.FindAsync(pgId);
-            if (pg == null) return NotFound("PG not found.");
-
-            var settings = await _context.NotificationSettings
-                .FirstOrDefaultAsync(ns => ns.PgId == pgId);
-
-            if (settings == null)
-            {
-                settings = new NotificationSettings
-                {
-                    PgId = pgId,
-                    AutoSendPaymentReceipt = dto.AutoSendPaymentReceipt,
-                    SendViaEmail = dto.SendViaEmail,
-                    SendViaWhatsapp = dto.SendViaWhatsapp
-                };
-                _context.NotificationSettings.Add(settings);
-            }
-            else
-            {
-                settings.AutoSendPaymentReceipt = dto.AutoSendPaymentReceipt;
-                settings.SendViaEmail = dto.SendViaEmail;
-                settings.SendViaWhatsapp = dto.SendViaWhatsapp;
-            }
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new NotificationSettingsResponseDto
-            {
-                AutoSendPaymentReceipt = settings.AutoSendPaymentReceipt,
-                SendViaEmail = settings.SendViaEmail,
-                SendViaWhatsapp = settings.SendViaWhatsapp,
-                IsEmailSubscriptionEnabled = pg.IsEmailSubscriptionEnabled,
-                IsWhatsappSubscriptionEnabled = pg.IsWhatsappSubscriptionEnabled
-            });
+            var (success, result, statusCode) = await _settingsService.UpdateNotificationSettingsAsync(pgId, dto);
+            if (!success) return StatusCode(statusCode, result);
+            return Ok(result);
         }
 
-        // GET api/settings/subscription-status
         [AccessPoint("Settings", "View Subscription Status")]
         [HttpGet("subscription-status")]
         public async Task<IActionResult> GetSubscriptionStatus()
@@ -96,14 +49,9 @@ namespace PgManagement_WebApi.Controllers
             var pgId = User.FindFirst("pgId")?.Value;
             if (string.IsNullOrEmpty(pgId)) return Unauthorized();
 
-            var pg = await _context.PGs.FindAsync(pgId);
-            if (pg == null) return NotFound("PG not found.");
-
-            return Ok(new
-            {
-                pg.IsEmailSubscriptionEnabled,
-                pg.IsWhatsappSubscriptionEnabled
-            });
+            var (success, result, statusCode) = await _settingsService.GetSubscriptionStatusAsync(pgId);
+            if (!success) return StatusCode(statusCode, result);
+            return Ok(result);
         }
     }
 }

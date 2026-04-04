@@ -178,13 +178,31 @@ namespace PgManagement_WebApi.Services
 
             return expense.Id;
         }
-        public async Task UpdateExpenseAsync(string expenseId, UpdateExpenseDto dto)
+        public async Task UpdateExpenseAsync(string expenseId, UpdateExpenseDto dto, string? pgId = null, string? userId = null)
         {
             var expense = await _context.Expenses
                 .FirstOrDefaultAsync(e => e.Id == expenseId);
 
             if (expense == null)
                 throw new KeyNotFoundException("Expense not found.");
+
+            if (!string.IsNullOrEmpty(pgId) && !string.IsNullOrEmpty(userId) && expense.Amount != dto.Amount)
+            {
+                _context.AuditEvents.Add(new Models.AuditEvent
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    PgId = pgId,
+                    BranchId = expense.BranchId,
+                    EventType = "EXPENSE_AMOUNT_CHANGED",
+                    EntityType = "Expense",
+                    EntityId = expenseId,
+                    Description = $"Expense amount changed from \u20B9{expense.Amount} to \u20B9{dto.Amount}",
+                    OldValue = System.Text.Json.JsonSerializer.Serialize(new { expense.Amount }),
+                    NewValue = System.Text.Json.JsonSerializer.Serialize(new { dto.Amount }),
+                    PerformedByUserId = userId,
+                    PerformedAt = DateTime.UtcNow
+                });
+            }
 
             expense.CategoryId = dto.CategoryId;
             expense.Amount = dto.Amount;
@@ -197,13 +215,36 @@ namespace PgManagement_WebApi.Services
 
             await _context.SaveChangesAsync();
         }
-        public async Task DeleteExpenseAsync(string expenseId)
+        public async Task DeleteExpenseAsync(string expenseId, string? pgId = null, string? userId = null)
         {
             var expense = await _context.Expenses
                 .FirstOrDefaultAsync(e => e.Id == expenseId);
 
             if (expense == null)
                 throw new KeyNotFoundException("Expense not found.");
+
+            if (!string.IsNullOrEmpty(pgId) && !string.IsNullOrEmpty(userId))
+            {
+                _context.AuditEvents.Add(new Models.AuditEvent
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    PgId = pgId,
+                    BranchId = expense.BranchId,
+                    EventType = "EXPENSE_DELETED",
+                    EntityType = "Expense",
+                    EntityId = expenseId,
+                    Description = $"Expense of \u20B9{expense.Amount} deleted",
+                    OldValue = System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        expense.Amount,
+                        expense.ExpenseDate,
+                        expense.Description,
+                        expense.CategoryId
+                    }),
+                    PerformedByUserId = userId,
+                    PerformedAt = DateTime.UtcNow
+                });
+            }
 
             _context.Expenses.Remove(expense);
             await _context.SaveChangesAsync();

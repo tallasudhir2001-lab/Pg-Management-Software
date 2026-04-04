@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PgManagement_WebApi.Data;
-using PgManagement_WebApi.DTOs.Payment;
-using PgManagement_WebApi.DTOs.PaymentType;
+using PgManagement_WebApi.Services;
 
 namespace PgManagement_WebApi.Controllers
 {
@@ -10,26 +7,17 @@ namespace PgManagement_WebApi.Controllers
     [ApiController]
     public class PaymentTypesController : ControllerBase
     {
-        private readonly ApplicationDbContext context;
+        private readonly IPaymentTypeService _paymentTypeService;
 
-        public PaymentTypesController(ApplicationDbContext context)
+        public PaymentTypesController(IPaymentTypeService paymentTypeService)
         {
-            this.context = context;
+            _paymentTypeService = paymentTypeService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetPaymentTypes()
         {
-            var types = await context.PaymentTypes
-                .AsNoTracking()
-                .OrderBy(t => t.Name)
-                .Select(t => new PaymentTypeDto
-                {
-                    Code = t.Code,
-                    Name = t.Name
-                })
-                .ToListAsync();
-
+            var types = await _paymentTypeService.GetPaymentTypesAsync();
             return Ok(types);
         }
     }

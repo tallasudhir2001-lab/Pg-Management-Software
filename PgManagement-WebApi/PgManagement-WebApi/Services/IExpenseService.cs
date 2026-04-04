@@ -11,8 +11,8 @@ namespace PgManagement_WebApi.Services
         Task<ExpenseSummaryDto> GetExpenseSummaryAsync(List<string> pgIds, DateTime? fromDate, DateTime? toDate, int? categoryId);
         Task<ExpenseDetailsDto?> GetExpenseByIdAsync(string pgId, string id);
         Task<string> CreateExpenseAsync(string pgId, CreateExpenseDto dto, string? branchId = null);
-        Task UpdateExpenseAsync(string expenseId, UpdateExpenseDto dto);
-        Task DeleteExpenseAsync(string expenseId);
+        Task UpdateExpenseAsync(string expenseId, UpdateExpenseDto dto, string? pgId = null, string? userId = null);
+        Task DeleteExpenseAsync(string expenseId, string? pgId = null, string? userId = null);
 
     }
 }
