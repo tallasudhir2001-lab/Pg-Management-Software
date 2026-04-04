@@ -75,5 +75,21 @@ namespace PgManagement_WebApi.Controllers
             if (!pgIds.Any()) return Unauthorized();
             return Ok(await _dashboardService.GetCollectionSummaryAsync(pgIds, from, to));
         }
+
+        [HttpGet("vacancy-loss")]
+        public async Task<IActionResult> GetVacancyLoss()
+        {
+            var pgIds = await this.GetEffectivePgIds(_context);
+            if (!pgIds.Any()) return Unauthorized();
+            return Ok(await _dashboardService.GetVacancyLossAsync(pgIds));
+        }
+
+        [HttpGet("today-snapshot")]
+        public async Task<IActionResult> GetTodaySnapshot()
+        {
+            var pgIds = await this.GetEffectivePgIds(_context);
+            if (!pgIds.Any()) return Unauthorized();
+            return Ok(await _dashboardService.GetTodaySnapshotAsync(pgIds));
+        }
     }
 }

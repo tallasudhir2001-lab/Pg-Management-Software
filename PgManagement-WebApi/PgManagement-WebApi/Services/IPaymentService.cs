@@ -15,7 +15,8 @@ namespace PgManagement_WebApi.Services
         Task<object> GetPaymentHistoryForTenantAsync(string tenantId, string pgId);
         Task<PageResultsDto<PaymentHistoryDto>> GetPaymentHistoryAsync(
             List<string> pgIds, int page, int pageSize, string? search, string? mode,
-            string? tenantId, string? userId, string? types, string sortBy, string sortDir);
+            string? tenantId, string? userId, string? types, string sortBy, string sortDir,
+            DateTime? fromDate = null, DateTime? toDate = null);
         Task<(bool success, object result, int statusCode)> DeletePaymentAsync(
             string paymentId, string pgId, string userId);
         Task<object?> GetPaymentAsync(string paymentId, List<string> pgIds);

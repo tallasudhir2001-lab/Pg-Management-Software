@@ -17,6 +17,7 @@ import { TenantDetails } from './features/tenant/tenant-details/tenant-details';
 import { AddPayment } from './features/payments/add-payment/add-payment';
 import { AddPaymentContainer } from './features/payments/add-payment-container/add-payment-container';
 import { PaymentsHistory } from './features/payments/payments-history/payments-history';
+import { PaymentsLanding } from './features/payments/payments-landing/payments-landing';
 import { Expenses } from './features/expenses/expenses/expenses';
 import { PaymentDetails } from './features/payments/payment-details/payment-details';
 import { BookingList } from './features/bookings/booking-list/booking-list';
@@ -62,7 +63,7 @@ export const routes: Routes = [
                     { path: '', redirectTo: 'add', pathMatch: 'full' },
                     { path: 'add', component: AddPaymentContainer, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.CreatePayment' } },
                     { path: 'add/:tenantId', component: AddPayment, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.CreatePayment' } },
-                    { path: 'history', component: PaymentsHistory, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.GetPaymentHistory' } },
+                    { path: 'history', component: PaymentsLanding, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.GetPaymentHistory' } },
                     { path: ':paymentId', component: PaymentDetails, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.GetPayment' } },
                     { path: ':paymentId/edit', component: PaymentDetails, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.UpdatePayment' } }
                 ]

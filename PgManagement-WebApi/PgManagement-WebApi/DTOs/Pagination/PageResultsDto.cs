@@ -4,5 +4,6 @@
     {
         public List<T> Items { get; set; } = new();
         public int TotalCount { get; set; }
+        public decimal? TotalAmount { get; set; }
     }
 }

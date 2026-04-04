@@ -67,6 +67,8 @@ export class PaymentService {
     types?: string[];
     sortBy?: string;
     sortDir?: 'asc' | 'desc';
+    fromDate?: string;
+    toDate?: string;
   }): Observable<PagedResults<PaymentHistoryDto>> {
     let params = new HttpParams()
       .set('page', options.page.toString())
@@ -78,6 +80,8 @@ export class PaymentService {
     if (options.userId)   params = params.set('userId',   options.userId);
     if (options.sortBy)   params = params.set('sortBy',   options.sortBy);
     if (options.sortDir)  params = params.set('sortDir',  options.sortDir);
+    if (options.fromDate) params = params.set('fromDate',  options.fromDate);
+    if (options.toDate)   params = params.set('toDate',    options.toDate);
 
     if (options.types && options.types.length > 0) {
       params = params.set('types', options.types.join(','));

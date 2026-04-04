@@ -477,7 +477,8 @@ namespace PgManagement_WebApi.Services
 
         public async Task<PageResultsDto<PaymentHistoryDto>> GetPaymentHistoryAsync(
             List<string> pgIds, int page, int pageSize, string? search, string? mode,
-            string? tenantId, string? userId, string? types, string sortBy, string sortDir)
+            string? tenantId, string? userId, string? types, string sortBy, string sortDir,
+            DateTime? fromDate = null, DateTime? toDate = null)
         {
             var query = _context.Payments
                 .AsNoTracking()
@@ -519,7 +520,16 @@ namespace PgManagement_WebApi.Services
                     query = query.Where(p => typeCodes.Contains(p.PaymentTypeCode));
             }
 
+            if (fromDate.HasValue)
+                query = query.Where(p => p.PaymentDate >= fromDate.Value.Date);
+
+            if (toDate.HasValue)
+                query = query.Where(p => p.PaymentDate < toDate.Value.Date.AddDays(1));
+
             var totalCount = await query.CountAsync();
+            var totalAmount = (fromDate.HasValue || toDate.HasValue)
+                ? await query.SumAsync(p => p.Amount)
+                : (decimal?)null;
 
             query = sortBy.ToLower() switch
             {
@@ -547,7 +557,7 @@ namespace PgManagement_WebApi.Services
                 })
                 .ToListAsync();
 
-            return new PageResultsDto<PaymentHistoryDto> { Items = payments, TotalCount = totalCount };
+            return new PageResultsDto<PaymentHistoryDto> { Items = payments, TotalCount = totalCount, TotalAmount = totalAmount };
         }
 
         public async Task<(bool success, object result, int statusCode)> DeletePaymentAsync(
@@ -670,7 +680,7 @@ namespace PgManagement_WebApi.Services
 
             var hasLaterPayments = await _context.Payments.AnyAsync(p =>
                 p.TenantId == payment.TenantId && p.PgId == pgId &&
-                !p.IsDeleted && p.PaidFrom > payment.PaidFrom);
+                !p.IsDeleted && p.PaidFrom > payment.PaidFrom && p.PaymentTypeCode == "RENT");
 
             if (hasLaterPayments)
             {

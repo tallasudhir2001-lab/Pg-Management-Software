@@ -119,12 +119,13 @@ namespace PgManagement_WebApi.Controllers
             int page = 1, int pageSize = 10,
             string? search = null, string? mode = null,
             string? tenantId = null, string? userId = null, string? types = null,
-            string sortBy = "date", string sortDir = "desc")
+            string sortBy = "date", string sortDir = "desc",
+            DateTime? fromDate = null, DateTime? toDate = null)
         {
             var pgIds = await this.GetEffectivePgIds(_context);
             if (!pgIds.Any()) return Unauthorized();
             return Ok(await _paymentService.GetPaymentHistoryAsync(
-                pgIds, page, pageSize, search, mode, tenantId, userId, types, sortBy, sortDir));
+                pgIds, page, pageSize, search, mode, tenantId, userId, types, sortBy, sortDir, fromDate, toDate));
         }
 
         [AccessPoint("Payment", "Delete Payment")]

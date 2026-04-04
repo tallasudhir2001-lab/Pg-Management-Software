@@ -498,6 +498,101 @@
 .c-green-text { color: #059669; }
 .c-red-text   { color: #e11d48; }
 
+/* ══════════════════════════════════════════════════════════
+   TODAY'S SNAPSHOT ROW
+   ══════════════════════════════════════════════════════════ */
+.today-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.today-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  transition: box-shadow .2s, transform .2s;
+}
+
+.today-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  transform: translateY(-1px);
+}
+
+.today-left {
+  display: flex;
+  align-items: center;
+  gap: .875rem;
+}
+
+.today-ico {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.today-ico svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: #fff;
+}
+
+.green-bg { background: linear-gradient(135deg, #10b981, #059669); }
+.red-bg   { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+
+.today-label {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #9ca3af;
+  margin-bottom: .15rem;
+}
+
+.today-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -.02em;
+}
+
+.green-text { color: #059669; }
+.red-text   { color: #e11d48; }
+
+.today-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .45rem 1rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: .78rem;
+  font-weight: 700;
+  color: #6b7280;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .2s;
+}
+
+.today-view-btn:hover {
+  background: #111827;
+  border-color: #111827;
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .today-row { grid-template-columns: 1fr; }
+}
+
 /* ── Pending Actions ── */
 .action-item {
   display: flex;
@@ -665,4 +760,195 @@
   .qa-grid     { grid-template-columns: repeat(2, 1fr); }
   .stat-section { flex-wrap: wrap; }
   .stat-cell   { min-width: 45%; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   VACANCY LOSS BANNER — eye-catching
+   ══════════════════════════════════════════════════════════ */
+.vacancy-loss-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #fef2f2 0%, #fff1f2 40%, #ffe4e6 100%);
+  border: 1.5px solid #fca5a5;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all .25s ease;
+  box-shadow: 0 2px 12px rgba(239, 68, 68, .12), 0 1px 4px rgba(0,0,0,.04);
+  position: relative;
+  overflow: hidden;
+  animation: vlbSlideIn .5s cubic-bezier(.21, 1.02, .73, 1);
+}
+
+.vacancy-loss-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ef4444, #f97316, #ef4444);
+  background-size: 200% 100%;
+  animation: vlbShimmer 3s ease infinite;
+}
+
+.vacancy-loss-banner:hover {
+  border-color: #f87171;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, .18), 0 2px 6px rgba(0,0,0,.06);
+  transform: translateY(-1px);
+}
+
+@keyframes vlbSlideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes vlbShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.vlb-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.vlb-icon-wrap {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, .3);
+  animation: vlbPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes vlbPulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(239, 68, 68, .3); }
+  50%      { box-shadow: 0 2px 16px rgba(239, 68, 68, .5); }
+}
+
+.vlb-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #fff;
+}
+
+.vlb-content {
+  min-width: 0;
+}
+
+.vlb-headline {
+  margin: 0;
+  font-size: .95rem;
+  font-weight: 700;
+  color: #991b1b;
+  line-height: 1.3;
+}
+
+.vlb-amount {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #dc2626;
+  letter-spacing: -.01em;
+}
+
+.vlb-sub {
+  margin: .25rem 0 0;
+  font-size: .78rem;
+  color: #b91c1c;
+  opacity: .75;
+}
+
+.vlb-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.vlb-room-chips {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+
+.vlb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .3rem .65rem;
+  background: rgba(255, 255, 255, .75);
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: .72rem;
+  font-weight: 600;
+  color: #991b1b;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+
+.vlb-chip-loss {
+  font-weight: 800;
+  color: #dc2626;
+}
+
+.vlb-chip-more {
+  background: rgba(239, 68, 68, .08);
+  border-color: #f87171;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.vlb-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .55rem 1.1rem;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .2s ease;
+  box-shadow: 0 2px 8px rgba(185, 28, 28, .25);
+}
+
+.vlb-cta svg {
+  width: .75rem;
+  height: .75rem;
+}
+
+.vlb-cta:hover {
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(185, 28, 28, .35);
+}
+
+/* Vacancy loss banner responsive */
+@media (max-width: 900px) {
+  .vacancy-loss-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .vlb-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 640px) {
+  .vlb-room-chips { display: none; }
+  .vlb-right { justify-content: flex-end; }
 }

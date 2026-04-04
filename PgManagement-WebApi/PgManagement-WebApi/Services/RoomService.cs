@@ -195,7 +195,7 @@ namespace PgManagement_WebApi.Services
                 RoomId = room.RoomId,
                 RentAmount = dto.RentAmount,
                 IsAc = dto.IsAc,
-                EffectiveFrom = DateTime.Now,
+                EffectiveFrom = new DateTime(2000, 1, 1),
                 EffectiveTo = null
             };
 

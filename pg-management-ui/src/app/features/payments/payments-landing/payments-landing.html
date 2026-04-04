@@ -1,0 +1,17 @@
+<div class="payments-landing">
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab-btn" [class.active]="activeTab === 'history'" (click)="switchTab('history')">
+      Payment History
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'collection'" (click)="switchTab('collection')">
+      Rent Collection
+    </button>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <app-payment-history *ngIf="activeTab === 'history'"></app-payment-history>
+    <app-rent-collection-view *ngIf="activeTab === 'collection'"></app-rent-collection-view>
+  </div>
+</div>

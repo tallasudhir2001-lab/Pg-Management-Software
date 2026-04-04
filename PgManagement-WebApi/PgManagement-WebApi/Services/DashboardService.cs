@@ -269,46 +269,95 @@ namespace PgManagement_WebApi.Services
             var start = from?.Date ?? new DateTime(today.Year, today.Month, 1);
             var end = to?.Date ?? today;
 
-            var activeTenantIds = await _context.TenantRooms
+            var activeStays = await _context.TenantRooms
                 .AsNoTracking()
                 .Where(tr => pgIds.Contains(tr.PgId) && tr.ToDate == null)
-                .Select(tr => tr.TenantId)
-                .Distinct()
                 .ToListAsync();
+
+            var activeTenantIds = activeStays.Select(s => s.TenantId).Distinct().ToList();
 
             if (!activeTenantIds.Any())
             {
                 return new CollectionSummaryDto();
             }
 
-            var tenantRents = await _context.TenantRentHistories
-                .AsNoTracking()
-                .Where(trh => activeTenantIds.Contains(trh.TenantId) && trh.ToDate == null)
-                .Include(trh => trh.RoomRentHistory)
-                .Select(trh => new { trh.TenantId, trh.RoomRentHistory.RentAmount })
-                .ToListAsync();
-
-            var expectedRent = tenantRents.Sum(r => r.RentAmount);
-
-            var periodPayments = await _context.Payments
+            // Get all rent payments for active tenants (excluding advances)
+            var payments = await _context.Payments
                 .AsNoTracking()
                 .Where(p =>
                     pgIds.Contains(p.PgId) &&
                     !p.IsDeleted &&
                     activeTenantIds.Contains(p.TenantId) &&
-                    p.PaymentTypeCode != "ADVANCE_PAYMENT" &&
-                    p.PaymentDate >= start &&
-                    p.PaymentDate <= end)
-                .GroupBy(p => p.TenantId)
-                .Select(g => new { TenantId = g.Key, Total = g.Sum(p => p.Amount) })
+                    p.PaymentTypeCode == "RENT")
                 .ToListAsync();
 
-            var collectedRent = periodPayments.Sum(p => p.Total);
-            var paidTenantIds = periodPayments.Select(p => p.TenantId).ToHashSet();
+            var paymentsByTenant = payments
+                .GroupBy(p => p.TenantId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Get rent histories for all rooms occupied by active tenants
+            var roomIds = activeStays.Select(s => s.RoomId).Distinct().ToList();
+            var rentHistories = await _context.RoomRentHistories
+                .AsNoTracking()
+                .Where(rr => roomIds.Contains(rr.RoomId))
+                .OrderBy(rr => rr.EffectiveFrom)
+                .ToListAsync();
+
+            var rentByRoom = rentHistories
+                .GroupBy(rr => rr.RoomId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Calculate total pending rent across all unpaid periods
+            decimal totalPending = 0;
+
+            foreach (var stay in activeStays)
+            {
+                var stayFrom = stay.FromDate.Date;
+                var stayTo = today;
+
+                var tenantPayments = paymentsByTenant.TryGetValue(stay.TenantId, out var tp)
+                    ? tp.Select(p => (p.PaidFrom.Date, p.PaidUpto.Date))
+                    : Enumerable.Empty<(DateTime, DateTime)>();
+
+                var unpaidRanges = DateRangeHelper.Subtract(stayFrom, stayTo, tenantPayments);
+                if (!unpaidRanges.Any()) continue;
+
+                var roomRents = rentByRoom.GetValueOrDefault(stay.RoomId, new List<RoomRentHistory>());
+
+                foreach (var range in unpaidRanges)
+                {
+                    var slices = RentHelper.GetRentSlices(
+                        range.From, range.To, roomRents, stay.StayType,
+                        stayFromDate: stay.FromDate.Date, isActiveStay: true);
+
+                    totalPending += slices.Sum(s => s.Amount);
+                }
+            }
+
+            // Collected rent in the selected date range
+            var periodPayments = payments
+                .Where(p => p.PaymentDate >= start && p.PaymentDate <= end)
+                .ToList();
+
+            var collectedRent = periodPayments.Sum(p => p.Amount);
+            var paidTenantIds = periodPayments.Select(p => p.TenantId).Distinct().ToHashSet();
             var paidCount = paidTenantIds.Count;
-            var pendingCount = activeTenantIds.Count - paidCount;
-            var pendingRent = expectedRent - collectedRent;
-            if (pendingRent < 0) pendingRent = 0;
+
+            // Pending count = tenants who still have any unpaid rent
+            var tenantsWithPending = new HashSet<string>();
+            foreach (var stay in activeStays)
+            {
+                var tenantPayments = paymentsByTenant.TryGetValue(stay.TenantId, out var tp)
+                    ? tp.Select(p => (p.PaidFrom.Date, p.PaidUpto.Date))
+                    : Enumerable.Empty<(DateTime, DateTime)>();
+
+                var unpaidRanges = DateRangeHelper.Subtract(stay.FromDate.Date, today, tenantPayments);
+                if (unpaidRanges.Any())
+                    tenantsWithPending.Add(stay.TenantId);
+            }
+
+            var pendingCount = tenantsWithPending.Count;
+            var expectedRent = totalPending + collectedRent;
 
             var collectionRate = expectedRent > 0
                 ? Math.Round((double)(collectedRent / expectedRent) * 100, 1)
@@ -318,10 +367,99 @@ namespace PgManagement_WebApi.Services
             {
                 ExpectedRent = expectedRent,
                 CollectedRent = collectedRent,
-                PendingRent = pendingRent,
+                PendingRent = totalPending,
                 CollectionRate = collectionRate,
                 PaidCount = paidCount,
                 PendingCount = pendingCount
+            };
+        }
+
+        public async Task<VacancyLossDto> GetVacancyLossAsync(List<string> pgIds)
+        {
+            var rooms = await _context.Rooms
+                .AsNoTracking()
+                .Where(r => pgIds.Contains(r.PgId))
+                .Select(r => new { r.RoomId, r.RoomNumber, r.Capacity })
+                .ToListAsync();
+
+            var occupiedCounts = await _context.TenantRooms
+                .AsNoTracking()
+                .Where(tr => pgIds.Contains(tr.PgId) && tr.ToDate == null)
+                .GroupBy(tr => tr.RoomId)
+                .Select(g => new { RoomId = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var occupiedLookup = occupiedCounts.ToDictionary(x => x.RoomId, x => x.Count);
+
+            var currentRents = await _context.RoomRentHistories
+                .AsNoTracking()
+                .Where(rr => rooms.Select(r => r.RoomId).Contains(rr.RoomId) && rr.EffectiveTo == null)
+                .Select(rr => new { rr.RoomId, rr.RentAmount })
+                .ToListAsync();
+
+            var rentLookup = currentRents.ToDictionary(x => x.RoomId, x => x.RentAmount);
+
+            var roomDtos = new List<VacancyLossRoomDto>();
+
+            foreach (var room in rooms)
+            {
+                var occupied = occupiedLookup.GetValueOrDefault(room.RoomId, 0);
+                var vacant = room.Capacity - occupied;
+                if (vacant <= 0) continue;
+
+                var rentPerBed = rentLookup.GetValueOrDefault(room.RoomId, 0);
+                if (rentPerBed <= 0) continue;
+
+                roomDtos.Add(new VacancyLossRoomDto
+                {
+                    RoomId = room.RoomId,
+                    RoomNumber = room.RoomNumber,
+                    Capacity = room.Capacity,
+                    Occupied = occupied,
+                    VacantBeds = vacant,
+                    RentPerBed = rentPerBed,
+                    MonthlyLoss = vacant * rentPerBed
+                });
+            }
+
+            var totalBeds = rooms.Sum(r => r.Capacity);
+
+            return new VacancyLossDto
+            {
+                TotalMonthlyLoss = roomDtos.Sum(r => r.MonthlyLoss),
+                TotalVacantBeds = roomDtos.Sum(r => r.VacantBeds),
+                TotalBeds = totalBeds,
+                Rooms = roomDtos.OrderByDescending(r => r.MonthlyLoss).ToList()
+            };
+        }
+
+        public async Task<TodaySnapshotDto> GetTodaySnapshotAsync(List<string> pgIds)
+        {
+            var today = DateTime.UtcNow.Date;
+            var tomorrow = today.AddDays(1);
+
+            var todayCollection = await _context.Payments
+                .AsNoTracking()
+                .Where(p =>
+                    pgIds.Contains(p.PgId) &&
+                    !p.IsDeleted &&
+                    p.PaymentDate >= today &&
+                    p.PaymentDate < tomorrow)
+                .SumAsync(p => (decimal?)p.Amount) ?? 0;
+
+            var todayExpenses = await _context.Expenses
+                .AsNoTracking()
+                .Where(e =>
+                    pgIds.Contains(e.PgId) &&
+                    !e.IsDeleted &&
+                    e.ExpenseDate >= today &&
+                    e.ExpenseDate < tomorrow)
+                .SumAsync(e => (decimal?)e.Amount) ?? 0;
+
+            return new TodaySnapshotDto
+            {
+                TodayCollection = todayCollection,
+                TodayExpenses = todayExpenses
             };
         }
     }

@@ -1,0 +1,105 @@
+<div class="collection-view">
+  <!-- Filters -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>From Date</label>
+      <input type="date" [(ngModel)]="fromDate" />
+    </div>
+    <div class="filter-group">
+      <label>To Date</label>
+      <input type="date" [(ngModel)]="toDate" />
+    </div>
+
+    <div class="filter-group type-filters">
+      <label>Payment Type</label>
+      <div class="checkbox-row">
+        <label class="checkbox-label" *ngFor="let type of paymentTypeFilters">
+          <input type="checkbox" [(ngModel)]="type.checked" />
+          <span>{{ type.label }}</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button class="btn-view" (click)="loadData()" [disabled]="isLoading || !hasAtLeastOneType">
+        {{ isLoading ? 'Loading...' : 'View' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-card" *ngIf="data !== null">
+
+    <!-- Summary Header -->
+    <div class="results-header">
+      <div class="results-summary">
+        <div class="summary-stat">
+          <span class="stat-label">Total Payments</span>
+          <span class="stat-value">{{ data.totalCount }}</span>
+        </div>
+        <div class="summary-stat highlight">
+          <span class="stat-label">Total Amount</span>
+          <span class="stat-value">{{ formatCurrency(data.totalAmount || 0) }}</span>
+        </div>
+      </div>
+      <div class="results-actions">
+        <button class="btn-export" (click)="downloadPdf()" [disabled]="isDownloading || data.totalCount === 0">
+          ⬇ {{ isDownloading ? 'Generating...' : 'Download PDF' }}
+        </button>
+        <button class="btn-export" (click)="showSendModal = true" [disabled]="data.totalCount === 0">
+          📤 Send
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="data.totalCount === 0">
+      <p>No collections found for the selected date and filters.</p>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container" *ngIf="data.totalCount > 0">
+      <table class="collection-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Tenant Name</th>
+            <th>Period Covered</th>
+            <th class="text-right">Amount</th>
+            <th>Mode</th>
+            <th>Collected By</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let payment of data.items">
+            <td>{{ payment.paymentType }}</td>
+            <td class="tenant-cell">{{ payment.tenantName }}</td>
+            <td class="muted">{{ payment.periodCovered }}</td>
+            <td class="text-right amount-cell">{{ formatCurrency(payment.amount) }}</td>
+            <td>
+              <span class="payment-mode-pill" [attr.data-mode]="payment.mode.toLowerCase()">
+                {{ formatPaymentMode(payment.mode) }}
+              </span>
+            </td>
+            <td class="muted">{{ payment.collectedBy }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" class="text-right total-label">Total</td>
+            <td class="text-right total-amount">{{ formatCurrency(data.totalAmount || 0) }}</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Send Report Modal -->
+<app-send-report-modal
+  *ngIf="showSendModal"
+  [reportType]="'rent-collection'"
+  [filters]="getFilters()"
+  (closed)="showSendModal = false">
+</app-send-report-modal>

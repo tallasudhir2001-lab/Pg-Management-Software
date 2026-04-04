@@ -171,7 +171,7 @@
         <div class="stat-cell">
           <div class="stat-label">Moved Out</div>
           <div class="stat-val soft">{{ vm.summary.movedOutTenants }}</div>
-          <div class="stat-hint">this period</div>
+          <div class="stat-hint">all time</div>
         </div>
       </div>
 
@@ -215,6 +215,88 @@
       </div>
 
     </div>
+
+    <!-- ══════════════════════════════════════════════
+         TODAY'S SNAPSHOT — collection & expenses
+         ══════════════════════════════════════════════ -->
+    @if (todaySnapshot) {
+      <div class="today-row">
+
+        <div class="today-card today-collection">
+          <div class="today-left">
+            <div class="today-ico green-bg">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>
+            </div>
+            <div>
+              <div class="today-label">Today's Collection</div>
+              <div class="today-val green-text">&#8377;{{ todaySnapshot.todayCollection | number:'1.0-0' }}</div>
+            </div>
+          </div>
+          <button class="today-view-btn" (click)="goToTodayCollection(); $event.stopPropagation()">View &rarr;</button>
+        </div>
+
+        <div class="today-card today-expenses">
+          <div class="today-left">
+            <div class="today-ico red-bg">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/></svg>
+            </div>
+            <div>
+              <div class="today-label">Today's Expenses</div>
+              <div class="today-val red-text">&#8377;{{ todaySnapshot.todayExpenses | number:'1.0-0' }}</div>
+            </div>
+          </div>
+          <button class="today-view-btn" (click)="goToTodayExpenses(); $event.stopPropagation()">View &rarr;</button>
+        </div>
+
+      </div>
+    }
+
+    <!-- ══════════════════════════════════════════════
+         VACANCY LOSS BANNER — eye-catching
+         ══════════════════════════════════════════════ -->
+    @if (vacancyLoss && vacancyLoss.totalMonthlyLoss > 0) {
+      <div class="vacancy-loss-banner" (click)="navigateTo('/room-list')">
+
+        <div class="vlb-left">
+          <div class="vlb-icon-wrap">
+            <svg class="vlb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="vlb-content">
+            <p class="vlb-headline">
+              You are losing
+              <span class="vlb-amount">&#8377;{{ vacancyLoss.totalMonthlyLoss | number:'1.0-0' }}/month</span>
+              due to vacancies
+            </p>
+            <p class="vlb-sub">
+              {{ vacancyLoss.totalVacantBeds }} vacant bed{{ vacancyLoss.totalVacantBeds === 1 ? '' : 's' }}
+              across {{ vacancyLoss.rooms.length }} room{{ vacancyLoss.rooms.length === 1 ? '' : 's' }}
+              &middot; {{ vacancyLoss.totalBeds }} total beds
+            </p>
+          </div>
+        </div>
+
+        <div class="vlb-right">
+          <div class="vlb-room-chips">
+            @for (room of vacancyLoss.rooms | slice:0:4; track room.roomId) {
+              <span class="vlb-chip">
+                {{ room.roomNumber }}
+                <span class="vlb-chip-loss">&#8377;{{ room.monthlyLoss | number:'1.0-0' }}</span>
+              </span>
+            }
+            @if (vacancyLoss.rooms.length > 4) {
+              <span class="vlb-chip vlb-chip-more">+{{ vacancyLoss.rooms.length - 4 }} more</span>
+            }
+          </div>
+          <button class="vlb-cta">
+            View Rooms
+            <svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 01.708 0l6 6a.5.5 0 010 .708l-6 6a.5.5 0 01-.708-.708L10.293 8 4.646 2.354a.5.5 0 010-.708z"/></svg>
+          </button>
+        </div>
+
+      </div>
+    }
 
     <!-- ══════════════════════════════════════════════
          MID ROW

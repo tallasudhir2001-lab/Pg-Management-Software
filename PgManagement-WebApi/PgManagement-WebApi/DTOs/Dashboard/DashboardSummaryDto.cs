@@ -47,4 +47,29 @@
         public int PaidCount { get; set; }
         public int PendingCount { get; set; }
     }
+
+    public class TodaySnapshotDto
+    {
+        public decimal TodayCollection { get; set; }
+        public decimal TodayExpenses { get; set; }
+    }
+
+    public class VacancyLossDto
+    {
+        public decimal TotalMonthlyLoss { get; set; }
+        public int TotalVacantBeds { get; set; }
+        public int TotalBeds { get; set; }
+        public List<VacancyLossRoomDto> Rooms { get; set; } = new();
+    }
+
+    public class VacancyLossRoomDto
+    {
+        public string RoomId { get; set; } = null!;
+        public string RoomNumber { get; set; } = null!;
+        public int Capacity { get; set; }
+        public int Occupied { get; set; }
+        public int VacantBeds { get; set; }
+        public decimal RentPerBed { get; set; }
+        public decimal MonthlyLoss { get; set; }
+    }
 }

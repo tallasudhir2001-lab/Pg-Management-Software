@@ -12,5 +12,7 @@ namespace PgManagement_WebApi.Services
         Task<DashboardExpenseSummaryDto> GetExpensesSummaryAsync(List<string> pgIds, DateTime? from, DateTime? to);
         Task<DashboardAlertsDto> GetAlertsAsync(List<string> pgIds);
         Task<CollectionSummaryDto> GetCollectionSummaryAsync(List<string> pgIds, DateTime? from, DateTime? to);
+        Task<VacancyLossDto> GetVacancyLossAsync(List<string> pgIds);
+        Task<TodaySnapshotDto> GetTodaySnapshotAsync(List<string> pgIds);
     }
 }

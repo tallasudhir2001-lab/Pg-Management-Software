@@ -12,6 +12,8 @@ import { DashboardAlerts } from '../models/dashboard-alerts.model';
 import { CollectionSummary } from '../models/collection-summary.model';
 import { AuditCount } from '../../audit/models/audit-event.model';
 import { TenantListDto } from '../../tenant/models/tenant-list-dto';
+import { VacancyLoss } from '../models/vacancy-loss.model';
+import { TodaySnapshot } from '../models/today-snapshot.model';
 
 interface DashboardVm {
   summary: DashboardSummary;
@@ -58,6 +60,8 @@ export class Dashboard implements OnInit, OnDestroy {
 
   alerts: DashboardAlerts | null = null;
   auditCount: AuditCount | null = null;
+  vacancyLoss: VacancyLoss | null = null;
+  todaySnapshot: TodaySnapshot | null = null;
   vm: DashboardVm | null = null;
   loading = true;
 
@@ -85,6 +89,26 @@ export class Dashboard implements OnInit, OnDestroy {
         catchError(() => of({ unreviewedCount: 0 }))
       ).subscribe(data => {
         this.auditCount = data;
+        this.cdr.detectChanges();
+      })
+    );
+
+    // Vacancy loss
+    this.subs.push(
+      this.dashboardService.getVacancyLoss().pipe(
+        catchError(() => of(null))
+      ).subscribe(data => {
+        this.vacancyLoss = data;
+        this.cdr.detectChanges();
+      })
+    );
+
+    // Today snapshot
+    this.subs.push(
+      this.dashboardService.getTodaySnapshot().pipe(
+        catchError(() => of({ todayCollection: 0, todayExpenses: 0 }))
+      ).subscribe(data => {
+        this.todaySnapshot = data;
         this.cdr.detectChanges();
       })
     );
@@ -165,6 +189,16 @@ export class Dashboard implements OnInit, OnDestroy {
   goToOverdueExpectedCheckouts(): void { this.router.navigate(['/tenant-list'], { queryParams: { status: 'ACTIVE', overdueCheckout: 'true' } }); }
   goToOverdueBookings():          void { this.router.navigate(['/bookings'], { queryParams: { status: 'Active', overdue: 'true' } }); }
   goToAuditLog():                 void { this.router.navigate(['/audit-log']); }
+
+  goToTodayCollection(): void {
+    const today = new Date().toISOString().split('T')[0];
+    this.router.navigate(['/payments/history'], { queryParams: { from: today, to: today } });
+  }
+
+  goToTodayExpenses(): void {
+    const today = new Date().toISOString().split('T')[0];
+    this.router.navigate(['/expenses'], { queryParams: { from: today, to: today } });
+  }
 
   // ── KPI helpers ────────────────────────────────────────────
   getNetProfit(vm: DashboardVm): number {

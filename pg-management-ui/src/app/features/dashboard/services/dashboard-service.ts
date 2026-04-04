@@ -7,6 +7,8 @@ import { DashboardAlerts } from '../models/dashboard-alerts.model';
 import { CollectionSummary } from '../models/collection-summary.model';
 import { RecentPayment } from '../models/recent-payment.model';
 import { AuditCount } from '../../audit/models/audit-event.model';
+import { VacancyLoss } from '../models/vacancy-loss.model';
+import { TodaySnapshot } from '../models/today-snapshot.model';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -49,6 +51,14 @@ export class DashboardService {
 
   getUnreviewedAuditCount(): Observable<AuditCount> {
     return this.http.get<AuditCount>(`${environment.apiBaseUrl}/audit/unreviewed-count`);
+  }
+
+  getVacancyLoss(): Observable<VacancyLoss> {
+    return this.http.get<VacancyLoss>(`${this.baseUrl}/vacancy-loss`);
+  }
+
+  getTodaySnapshot(): Observable<TodaySnapshot> {
+    return this.http.get<TodaySnapshot>(`${this.baseUrl}/today-snapshot`);
   }
 
 }

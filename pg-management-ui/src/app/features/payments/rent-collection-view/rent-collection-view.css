@@ -1,0 +1,338 @@
+/* ==============================
+   Collection View Container
+================================ */
+.collection-view {
+  padding: 4px 0;
+}
+
+/* ==============================
+   Filter Bar
+================================ */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filter-group input[type="date"] {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  min-width: 160px;
+}
+
+.filter-group input[type="date"]:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(15, 16, 65, 0.12);
+}
+
+.type-filters {
+  flex: 1;
+}
+
+.checkbox-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  align-items: flex-end;
+}
+
+.btn-view {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-view:hover:not(:disabled) {
+  background: var(--primary-light);
+}
+
+.btn-view:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ==============================
+   Results Card
+================================ */
+.results-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.results-summary {
+  display: flex;
+  gap: 24px;
+}
+
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.summary-stat.highlight .stat-value {
+  color: #059669;
+  font-size: 20px;
+}
+
+.results-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-export {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-export:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.btn-export:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ==============================
+   Empty State
+================================ */
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* ==============================
+   Table
+================================ */
+.table-container {
+  overflow-x: auto;
+}
+
+.collection-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.collection-table thead th {
+  background: #f3f4f6;
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 700;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.collection-table tbody td {
+  padding: 10px 14px;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.collection-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.collection-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.collection-table tfoot td {
+  padding: 12px 14px;
+  font-weight: 700;
+  background: #f9fafb;
+  border-top: 2px solid #e5e7eb;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.tenant-cell {
+  font-weight: 600;
+  color: #111827;
+}
+
+.muted {
+  color: #6b7280;
+}
+
+.amount-cell {
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.total-label {
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.total-amount {
+  font-weight: 700;
+  color: #059669;
+  font-size: 15px;
+}
+
+/* ==============================
+   Payment Mode Pill (reuse from payment history)
+================================ */
+.payment-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.payment-mode-pill[data-mode="cash"] {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.payment-mode-pill[data-mode="upi"] {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.payment-mode-pill[data-mode="card"] {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.payment-mode-pill[data-mode="bank"] {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+/* ==============================
+   Responsive
+================================ */
+@media (max-width: 768px) {
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-actions {
+    margin-left: 0;
+  }
+
+  .results-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .results-actions {
+    width: 100%;
+  }
+
+  .btn-export {
+    flex: 1;
+    justify-content: center;
+  }
+}
