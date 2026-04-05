@@ -36,8 +36,10 @@ namespace PgManagement_WebApi.Services
             message.Body = bodyBuilder.ToMessageBody();
 
             using var client = new SmtpClient();
-            await client.ConnectAsync(smtp.Host, smtp.Port,
-                smtp.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None);
+            var sslOption = smtp.EnableSsl
+                ? (smtp.Port == 465 ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls)
+                : SecureSocketOptions.None;
+            await client.ConnectAsync(smtp.Host, smtp.Port, sslOption);
 
             if (!string.IsNullOrEmpty(smtp.Username))
                 await client.AuthenticateAsync(smtp.Username, smtp.Password);
@@ -65,8 +67,10 @@ namespace PgManagement_WebApi.Services
             message.Body = bodyBuilder.ToMessageBody();
 
             using var client = new SmtpClient();
-            await client.ConnectAsync(smtp.Host, smtp.Port,
-                smtp.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None);
+            var sslOption = smtp.EnableSsl
+                ? (smtp.Port == 465 ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls)
+                : SecureSocketOptions.None;
+            await client.ConnectAsync(smtp.Host, smtp.Port, sslOption);
 
             if (!string.IsNullOrEmpty(smtp.Username))
                 await client.AuthenticateAsync(smtp.Username, smtp.Password);

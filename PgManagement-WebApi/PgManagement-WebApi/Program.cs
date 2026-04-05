@@ -38,7 +38,8 @@ builder.Services.AddHangfire(config => config
         SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
         QueuePollInterval = TimeSpan.FromSeconds(15),
         UseRecommendedIsolationLevel = true,
-        DisableGlobalLocks = true
+        DisableGlobalLocks = true,
+        PrepareSchemaIfNecessary = true
     }));
 builder.Services.AddHangfireServer();
 builder.Services.AddSingleton<DailyReportEmailJob>();
