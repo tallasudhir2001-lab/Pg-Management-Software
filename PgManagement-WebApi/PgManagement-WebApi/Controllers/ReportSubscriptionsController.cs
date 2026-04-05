@@ -40,8 +40,8 @@ namespace PgManagement_WebApi.Controllers
             var pgId = User.FindFirst("pgId")?.Value;
             if (string.IsNullOrEmpty(pgId)) return Unauthorized();
             var (success, result, statusCode) = await _reportSubscriptionService.UpdateReportSubscriptionsAsync(pgId, request);
-            if (!success) return StatusCode(statusCode, result);
-            return Ok(result);
+            if (!success) return StatusCode(statusCode, new { message = result });
+            return Ok(new { message = result });
         }
     }
 }

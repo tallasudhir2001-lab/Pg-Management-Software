@@ -103,11 +103,13 @@ export class ReportSubscriptions implements OnInit {
       next: () => {
         this.saving = false;
         this.successMsg = 'Report subscriptions saved successfully!';
-        setTimeout(() => this.successMsg = '', 3000);
+        this.cdr.detectChanges();
+        setTimeout(() => { this.successMsg = ''; this.cdr.detectChanges(); }, 3000);
       },
       error: (err) => {
         this.saving = false;
         this.error = err.error?.message || 'Failed to save subscriptions.';
+        this.cdr.detectChanges();
       }
     });
   }
