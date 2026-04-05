@@ -2,7 +2,7 @@ class ApiEndpoints {
   // For Chrome/web testing: use localhost directly
   // For Android emulator: use https://10.0.2.2:7073/api
   // For physical device: use your PC's local IP (e.g. https://192.168.x.x:7073/api)
-  static const String baseUrl = 'https://localhost:7073/api';
+  static const String baseUrl = 'https://10.0.2.2:7073/api';
 
   // Auth
   static const String login = '/auth/login';

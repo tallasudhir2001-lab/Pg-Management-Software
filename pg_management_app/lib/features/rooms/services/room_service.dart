@@ -75,8 +75,8 @@ class RoomService {
 
   Future<String> createRoom(Map<String, dynamic> data) async {
     try {
-      final response = await _dio.post(ApiEndpoints.addRoom, data: data);
-      return response.data['roomId'] ?? '';
+      await _dio.post(ApiEndpoints.addRoom, data: data);
+      return '';
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

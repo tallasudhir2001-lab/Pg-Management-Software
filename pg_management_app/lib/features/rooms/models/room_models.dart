@@ -21,7 +21,7 @@ class RoomListItem {
 
   factory RoomListItem.fromJson(Map<String, dynamic> json) {
     return RoomListItem(
-      roomId: json['roomId'],
+      roomId: json['roomId']?.toString() ?? '',
       roomNumber: json['roomNumber'] ?? '',
       capacity: json['capacity'] ?? 0,
       occupied: json['occupied'] ?? 0,

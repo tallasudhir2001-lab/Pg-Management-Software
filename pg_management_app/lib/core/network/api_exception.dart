@@ -25,7 +25,9 @@ class ApiException implements Exception {
         final data = error.response?.data;
         String message;
 
-        if (data is Map && data.containsKey('message')) {
+        if (data is String && data.isNotEmpty) {
+          message = data;
+        } else if (data is Map && data.containsKey('message')) {
           message = data['message'];
         } else if (data is Map && data.containsKey('title')) {
           message = data['title'];
