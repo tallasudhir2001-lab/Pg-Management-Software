@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/api_endpoints.dart';
 import 'token_storage.dart';
 import 'certificate_bypass.dart';
+import '../../features/auth/providers/auth_provider.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(BaseOptions(
@@ -53,6 +54,7 @@ class AuthInterceptor extends Interceptor {
         try {
           // Try to refresh the token
           final dio = Dio(BaseOptions(baseUrl: ApiEndpoints.baseUrl));
+          configureCertificateBypass(dio);
           final response = await dio.post(ApiEndpoints.refresh, data: {
             'refreshToken': refreshToken,
           });
@@ -70,9 +72,13 @@ class AuthInterceptor extends Interceptor {
           final retryResponse = await dio.fetch(err.requestOptions);
           return handler.resolve(retryResponse);
         } catch (e) {
-          // Refresh failed — clear tokens
-          await tokenStorage.clearTokens();
+          // Refresh failed — force logout to navigate to login screen
+          await _ref.read(authProvider.notifier).logout();
+          return handler.next(err);
         }
+      } else {
+        // No refresh token — force logout
+        await _ref.read(authProvider.notifier).logout();
       }
     }
     handler.next(err);
