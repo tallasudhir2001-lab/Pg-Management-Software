@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/router/app_routes.dart';
 import '../providers/booking_provider.dart';
 
 class BookingListScreen extends ConsumerWidget {
@@ -15,6 +16,16 @@ class BookingListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Bookings')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result =
+              await Navigator.pushNamed(context, AppRoutes.addBooking);
+          if (result == true) {
+            ref.read(bookingListProvider.notifier).refresh();
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
       body: Column(
         children: [
           // Filter chips
@@ -95,7 +106,15 @@ class BookingListScreen extends ConsumerWidget {
         itemCount: state.bookings.length,
         itemBuilder: (context, index) {
           final booking = state.bookings[index];
-          return Card(
+          return GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                AppRoutes.bookingDetail,
+                arguments: booking.bookingId,
+              );
+            },
+            child: Card(
             margin: const EdgeInsets.only(bottom: 10),
             child: Padding(
               padding: const EdgeInsets.all(14),
@@ -155,6 +174,7 @@ class BookingListScreen extends ConsumerWidget {
                 ],
               ),
             ),
+          ),
           );
         },
       ),

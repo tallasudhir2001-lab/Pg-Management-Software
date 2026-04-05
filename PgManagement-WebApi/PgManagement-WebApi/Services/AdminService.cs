@@ -64,7 +64,7 @@ namespace PgManagement_WebApi.Services
                 {
                     if (await _userManager.IsInRoleAsync(up.User, "Owner"))
                     {
-                        ownerName = up.User.UserName ?? string.Empty;
+                        ownerName = up.User.FullName ?? up.User.UserName ?? string.Empty;
                         ownerEmail = up.User.Email ?? string.Empty;
                         break;
                     }

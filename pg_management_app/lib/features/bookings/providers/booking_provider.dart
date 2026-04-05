@@ -71,3 +71,9 @@ final bookingListProvider =
     StateNotifierProvider.autoDispose<BookingListNotifier, BookingListState>((ref) {
   return BookingListNotifier(ref.read(bookingServiceProvider));
 });
+
+// Single booking details
+final bookingDetailsProvider =
+    FutureProvider.autoDispose.family<BookingDetails, String>((ref, bookingId) async {
+  return ref.read(bookingServiceProvider).getBookingDetails(bookingId);
+});

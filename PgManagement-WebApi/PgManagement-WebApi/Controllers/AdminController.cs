@@ -34,24 +34,24 @@ namespace PgManagement_WebApi.Controllers
         public async Task<IActionResult> RegisterPg(PgRegisterRequestDto request)
         {
             var (success, result, statusCode) = await _adminService.RegisterPgAsync(request);
-            if (!success) return StatusCode(statusCode, result);
-            return Ok(result);
+            if (!success) return StatusCode(statusCode, new { message = result });
+            return Ok(new { message = result });
         }
 
         [HttpPut("pgs/{pgId}/subscription")]
         public async Task<IActionResult> UpdatePgSubscription(string pgId, UpdatePgSubscriptionDto dto)
         {
             var (success, result, statusCode) = await _adminService.UpdatePgSubscriptionAsync(pgId, dto);
-            if (!success) return StatusCode(statusCode, result);
-            return Ok(result);
+            if (!success) return StatusCode(statusCode, new { message = result });
+            return Ok(new { message = result });
         }
 
         [HttpPut("pgs/{pgId}/details")]
         public async Task<IActionResult> UpdatePgDetails(string pgId, UpdatePgDetailsDto dto)
         {
             var (success, result, statusCode) = await _adminService.UpdatePgDetailsAsync(pgId, dto);
-            if (!success) return StatusCode(statusCode, result);
-            return Ok(result);
+            if (!success) return StatusCode(statusCode, new { message = result });
+            return Ok(new { message = result });
         }
     }
 }

@@ -54,4 +54,31 @@ class RoomService {
       throw ApiException.fromDioException(e);
     }
   }
+
+  Future<RoomListItem> getRoomDetails(String roomId) async {
+    try {
+      final response = await _dio.get(ApiEndpoints.roomDetails(roomId));
+      return RoomListItem.fromJson(response.data);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<List<dynamic>> getTenantsInRoom(String roomId) async {
+    try {
+      final response = await _dio.get('${ApiEndpoints.roomDetails(roomId)}/tenants');
+      return response.data as List;
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<String> createRoom(Map<String, dynamic> data) async {
+    try {
+      final response = await _dio.post(ApiEndpoints.addRoom, data: data);
+      return response.data['roomId'] ?? '';
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
 }

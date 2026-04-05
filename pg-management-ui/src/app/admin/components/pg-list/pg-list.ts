@@ -86,7 +86,9 @@ export class AdminPgList implements OnInit {
       },
       error: (err) => {
         this.saving = false;
-        this.toast.showError(err?.error || 'Failed to update PG details.');
+        const body = err?.error;
+        const msg = typeof body === 'string' ? body : (body?.message || 'Failed to update PG details.');
+        this.toast.showError(msg);
         this.cdr.detectChanges();
       }
     });

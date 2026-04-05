@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/router/app_routes.dart';
 import '../providers/room_provider.dart';
 import '../models/room_models.dart';
 
@@ -15,6 +16,15 @@ class RoomListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Rooms')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.pushNamed(context, AppRoutes.addRoom);
+          if (result == true) {
+            ref.read(roomListProvider.notifier).refresh();
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
       body: Column(
         children: [
           // Filter chips
@@ -118,7 +128,16 @@ class RoomListScreen extends ConsumerWidget {
         itemCount: state.rooms.length,
         itemBuilder: (context, index) {
           final room = state.rooms[index];
-          return _RoomCard(room: room, currencyFormat: fmt);
+          return GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                AppRoutes.roomDetail,
+                arguments: room.roomId,
+              );
+            },
+            child: _RoomCard(room: room, currencyFormat: fmt),
+          );
         },
       ),
     );

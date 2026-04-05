@@ -110,4 +110,13 @@ class PaymentService {
       throw ApiException.fromDioException(e);
     }
   }
+
+  Future<Map<String, dynamic>> getPaymentDetails(String paymentId) async {
+    try {
+      final response = await _dio.get(ApiEndpoints.paymentDetails(paymentId));
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
 }

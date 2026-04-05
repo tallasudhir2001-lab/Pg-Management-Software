@@ -3,16 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/router/app_routes.dart';
-import '../providers/payment_provider.dart';
+import '../providers/expense_provider.dart';
 
-class PaymentListScreen extends ConsumerStatefulWidget {
-  const PaymentListScreen({super.key});
+class ExpenseListScreen extends ConsumerStatefulWidget {
+  const ExpenseListScreen({super.key});
 
   @override
-  ConsumerState<PaymentListScreen> createState() => _PaymentListScreenState();
+  ConsumerState<ExpenseListScreen> createState() => _ExpenseListScreenState();
 }
 
-class _PaymentListScreenState extends ConsumerState<PaymentListScreen> {
+class _ExpenseListScreenState extends ConsumerState<ExpenseListScreen> {
   final _scrollController = ScrollController();
 
   @override
@@ -30,25 +30,24 @@ class _PaymentListScreenState extends ConsumerState<PaymentListScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      ref.read(paymentListProvider.notifier).loadMore();
+      ref.read(expenseListProvider.notifier).loadMore();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(paymentListProvider);
+    final state = ref.watch(expenseListProvider);
     final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
     final dateFormat = DateFormat('dd MMM yyyy');
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Payments'),
-      ),
+      appBar: AppBar(title: const Text('Expenses')),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final result = await Navigator.pushNamed(context, AppRoutes.addPayment);
+          final result =
+              await Navigator.pushNamed(context, AppRoutes.addExpense);
           if (result == true) {
-            ref.read(paymentListProvider.notifier).refresh();
+            ref.read(expenseListProvider.notifier).refresh();
           }
         },
         child: const Icon(Icons.add),
@@ -58,7 +57,7 @@ class _PaymentListScreenState extends ConsumerState<PaymentListScreen> {
   }
 
   Widget _buildBody(
-      PaymentListState state, NumberFormat currencyFormat, DateFormat dateFormat) {
+      ExpenseListState state, NumberFormat currencyFormat, DateFormat dateFormat) {
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -73,7 +72,8 @@ class _PaymentListScreenState extends ConsumerState<PaymentListScreen> {
             Text(state.error!),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => ref.read(paymentListProvider.notifier).refresh(),
+              onPressed: () =>
+                  ref.read(expenseListProvider.notifier).refresh(),
               child: const Text('Retry'),
             ),
           ],
@@ -81,21 +81,21 @@ class _PaymentListScreenState extends ConsumerState<PaymentListScreen> {
       );
     }
 
-    if (state.payments.isEmpty) {
+    if (state.expenses.isEmpty) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.payment, size: 64, color: AppColors.textSecondary),
+            Icon(Icons.receipt_long, size: 64, color: AppColors.textSecondary),
             SizedBox(height: 16),
-            Text('No payments found'),
+            Text('No expenses found'),
           ],
         ),
       );
     }
 
     return RefreshIndicator(
-      onRefresh: () => ref.read(paymentListProvider.notifier).refresh(),
+      onRefresh: () => ref.read(expenseListProvider.notifier).refresh(),
       child: Column(
         children: [
           Padding(
@@ -103,7 +103,7 @@ class _PaymentListScreenState extends ConsumerState<PaymentListScreen> {
             child: Row(
               children: [
                 Text(
-                  '${state.totalCount} payment${state.totalCount != 1 ? 's' : ''}',
+                  '${state.totalCount} expense${state.totalCount != 1 ? 's' : ''}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -115,50 +115,41 @@ class _PaymentListScreenState extends ConsumerState<PaymentListScreen> {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: state.payments.length + (state.isLoadingMore ? 1 : 0),
+              itemCount: state.expenses.length + (state.isLoadingMore ? 1 : 0),
               itemBuilder: (context, index) {
-                if (index == state.payments.length) {
+                if (index == state.expenses.length) {
                   return const Padding(
                     padding: EdgeInsets.all(16),
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
 
-                final payment = state.payments[index];
+                final expense = state.expenses[index];
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(12),
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.paymentDetail,
-                        arguments: payment.paymentId,
-                      );
-                    },
                     leading: CircleAvatar(
-                      backgroundColor: _getModeColor(payment.mode)
-                          .withValues(alpha: 0.15),
-                      child: Icon(
-                        _getModeIcon(payment.mode),
-                        color: _getModeColor(payment.mode),
-                        size: 20,
-                      ),
+                      backgroundColor:
+                          AppColors.error.withValues(alpha: 0.12),
+                      child: const Icon(Icons.receipt_long,
+                          color: AppColors.error, size: 20),
                     ),
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
                           child: Text(
-                            payment.tenantName,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                            expense.category,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
                         Text(
-                          currencyFormat.format(payment.amount),
+                          currencyFormat.format(expense.amount),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: AppColors.success,
+                            color: AppColors.error,
                           ),
                         ),
                       ],
@@ -167,20 +158,16 @@ class _PaymentListScreenState extends ConsumerState<PaymentListScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 4),
-                        Text(dateFormat.format(payment.paymentDate)),
-                        if (payment.periodCovered != null)
+                        Text(dateFormat.format(expense.expenseDate)),
+                        if (expense.description.isNotEmpty)
                           Text(
-                            payment.periodCovered!,
+                            expense.description,
                             style: const TextStyle(fontSize: 12),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        Row(
-                          children: [
-                            _PaymentModeBadge(mode: payment.mode),
-                            const SizedBox(width: 8),
-                            if (payment.paymentType.isNotEmpty)
-                              _PaymentTypeBadge(type: payment.paymentType),
-                          ],
-                        ),
+                        const SizedBox(height: 4),
+                        _PaymentModeBadge(mode: expense.paymentModeLabel),
                       ],
                     ),
                   ),
@@ -191,32 +178,6 @@ class _PaymentListScreenState extends ConsumerState<PaymentListScreen> {
         ],
       ),
     );
-  }
-
-  Color _getModeColor(String? mode) {
-    switch (mode?.toUpperCase()) {
-      case 'UPI':
-        return Colors.purple;
-      case 'CASH':
-        return AppColors.success;
-      case 'BANK':
-        return AppColors.primary;
-      default:
-        return AppColors.textSecondary;
-    }
-  }
-
-  IconData _getModeIcon(String? mode) {
-    switch (mode?.toUpperCase()) {
-      case 'UPI':
-        return Icons.qr_code;
-      case 'CASH':
-        return Icons.money;
-      case 'BANK':
-        return Icons.account_balance;
-      default:
-        return Icons.payment;
-    }
   }
 }
 
@@ -235,27 +196,6 @@ class _PaymentModeBadge extends StatelessWidget {
       ),
       child: Text(
         mode,
-        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-}
-
-class _PaymentTypeBadge extends StatelessWidget {
-  final String type;
-
-  const _PaymentTypeBadge({required this.type});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.accent.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        type,
         style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
       ),
     );

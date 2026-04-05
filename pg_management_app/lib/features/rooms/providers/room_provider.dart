@@ -76,3 +76,15 @@ final roomListProvider =
 final allRoomsProvider = FutureProvider<List<RoomListItem>>((ref) async {
   return ref.read(roomServiceProvider).getAllRooms();
 });
+
+// Single room details
+final roomDetailsProvider =
+    FutureProvider.autoDispose.family<RoomListItem, String>((ref, roomId) async {
+  return ref.read(roomServiceProvider).getRoomDetails(roomId);
+});
+
+// Tenants in a room
+final roomTenantsProvider =
+    FutureProvider.autoDispose.family<List<dynamic>, String>((ref, roomId) async {
+  return ref.read(roomServiceProvider).getTenantsInRoom(roomId);
+});

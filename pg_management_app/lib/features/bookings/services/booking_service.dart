@@ -37,4 +37,33 @@ class BookingService {
       throw ApiException.fromDioException(e);
     }
   }
+
+  Future<BookingDetails> getBookingDetails(String bookingId) async {
+    try {
+      final response = await _dio.get('${ApiEndpoints.bookings}/$bookingId');
+      return BookingDetails.fromJson(response.data);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<String> createBooking(CreateBookingRequest request) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.createBooking,
+        data: request.toJson(),
+      );
+      return response.data['bookingId'] ?? '';
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<void> cancelBooking(String bookingId) async {
+    try {
+      await _dio.patch('${ApiEndpoints.bookings}/cancel-booking/$bookingId');
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
 }

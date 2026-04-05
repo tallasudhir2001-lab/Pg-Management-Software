@@ -1,10 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/payment_models.dart';
-import '../services/payment_service.dart';
+import '../models/expense_models.dart';
+import '../services/expense_service.dart';
 
-// Payment list state
-class PaymentListState {
-  final List<PaymentListItem> payments;
+class ExpenseListState {
+  final List<ExpenseListItem> expenses;
   final bool isLoading;
   final bool isLoadingMore;
   final String? error;
@@ -12,8 +11,8 @@ class PaymentListState {
   final int totalCount;
   final bool hasMore;
 
-  const PaymentListState({
-    this.payments = const [],
+  const ExpenseListState({
+    this.expenses = const [],
     this.isLoading = false,
     this.isLoadingMore = false,
     this.error,
@@ -22,8 +21,8 @@ class PaymentListState {
     this.hasMore = true,
   });
 
-  PaymentListState copyWith({
-    List<PaymentListItem>? payments,
+  ExpenseListState copyWith({
+    List<ExpenseListItem>? expenses,
     bool? isLoading,
     bool? isLoadingMore,
     String? error,
@@ -31,8 +30,8 @@ class PaymentListState {
     int? totalCount,
     bool? hasMore,
   }) {
-    return PaymentListState(
-      payments: payments ?? this.payments,
+    return ExpenseListState(
+      expenses: expenses ?? this.expenses,
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       error: error,
@@ -43,23 +42,23 @@ class PaymentListState {
   }
 }
 
-class PaymentListNotifier extends StateNotifier<PaymentListState> {
-  final PaymentService _service;
+class ExpenseListNotifier extends StateNotifier<ExpenseListState> {
+  final ExpenseService _service;
   static const _pageSize = 15;
 
-  PaymentListNotifier(this._service) : super(const PaymentListState()) {
-    loadPayments();
+  ExpenseListNotifier(this._service) : super(const ExpenseListState()) {
+    loadExpenses();
   }
 
-  Future<void> loadPayments() async {
+  Future<void> loadExpenses() async {
     state = state.copyWith(isLoading: true);
     try {
-      final result = await _service.getPayments(
+      final result = await _service.getExpenses(
         page: 1,
         pageSize: _pageSize,
       );
       state = state.copyWith(
-        payments: result.items,
+        expenses: result.items,
         isLoading: false,
         currentPage: 1,
         totalCount: result.totalCount,
@@ -76,12 +75,12 @@ class PaymentListNotifier extends StateNotifier<PaymentListState> {
     state = state.copyWith(isLoadingMore: true);
     try {
       final nextPage = state.currentPage + 1;
-      final result = await _service.getPayments(
+      final result = await _service.getExpenses(
         page: nextPage,
         pageSize: _pageSize,
       );
       state = state.copyWith(
-        payments: [...state.payments, ...result.items],
+        expenses: [...state.expenses, ...result.items],
         isLoadingMore: false,
         currentPage: nextPage,
         hasMore: result.hasNextPage,
@@ -92,22 +91,16 @@ class PaymentListNotifier extends StateNotifier<PaymentListState> {
   }
 
   Future<void> refresh() async {
-    await loadPayments();
+    await loadExpenses();
   }
 }
 
-final paymentListProvider =
-    StateNotifierProvider.autoDispose<PaymentListNotifier, PaymentListState>((ref) {
-  return PaymentListNotifier(ref.read(paymentServiceProvider));
+final expenseListProvider =
+    StateNotifierProvider.autoDispose<ExpenseListNotifier, ExpenseListState>((ref) {
+  return ExpenseListNotifier(ref.read(expenseServiceProvider));
 });
 
-// Payment modes
-final paymentModesProvider = FutureProvider<List<PaymentMode>>((ref) async {
-  return ref.read(paymentServiceProvider).getPaymentModes();
-});
-
-// Single payment details
-final paymentDetailsProvider =
-    FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, paymentId) async {
-  return ref.read(paymentServiceProvider).getPaymentDetails(paymentId);
+final expenseCategoriesProvider =
+    FutureProvider<List<ExpenseCategory>>((ref) async {
+  return ref.read(expenseServiceProvider).getCategories();
 });

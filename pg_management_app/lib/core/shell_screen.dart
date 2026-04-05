@@ -3,7 +3,7 @@ import '../features/dashboard/screens/dashboard_screen.dart';
 import '../features/tenants/screens/tenant_list_screen.dart';
 import '../features/payments/screens/payment_list_screen.dart';
 import '../features/rooms/screens/room_list_screen.dart';
-import '../features/bookings/screens/booking_list_screen.dart';
+import '../features/more/screens/more_screen.dart';
 
 class ShellScreen extends StatefulWidget {
   final int initialIndex;
@@ -22,7 +22,7 @@ class _ShellScreenState extends State<ShellScreen> {
     TenantListScreen(),
     RoomListScreen(),
     PaymentListScreen(),
-    BookingListScreen(),
+    MoreScreen(),
   ];
 
   @override
@@ -65,9 +65,9 @@ class _ShellScreenState extends State<ShellScreen> {
             label: 'Payments',
           ),
           NavigationDestination(
-            icon: Icon(Icons.event_note_outlined),
-            selectedIcon: Icon(Icons.event_note),
-            label: 'Bookings',
+            icon: Icon(Icons.more_horiz),
+            selectedIcon: Icon(Icons.more_horiz),
+            label: 'More',
           ),
         ],
       ),
