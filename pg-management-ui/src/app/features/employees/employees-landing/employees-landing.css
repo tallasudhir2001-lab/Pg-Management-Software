@@ -1,7 +1,7 @@
 /* ==============================
-   Payments Landing - Tab Layout
+   Employees Landing - Tab Layout
 ================================ */
-.payments-landing {
+.employees-landing {
   padding: 24px;
   background-color: #f9fafb;
   min-height: 100%;
@@ -53,9 +53,3 @@
 .tab-btn.active::after {
   background: var(--primary);
 }
-
-/* ==============================
-   Tab Content
-================================ */
-/* .tab-content {
-} */

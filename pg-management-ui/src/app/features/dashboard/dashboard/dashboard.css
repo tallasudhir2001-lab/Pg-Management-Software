@@ -547,6 +547,7 @@
 
 .green-bg { background: linear-gradient(135deg, #10b981, #059669); }
 .red-bg   { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+.orange-bg { background: linear-gradient(135deg, #f59e0b, #d97706); }
 
 .today-label {
   font-size: .72rem;
@@ -566,6 +567,7 @@
 
 .green-text { color: #059669; }
 .red-text   { color: #e11d48; }
+.orange-text { color: #d97706; }
 
 .today-view-btn {
   display: inline-flex;

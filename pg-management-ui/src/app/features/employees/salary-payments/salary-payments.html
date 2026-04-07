@@ -1,0 +1,229 @@
+<div class="page-loading" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Loading salary payments...</p>
+</div>
+
+<div [hidden]="loading">
+  <div class="salary-payments-page">
+
+    <!-- Summary -->
+    <div class="summary-cards" *ngIf="totalAmount > 0">
+      <div class="summary-card total-card">
+        <div class="card-header">
+          <span class="card-label">Total Paid</span>
+        </div>
+        <div class="card-amount">{{ formatCurrency(totalAmount) }}</div>
+      </div>
+    </div>
+
+    <!-- Actions Row -->
+    <div class="actions-row">
+      <div class="action-buttons">
+        <button
+          *ngIf="selectedEmployeeId || selectedForMonth || selectedFromDate || selectedToDate"
+          class="clear-filters-btn" (click)="clearFilters()" title="Clear all filters">
+          <img src="assets/icons/clear-filters.svg" alt="Clear Filters" />
+        </button>
+        <button class="btn btn-secondary" (click)="showFilters = true">Filters</button>
+        <button *hasAccess="'Employee.CreateSalaryPayment'" class="btn btn-primary" style="white-space:nowrap" (click)="openAddDrawer()">+ Pay Salary</button>
+      </div>
+    </div>
+
+    <!-- Filter Drawer -->
+    <div *ngIf="showFilters">
+      <div class="filter-backdrop" (click)="showFilters = false"></div>
+
+      <aside class="filter-drawer">
+        <div class="filter-header">
+          <h3 class="filter-title">Filters</h3>
+          <button class="filter-close-btn" (click)="showFilters = false">&times;</button>
+        </div>
+
+        <div class="filter-body">
+          <!-- Employee -->
+          <div class="filter-card">
+            <p class="filter-section-title">Employee</p>
+            <div class="searchable-dropdown">
+              <input
+                type="text"
+                class="form-input"
+                placeholder="Search employee..."
+                [value]="selectedEmployeeLabel || employeeSearchText"
+                (focus)="isEmployeeDropdownOpen = true"
+                (input)="employeeSearchText = $any($event.target).value; onEmployeeSearch()"
+              />
+              <div class="dropdown-list" *ngIf="isEmployeeDropdownOpen && filteredEmployees.length > 0">
+                <div class="dropdown-item" *ngFor="let emp of filteredEmployees" (click)="selectEmployeeInDrawer(emp)">
+                  {{ emp.name }}
+                </div>
+              </div>
+              <p class="dropdown-empty" *ngIf="isEmployeeDropdownOpen && filteredEmployees.length === 0">No employees found</p>
+            </div>
+            <p class="filter-hint" *ngIf="selectedEmployeeLabel">Selected: {{ selectedEmployeeLabel }}</p>
+          </div>
+
+          <!-- Month -->
+          <div class="filter-card">
+            <p class="filter-section-title">Month</p>
+            <input type="month" class="form-input" [(ngModel)]="selectedForMonth" />
+          </div>
+
+          <!-- Date Range -->
+          <div class="filter-cards-row">
+            <div class="filter-card">
+              <p class="filter-section-title">From Date</p>
+              <input type="date" class="form-input" [(ngModel)]="selectedFromDate" />
+            </div>
+            <div class="filter-card">
+              <p class="filter-section-title">To Date</p>
+              <input type="date" class="form-input" [(ngModel)]="selectedToDate" />
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-footer">
+          <button class="filter-btn filter-btn-secondary" (click)="clearFilters()">Clear</button>
+          <button class="filter-btn filter-btn-primary" (click)="applyFiltersAndClose()">Apply</button>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th (click)="onSort('employeeName')" style="cursor:pointer">
+              Employee
+              <span class="sort-arrow" [class.visible]="isSortedBy('employeeName')" [class.asc]="isSortAsc('employeeName')">▼</span>
+            </th>
+            <th (click)="onSort('forMonth')" style="cursor:pointer">
+              For Month
+              <span class="sort-arrow" [class.visible]="isSortedBy('forMonth')" [class.asc]="isSortAsc('forMonth')">▼</span>
+            </th>
+            <th (click)="onSort('amount')" style="cursor:pointer">
+              Amount
+              <span class="sort-arrow" [class.visible]="isSortedBy('amount')" [class.asc]="isSortAsc('amount')">▼</span>
+            </th>
+            <th (click)="onSort('paymentDate')" style="cursor:pointer">
+              Payment Date
+              <span class="sort-arrow" [class.visible]="isSortedBy('paymentDate')" [class.asc]="isSortAsc('paymentDate')">▼</span>
+            </th>
+            <th>Mode</th>
+            <th>Notes</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of (payments$ | async)?.items">
+            <td class="cell-odd">{{ p.employeeName }}</td>
+            <td class="cell-even">{{ formatMonth(p.forMonth) }}</td>
+            <td class="cell-odd amount-cell">{{ formatCurrency(p.amount) }}</td>
+            <td class="cell-even muted">{{ formatDate(p.paymentDate) }}</td>
+            <td>
+              <span class="payment-mode-pill" [attr.data-mode]="p.paymentModeCode.toLowerCase()">
+                {{ formatPaymentMode(p.paymentModeLabel) }}
+              </span>
+            </td>
+            <td class="cell-even">{{ p.notes || '—' }}</td>
+            <td>
+              <button *hasAccess="'Employee.UpdateSalaryPayment'" class="action-btn" (click)="openEditDrawer(p)" title="Edit">
+                <img src="assets/icons/edit.svg" alt="Edit" />
+              </button>
+              <button *hasAccess="'Employee.DeleteSalaryPayment'" class="action-btn danger" (click)="onDeletePayment(p)" title="Delete">
+                <img src="assets/icons/delete.svg" alt="Delete" />
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-state" *ngIf="totalCount === 0 && !loading">
+        <p>No salary payments found.</p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-footer" *ngIf="totalCount > 0">
+      <div class="page-size-selector">
+        <label>Rows per page:</label>
+        <select [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)">
+          <option *ngFor="let opt of pageSizeOptions" [ngValue]="opt">{{ opt }}</option>
+        </select>
+      </div>
+
+      <div class="pagination-info">
+        {{ (currentPage - 1) * pageSize + 1 }}–{{ currentPage * pageSize > totalCount ? totalCount : currentPage * pageSize }} of {{ totalCount }}
+      </div>
+
+      <div class="pagination-controls">
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">‹</button>
+        <button
+          *ngFor="let p of pages"
+          class="page-btn"
+          [class.active]="p === currentPage"
+          (click)="goToPage(p)">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">›</button>
+      </div>
+    </div>
+
+    <!-- DRAWER OVERLAY -->
+    <div class="drawer-overlay" *ngIf="showDrawer" (click)="closeDrawer()"></div>
+
+    <!-- DRAWER -->
+    <div class="drawer" [class.open]="showDrawer">
+      <div class="drawer-header">
+        <h3>{{ drawerMode === 'edit' ? 'Edit Payment' : 'Pay Salary' }}</h3>
+        <button class="drawer-close" (click)="closeDrawer()">✕</button>
+      </div>
+
+      <div class="drawer-body">
+        <div class="form-group" *ngIf="drawerMode === 'add'">
+          <label>Employee *</label>
+          <select [(ngModel)]="formEmployeeId">
+            <option value="" disabled>Select employee</option>
+            <option *ngFor="let emp of employees" [value]="emp.employeeId">
+              {{ emp.name }} {{ emp.currentSalary ? '(' + formatCurrency(emp.currentSalary) + '/mo)' : '' }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>For Month *</label>
+          <input type="month" [(ngModel)]="formForMonth" />
+        </div>
+        <div class="form-group">
+          <label>Amount *</label>
+          <input type="number" [(ngModel)]="formAmount" placeholder="Amount to pay" />
+        </div>
+        <div class="form-group">
+          <label>Payment Date *</label>
+          <input type="date" [(ngModel)]="formPaymentDate" />
+        </div>
+        <div class="form-group">
+          <label>Payment Mode *</label>
+          <select [(ngModel)]="formPaymentMode">
+            <option *ngFor="let mode of paymentModes" [value]="mode.code">{{ mode.label }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea [(ngModel)]="formNotes" rows="3" placeholder="Optional notes"></textarea>
+        </div>
+        <button
+          *ngIf="drawerMode === 'add'"
+          class="btn btn-primary drawer-save"
+          (click)="onCreatePayment()"
+          [disabled]="!formEmployeeId || !formAmount || !formPaymentDate || !formForMonth">
+          Record Payment
+        </button>
+        <button
+          *ngIf="drawerMode === 'edit'"
+          class="btn btn-primary drawer-save"
+          (click)="onUpdatePayment()"
+          [disabled]="!formAmount || !formPaymentDate || !formForMonth">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

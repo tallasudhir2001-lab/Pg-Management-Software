@@ -1,0 +1,17 @@
+<div class="employees-landing">
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab-btn" [class.active]="activeTab === 'employees'" (click)="switchTab('employees')">
+      Employees
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'salaries'" (click)="switchTab('salaries')">
+      Salary Payments
+    </button>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <app-employee-list *ngIf="activeTab === 'employees'"></app-employee-list>
+    <app-salary-payments *ngIf="activeTab === 'salaries'"></app-salary-payments>
+  </div>
+</div>

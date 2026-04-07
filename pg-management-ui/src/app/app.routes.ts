@@ -39,6 +39,7 @@ import { Settings } from './features/settings/settings/settings';
 import { ConfigurationsLanding } from './features/configurations/configurations-landing/configurations-landing';
 import { ReportSubscriptions } from './features/settings/report-subscriptions/report-subscriptions';
 import { AuditLog } from './features/audit/audit-log/audit-log';
+import { EmployeesLanding } from './features/employees/employees-landing/employees-landing';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -72,6 +73,7 @@ export const routes: Routes = [
             { path: 'bookings/add', component: AddBooking, canActivate: [permissionGuard], data: { requiredPermission: 'Booking.CreateBooking' } },
             { path: 'bookings/:id', component: BookingDetails, canActivate: [permissionGuard], data: { mode: 'view', requiredPermission: 'Booking.GetById' } },
             { path: 'bookings/:id/edit', component: BookingDetails, canActivate: [permissionGuard], data: { mode: 'edit', requiredPermission: 'Booking.UpdateBooking' } },
+            { path: 'employees', component: EmployeesLanding, canActivate: [permissionGuard], data: { requiredPermission: 'Employee.GetEmployees' } },
             { path: 'expenses', component: Expenses, canActivate: [permissionGuard], data: { requiredPermission: 'Expense.GetExpenses' } },
             { path: 'reports', component: ReportsLanding },
             { path: 'reports/rent-collection', component: RentCollectionReport },

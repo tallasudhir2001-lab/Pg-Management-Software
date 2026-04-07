@@ -1,0 +1,241 @@
+<div class="page-loading" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Loading employees...</p>
+</div>
+
+<div [hidden]="loading">
+  <div class="employees-page">
+
+    <!-- Actions Row -->
+    <div class="actions-row">
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Search by name, role, contact..."
+          [ngModel]="searchText"
+          (ngModelChange)="onSearchChange($event)"
+        />
+      </div>
+
+      <div class="filter-pills">
+        <button class="pill-btn" [class.active]="filterActive === 'all'" (click)="onFilterActive('all')">All</button>
+        <button class="pill-btn" [class.active]="filterActive === 'active'" (click)="onFilterActive('active')">Active</button>
+        <button class="pill-btn" [class.active]="filterActive === 'inactive'" (click)="onFilterActive('inactive')">Inactive</button>
+      </div>
+
+      <button *hasAccess="'Employee.CreateEmployee'" class="btn btn-primary" (click)="openAddDrawer()">+ Add Employee</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th (click)="onSort('name')" style="cursor:pointer">
+              Name
+              <span class="sort-arrow" [class.visible]="isSortedBy('name')" [class.asc]="isSortAsc('name')">▼</span>
+            </th>
+            <th>Role</th>
+            <th>Contact</th>
+            <th (click)="onSort('joinDate')" style="cursor:pointer">
+              Joined
+              <span class="sort-arrow" [class.visible]="isSortedBy('joinDate')" [class.asc]="isSortAsc('joinDate')">▼</span>
+            </th>
+            <th>Current Salary</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let emp of (employees$ | async)?.items">
+            <td class="cell-odd">{{ emp.name }}</td>
+            <td class="cell-even">{{ emp.roleName || '—' }}</td>
+            <td class="cell-even">{{ emp.contactNumber || '—' }}</td>
+            <td class="cell-even muted">{{ formatDate(emp.joinDate) }}</td>
+            <td class="cell-odd amount-cell">{{ formatCurrency(emp.currentSalary) }}</td>
+            <td>
+              <span class="status-pill" [attr.data-status]="emp.isActive ? 'active' : 'inactive'">
+                {{ emp.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td>
+              <button class="action-btn" (click)="openViewDrawer(emp)" title="View">
+                <img src="assets/icons/info.svg" alt="View" />
+              </button>
+              <button *hasAccess="'Employee.UpdateEmployee'" class="action-btn" (click)="openEditDrawer(emp)" title="Edit">
+                <img src="assets/icons/edit.svg" alt="Edit" />
+              </button>
+              <button *hasAccess="'Employee.DeleteEmployee'" class="action-btn danger" (click)="onDeleteEmployee(emp)" title="Delete">
+                <img src="assets/icons/delete.svg" alt="Delete" />
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-state" *ngIf="totalCount === 0 && !loading">
+        <p>No employees found.</p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-footer" *ngIf="totalCount > 0">
+      <div class="page-size-selector">
+        <label>Rows per page:</label>
+        <select [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)">
+          <option *ngFor="let opt of pageSizeOptions" [ngValue]="opt">{{ opt }}</option>
+        </select>
+      </div>
+
+      <div class="pagination-info">
+        {{ (currentPage - 1) * pageSize + 1 }}–{{ currentPage * pageSize > totalCount ? totalCount : currentPage * pageSize }} of {{ totalCount }}
+      </div>
+
+      <div class="pagination-controls">
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">‹</button>
+        <button
+          *ngFor="let p of pages"
+          class="page-btn"
+          [class.active]="p === currentPage"
+          (click)="goToPage(p)">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">›</button>
+      </div>
+    </div>
+
+    <!-- DRAWER OVERLAY -->
+    <div class="drawer-overlay" *ngIf="showDrawer" (click)="closeDrawer()"></div>
+
+    <!-- DRAWER -->
+    <div class="drawer" [class.open]="showDrawer">
+      <div class="drawer-header">
+        <h3>
+          {{ drawerMode === 'add' ? 'Add Employee' :
+             drawerMode === 'edit' ? 'Edit Employee' : 'Employee Details' }}
+        </h3>
+        <button class="drawer-close" (click)="closeDrawer()">✕</button>
+      </div>
+
+      <div class="drawer-body">
+        <!-- Loading state for view/edit -->
+        <div class="drawer-loading" *ngIf="(drawerMode === 'view' || drawerMode === 'edit') && !selectedEmployee">
+          <p>Loading...</p>
+        </div>
+
+        <!-- ADD MODE -->
+        <ng-container *ngIf="drawerMode === 'add'">
+          <div class="form-group">
+            <label>Name *</label>
+            <input type="text" [(ngModel)]="formName" placeholder="Employee name" />
+          </div>
+          <div class="form-group">
+            <label>Contact Number</label>
+            <input type="text" [(ngModel)]="formContact" placeholder="10-digit mobile" maxlength="10" />
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select [(ngModel)]="formRoleCode">
+              <option value="">Select role</option>
+              <option *ngFor="let r of roles" [value]="r.code">{{ r.name }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Join Date *</label>
+            <input type="date" [(ngModel)]="formJoinDate" />
+          </div>
+          <div class="form-group">
+            <label>Monthly Salary *</label>
+            <input type="number" [(ngModel)]="formSalary" placeholder="Amount" />
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea [(ngModel)]="formNotes" rows="3" placeholder="Optional notes"></textarea>
+          </div>
+          <button class="btn btn-primary drawer-save" (click)="onCreateEmployee()" [disabled]="!formName || !formJoinDate || !formSalary">
+            Create Employee
+          </button>
+        </ng-container>
+
+        <!-- VIEW MODE -->
+        <ng-container *ngIf="drawerMode === 'view' && selectedEmployee">
+          <div class="detail-row">
+            <span class="detail-label">Name</span>
+            <span class="detail-value">{{ selectedEmployee.name }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Role</span>
+            <span class="detail-value">{{ selectedEmployee.roleName || '—' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Contact</span>
+            <span class="detail-value">{{ selectedEmployee.contactNumber || '—' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Join Date</span>
+            <span class="detail-value">{{ formatDate(selectedEmployee.joinDate) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Current Salary</span>
+            <span class="detail-value amount-cell">{{ formatCurrency(selectedEmployee.currentSalary) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Status</span>
+            <span class="status-pill" [attr.data-status]="selectedEmployee.isActive ? 'active' : 'inactive'">
+              {{ selectedEmployee.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+          <div class="detail-row" *ngIf="selectedEmployee.notes">
+            <span class="detail-label">Notes</span>
+            <span class="detail-value">{{ selectedEmployee.notes }}</span>
+          </div>
+
+          <!-- Salary History -->
+          <div class="salary-history" *ngIf="selectedEmployee.salaryHistory.length > 0">
+            <h4>Salary History</h4>
+            <div class="history-item" *ngFor="let h of selectedEmployee.salaryHistory">
+              <span class="history-amount">{{ formatCurrency(h.amount) }}</span>
+              <span class="history-dates">
+                {{ formatDate(h.effectiveFrom) }} — {{ h.effectiveTo ? formatDate(h.effectiveTo) : 'Present' }}
+              </span>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- EDIT MODE -->
+        <ng-container *ngIf="drawerMode === 'edit' && selectedEmployee">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" [(ngModel)]="formName" />
+          </div>
+          <div class="form-group">
+            <label>Contact Number</label>
+            <input type="text" [(ngModel)]="formContact" maxlength="10" />
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select [(ngModel)]="formRoleCode">
+              <option value="">Select role</option>
+              <option *ngFor="let r of roles" [value]="r.code">{{ r.name }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Monthly Salary</label>
+            <input type="number" [(ngModel)]="formSalary" placeholder="Amount" />
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea [(ngModel)]="formNotes" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" [(ngModel)]="formIsActive" />
+              Active
+            </label>
+          </div>
+          <button class="btn btn-primary drawer-save" (click)="onUpdateEmployee()">
+            Save Changes
+          </button>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>

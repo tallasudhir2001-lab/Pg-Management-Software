@@ -9,4 +9,5 @@ export interface DashboardSummary {
   vacantBeds: number;
 
   monthlyRevenue: number;
+  monthlySalaryOutflow: number;
 }

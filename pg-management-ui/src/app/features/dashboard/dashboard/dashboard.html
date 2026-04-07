@@ -206,6 +206,11 @@
           <div class="stat-hint">this period</div>
         </div>
         <div class="stat-cell">
+          <div class="stat-label">Salaries</div>
+          <div class="stat-val red">&#8377;{{ vm.summary.monthlySalaryOutflow | number:'1.0-0' }}</div>
+          <div class="stat-hint">this period</div>
+        </div>
+        <div class="stat-cell">
           <div class="stat-label">Net Profit</div>
           <div class="stat-val" [class.green]="getNetProfit(vm) >= 0" [class.red]="getNetProfit(vm) < 0">
             &#8377;{{ getNetProfit(vm) | number:'1.0-0' }}
@@ -246,6 +251,18 @@
             </div>
           </div>
           <button class="today-view-btn" (click)="goToTodayExpenses(); $event.stopPropagation()">View &rarr;</button>
+        </div>
+
+        <div class="today-card today-salaries" *ngIf="todaySnapshot.todaySalaries > 0">
+          <div class="today-left">
+            <div class="today-ico orange-bg">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+            </div>
+            <div>
+              <div class="today-label">Today's Salaries</div>
+              <div class="today-val orange-text">&#8377;{{ todaySnapshot.todaySalaries | number:'1.0-0' }}</div>
+            </div>
+          </div>
         </div>
 
       </div>

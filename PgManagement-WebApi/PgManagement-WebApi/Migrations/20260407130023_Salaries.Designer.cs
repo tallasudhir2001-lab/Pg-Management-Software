@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PgManagement_WebApi.Data;
 
@@ -11,9 +12,11 @@ using PgManagement_WebApi.Data;
 namespace PgManagement_WebApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260407130023_Salaries")]
+    partial class Salaries
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -517,9 +520,9 @@ namespace PgManagement_WebApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("RoleCode")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                    b.Property<string>("Role")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -531,25 +534,7 @@ namespace PgManagement_WebApi.Migrations
 
                     b.HasIndex("PgId");
 
-                    b.HasIndex("RoleCode");
-
                     b.ToTable("Employees");
-                });
-
-            modelBuilder.Entity("PgManagement_WebApi.Models.EmployeeRole", b =>
-                {
-                    b.Property<string>("Code")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Code");
-
-                    b.ToTable("EmployeeRoles");
                 });
 
             modelBuilder.Entity("PgManagement_WebApi.Models.EmployeeSalaryHistory", b =>
@@ -1403,13 +1388,6 @@ namespace PgManagement_WebApi.Migrations
                         .HasForeignKey("PgId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("PgManagement_WebApi.Models.EmployeeRole", "EmployeeRole")
-                        .WithMany()
-                        .HasForeignKey("RoleCode")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("EmployeeRole");
 
                     b.Navigation("PG");
                 });

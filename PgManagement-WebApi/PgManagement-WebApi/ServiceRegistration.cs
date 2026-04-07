@@ -31,6 +31,7 @@ public static class ServiceRegistration
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IPgUserManagementService, PgUserManagementService>();
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IEmployeeService, EmployeeService>();
 
         // Email
         services.Configure<EmailOptions>(configuration.GetSection("Email"));

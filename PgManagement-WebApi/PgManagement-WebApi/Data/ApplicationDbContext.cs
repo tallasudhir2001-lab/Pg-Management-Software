@@ -53,6 +53,10 @@ namespace PgManagement_WebApi.Data
         public DbSet<NotificationSettings> NotificationSettings { get; set; }
         public DbSet<ReportSubscription> ReportSubscriptions { get; set; }
         public DbSet<AuditEvent> AuditEvents { get; set; }
+        public DbSet<Employee> Employees { get; set; }
+        public DbSet<EmployeeRole> EmployeeRoles { get; set; }
+        public DbSet<EmployeeSalaryHistory> EmployeeSalaryHistories { get; set; }
+        public DbSet<SalaryPayment> SalaryPayments { get; set; }
 
 
 

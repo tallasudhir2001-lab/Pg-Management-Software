@@ -62,6 +62,22 @@ namespace PgManagement_WebApi.Data
             });
             await context.SaveChangesAsync();
 
+            // Employee Roles
+            await SeedIfMissingAsync(context.EmployeeRoles, r => r.Code, new List<EmployeeRole>
+            {
+                new EmployeeRole { Code = "MANAGER", Name = "Manager" },
+                new EmployeeRole { Code = "COOK", Name = "Cook" },
+                new EmployeeRole { Code = "CLEANING", Name = "Cleaning Staff" },
+                new EmployeeRole { Code = "SECURITY", Name = "Security Guard" },
+                new EmployeeRole { Code = "FACILITY_MGR", Name = "Facility Manager" },
+                new EmployeeRole { Code = "MAINTENANCE", Name = "Maintenance" },
+                new EmployeeRole { Code = "RECEPTIONIST", Name = "Receptionist" },
+                new EmployeeRole { Code = "WARDEN", Name = "Warden" },
+                new EmployeeRole { Code = "DRIVER", Name = "Driver" },
+                new EmployeeRole { Code = "OTHER", Name = "Other" }
+            });
+            await context.SaveChangesAsync();
+
             //creating admin user
             var adminEmail = "admin@pgapp.com";
             var adminUser = await userManager.FindByEmailAsync(adminEmail);

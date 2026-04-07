@@ -56,6 +56,15 @@ namespace PgManagement_WebApi.Services
                     p.PaymentDate <= end)
                 .SumAsync(p => (decimal?)p.Amount) ?? 0;
 
+            var salaryOutflow = await _context.SalaryPayments
+                .AsNoTracking()
+                .Where(sp =>
+                    pgIds.Contains(sp.PgId) &&
+                    !sp.IsDeleted &&
+                    sp.PaymentDate >= start &&
+                    sp.PaymentDate <= end)
+                .SumAsync(sp => (decimal?)sp.Amount) ?? 0;
+
             return new DashboardSummaryDto
             {
                 TotalRooms = totalRooms,
@@ -64,7 +73,8 @@ namespace PgManagement_WebApi.Services
                 MovedOutTenants = movedOutTenants,
                 OccupiedBeds = occupiedBeds,
                 VacantBeds = totalBeds - occupiedBeds,
-                MonthlyRevenue = revenue
+                MonthlyRevenue = revenue,
+                MonthlySalaryOutflow = salaryOutflow
             };
         }
 
@@ -456,10 +466,20 @@ namespace PgManagement_WebApi.Services
                     e.ExpenseDate < tomorrow)
                 .SumAsync(e => (decimal?)e.Amount) ?? 0;
 
+            var todaySalaries = await _context.SalaryPayments
+                .AsNoTracking()
+                .Where(sp =>
+                    pgIds.Contains(sp.PgId) &&
+                    !sp.IsDeleted &&
+                    sp.PaymentDate >= today &&
+                    sp.PaymentDate < tomorrow)
+                .SumAsync(sp => (decimal?)sp.Amount) ?? 0;
+
             return new TodaySnapshotDto
             {
                 TodayCollection = todayCollection,
-                TodayExpenses = todayExpenses
+                TodayExpenses = todayExpenses,
+                TodaySalaries = todaySalaries
             };
         }
     }

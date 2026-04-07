@@ -9,6 +9,7 @@
         public int OccupiedBeds { get; set; }
         public int VacantBeds { get; set; }
         public decimal MonthlyRevenue { get; set; }
+        public decimal MonthlySalaryOutflow { get; set; }
     }
 
     public class RevenueTrendDto
@@ -52,6 +53,7 @@
     {
         public decimal TodayCollection { get; set; }
         public decimal TodayExpenses { get; set; }
+        public decimal TodaySalaries { get; set; }
     }
 
     public class VacancyLossDto

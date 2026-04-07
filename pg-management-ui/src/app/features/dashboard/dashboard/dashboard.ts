@@ -24,7 +24,8 @@ interface DashboardVm {
 
 const EMPTY_SUMMARY: DashboardSummary = {
   activeTenants: 0, totalTenants: 0, movedOutTenants: 0,
-  occupiedBeds: 0, vacantBeds: 0, totalRooms: 0, monthlyRevenue: 0
+  occupiedBeds: 0, vacantBeds: 0, totalRooms: 0, monthlyRevenue: 0,
+  monthlySalaryOutflow: 0
 };
 
 const EMPTY_COLLECTION: CollectionSummary = {
@@ -106,7 +107,7 @@ export class Dashboard implements OnInit, OnDestroy {
     // Today snapshot
     this.subs.push(
       this.dashboardService.getTodaySnapshot().pipe(
-        catchError(() => of({ todayCollection: 0, todayExpenses: 0 }))
+        catchError(() => of({ todayCollection: 0, todayExpenses: 0, todaySalaries: 0 }))
       ).subscribe(data => {
         this.todaySnapshot = data;
         this.cdr.detectChanges();
@@ -202,7 +203,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   // ── KPI helpers ────────────────────────────────────────────
   getNetProfit(vm: DashboardVm): number {
-    return vm.summary.monthlyRevenue - vm.expenses.totalExpenses;
+    return vm.summary.monthlyRevenue - vm.expenses.totalExpenses - vm.summary.monthlySalaryOutflow;
   }
 
   getOccupancyRate(vm: DashboardVm): number {
