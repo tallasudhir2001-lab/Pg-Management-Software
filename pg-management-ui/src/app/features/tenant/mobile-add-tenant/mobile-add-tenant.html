@@ -1,0 +1,167 @@
+<div class="mobile-add-tenant">
+  <button class="back-btn" (click)="cancel()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Back
+  </button>
+
+  <h2 class="page-title">Add New Tenant</h2>
+
+  <form [formGroup]="form">
+    <!-- Tenant Details -->
+    <div class="form-card">
+      <div class="section-label">Tenant Details</div>
+
+      <div class="form-group">
+        <label class="form-label">Aadhaar Number</label>
+        <input type="text" maxlength="12" inputmode="numeric" pattern="[0-9]*"
+               class="form-input" placeholder="Enter 12-digit Aadhaar" formControlName="aadharNumber">
+      </div>
+
+      @if (existingTenant) {
+        <div class="existing-warning">
+          <p>Tenant <strong>{{ existingTenant.name }}</strong> already exists.</p>
+          <div class="existing-actions">
+            <button type="button" class="btn-outline-sm" (click)="viewExistingTenant()">View</button>
+            <button type="button" class="btn-primary-sm" (click)="createStayForExisting()">Create Stay</button>
+          </div>
+        </div>
+      }
+
+      <div class="form-group">
+        <label class="form-label">Tenant Name <span class="required">*</span></label>
+        <input type="text" class="form-input" placeholder="Enter name" formControlName="name">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Mobile Number <span class="required">*</span></label>
+        <input type="text" class="form-input" inputmode="tel" placeholder="Enter mobile" formControlName="contactNumber">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email <span class="required">*</span></label>
+        <input type="email" class="form-input" inputmode="email" placeholder="tenant&#64;example.com" formControlName="email">
+      </div>
+    </div>
+
+    <!-- Room Section -->
+    <div class="form-card">
+      <label class="toggle-label">
+        <input type="checkbox" formControlName="hasRoom" class="toggle-checkbox">
+        <span class="toggle-text">Add Room</span>
+      </label>
+
+      @if (form.get('hasRoom')?.value) {
+        <div class="toggle-panel">
+          <div class="form-group">
+            <label class="form-label">Room</label>
+            <select class="form-input" formControlName="roomId">
+              <option value="">Select room</option>
+              @if (rooms$ | async; as rooms) {
+                @for (room of rooms; track room.roomId) {
+                  <option [value]="room.roomId">Room {{ room.roomNumber }} — {{ room.vacancies }} bed(s)</option>
+                }
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Checked In Date</label>
+            <input type="date" class="form-input" formControlName="fromDate">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stay Type</label>
+            <select class="form-input" formControlName="stayType">
+              <option value="MONTHLY">Monthly</option>
+              <option value="DAILY">Daily</option>
+            </select>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Advance Section -->
+    <div class="form-card">
+      <label class="toggle-label">
+        <input type="checkbox" formControlName="hasAdvance" class="toggle-checkbox">
+        <span class="toggle-text">Add Advance</span>
+      </label>
+
+      @if (form.get('hasAdvance')?.value) {
+        <div class="toggle-panel">
+          <div class="form-group">
+            <label class="form-label">Advance Amount (₹)</label>
+            <input type="number" class="form-input" inputmode="numeric" placeholder="Enter amount" formControlName="advanceAmount">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Mode</label>
+            <select class="form-input" formControlName="paymentModeCode">
+              <option [ngValue]="null" disabled>Select mode</option>
+              @if (paymentModes$ | async; as modes) {
+                @for (m of modes; track m.code) {
+                  <option [value]="m.code">{{ m.description }}</option>
+                }
+              }
+            </select>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Initial Payment Section -->
+    <div class="form-card">
+      <label class="toggle-label">
+        <input type="checkbox" formControlName="hasPayment" class="toggle-checkbox">
+        <span class="toggle-text">Add Initial Payment</span>
+      </label>
+
+      @if (form.get('hasPayment')?.value) {
+        <div class="toggle-panel">
+          <div class="form-group">
+            <label class="form-label">Amount (₹)</label>
+            <input type="number" class="form-input" inputmode="numeric" placeholder="Enter amount" formControlName="initialPaymentAmount">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Mode</label>
+            <select class="form-input" formControlName="initialPaymentModeCode">
+              <option value="" disabled>Select mode</option>
+              @if (paymentModes$ | async; as modes) {
+                @for (m of modes; track m.code) {
+                  <option [value]="m.code">{{ m.description }}</option>
+                }
+              }
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group half">
+              <label class="form-label">Paid From</label>
+              <input type="date" class="form-input" formControlName="initialPaidFrom">
+            </div>
+            <div class="form-group half">
+              <label class="form-label">Paid Upto</label>
+              <input type="date" class="form-input" formControlName="initialPaidUpto">
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Notes -->
+    <div class="form-card">
+      <div class="form-group" style="margin-bottom: 0">
+        <label class="form-label">Notes <span class="optional">(optional)</span></label>
+        <textarea rows="2" class="form-input" placeholder="Additional notes" formControlName="notes"></textarea>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button type="button" class="btn-cancel" (click)="cancel()">Cancel</button>
+      @if (!existingTenant) {
+        <button type="button" class="btn-save" (click)="save()" [disabled]="checkingAadhar">
+          Save Tenant
+        </button>
+      }
+    </div>
+  </form>
+</div>

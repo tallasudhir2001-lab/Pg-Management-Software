@@ -1,0 +1,62 @@
+<div class="mobile-rooms">
+  <!-- Filter Chips -->
+  <div class="filter-chips">
+    <button class="chip" [class.active]="activeFilter === 'all'" (click)="setFilter('all')">All</button>
+    <button class="chip" [class.active]="activeFilter === 'Available'" (click)="setFilter('Available')">Available</button>
+    <button class="chip" [class.active]="activeFilter === 'Partial'" (click)="setFilter('Partial')">Partial</button>
+    <button class="chip" [class.active]="activeFilter === 'Full'" (click)="setFilter('Full')">Full</button>
+  </div>
+
+  @if (loading) {
+    <div class="loading-state"><div class="spinner"></div></div>
+  } @else if (error) {
+    <div class="error-state">
+      <p>{{ error }}</p>
+      <button class="retry-btn" (click)="loadRooms()">Retry</button>
+    </div>
+  } @else if (rooms.length === 0) {
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="#cbd5e1" width="64" height="64">
+        <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+      </svg>
+      <p>No rooms found</p>
+    </div>
+  } @else {
+    <p class="count-label">{{ totalCount }} room{{ totalCount !== 1 ? 's' : '' }}</p>
+    <div class="room-grid">
+      @for (room of rooms; track room.roomId) {
+        <div class="room-card" (click)="openRoom(room)">
+          <div class="room-header">
+            <span class="room-number">Room {{ room.roomNumber }}</span>
+            <span class="status-dot" [style.background]="getStatusColor(room.status)"></span>
+          </div>
+          @if (room.isAc) {
+            <span class="ac-badge">AC</span>
+          }
+          <div class="room-details">
+            <div class="detail-row">
+              <svg viewBox="0 0 24 24" fill="#64748b" width="16" height="16">
+                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3z"/>
+              </svg>
+              <span>{{ room.occupied }}/{{ room.capacity }}</span>
+            </div>
+            <div class="detail-row" [style.color]="room.vacancies > 0 ? '#2E7D32' : '#C62828'">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V7H1v10h22v-6c0-2.21-1.79-4-4-4z"/>
+              </svg>
+              <span>{{ room.vacancies }} vacant</span>
+            </div>
+          </div>
+          <div class="room-rent">₹{{ room.rentAmount | number }}</div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- FAB -->
+  <button class="fab" (click)="addRoom()">
+    <svg viewBox="0 0 24 24" fill="#fff" width="24" height="24">
+      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+    </svg>
+  </button>
+</div>

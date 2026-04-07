@@ -1,0 +1,237 @@
+@if (loading) {
+  <div class="loading-state"><div class="spinner"></div></div>
+} @else if (error) {
+  <div class="error-state">
+    <p>{{ error }}</p>
+    <button class="retry-btn" (click)="loadTenant(tenant?.tenantId || '')">Retry</button>
+  </div>
+} @else if (tenant) {
+  <div class="mobile-tenant-details">
+    <!-- Back Header -->
+    <button class="back-btn" (click)="goBack()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Back to Tenants
+    </button>
+
+    <!-- Tenant Info Card -->
+    <div class="card">
+      <div class="tenant-header">
+        <div class="tenant-avatar"
+             [style.background]="getStatusColor(tenant.status) + '22'"
+             [style.color]="getStatusColor(tenant.status)">
+          {{ tenant.name.charAt(0) }}
+        </div>
+        <div class="tenant-header-info">
+          <h2 class="tenant-name">{{ tenant.name }}</h2>
+          <span class="status-pill"
+                [style.background]="getStatusColor(tenant.status) + '22'"
+                [style.color]="getStatusColor(tenant.status)">
+            {{ tenant.status }}
+          </span>
+        </div>
+      </div>
+
+      <div class="info-list">
+        <div class="info-row">
+          <span class="info-label">Phone</span>
+          <span class="info-value">{{ tenant.contactNumber }}</span>
+        </div>
+        @if (tenant.aadharNumber) {
+          <div class="info-row">
+            <span class="info-label">Aadhaar</span>
+            <span class="info-value">{{ tenant.aadharNumber }}</span>
+          </div>
+        }
+        @if (tenant.email) {
+          <div class="info-row">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ tenant.email }}</span>
+          </div>
+        }
+        @if (tenant.roomNumber) {
+          <div class="info-row">
+            <span class="info-label">Room</span>
+            <span class="info-value">Room {{ tenant.roomNumber }}</span>
+          </div>
+        }
+        @if (tenant.checkedInAt) {
+          <div class="info-row">
+            <span class="info-label">Checked In</span>
+            <span class="info-value">{{ tenant.checkedInAt | date:'mediumDate' }}</span>
+          </div>
+        }
+        @if (tenant.movedOutAt) {
+          <div class="info-row">
+            <span class="info-label">Moved Out</span>
+            <span class="info-value">{{ tenant.movedOutAt | date:'mediumDate' }}</span>
+          </div>
+        }
+        @if (tenant.hasAdvance) {
+          <div class="info-row">
+            <span class="info-label">Advance</span>
+            <span class="info-value advance">₹{{ tenant.advanceAmount | number }} ({{ tenant.advancePaymentMode }})</span>
+          </div>
+        }
+        @if (tenant.notes) {
+          <div class="info-row">
+            <span class="info-label">Notes</span>
+            <span class="info-value">{{ tenant.notes }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Pending Rent Card -->
+    @if (pendingRent && pendingRent.totalPendingAmount > 0) {
+      <div class="pending-card">
+        <div class="pending-top">
+          <div class="pending-info">
+            <span class="pending-label">Total Pending</span>
+            <span class="pending-amount">₹{{ pendingRent.totalPendingAmount | number }}</span>
+          </div>
+          <button class="add-payment-btn" (click)="addPayment()">+ Add Payment</button>
+        </div>
+        @for (b of pendingRent.breakdown; track $index) {
+          <div class="breakdown-row">
+            <div class="breakdown-left">
+              <span class="breakdown-room">Room {{ b.roomNumber }}</span>
+              <span class="breakdown-period">{{ b.fromDate | date:'d MMM' }} – {{ b.toDate | date:'d MMM yyyy' }}</span>
+            </div>
+            <span class="breakdown-amount">₹{{ b.amount | number }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Stay History -->
+    @if (tenant.stays && tenant.stays.length > 0) {
+      <button class="section-toggle" (click)="toggleStays()">
+        Stay History ({{ tenant.stays.length }})
+        <svg [style.transform]="showStays ? 'rotate(180deg)' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      @if (showStays) {
+        @for (stay of tenant.stays; track $index) {
+          <div class="card stay-card">
+            <div class="stay-row">
+              <span class="stay-room">Room {{ stay.roomNumber }}</span>
+              @if (stay.stayType) {
+                <span class="stay-type">{{ stay.stayType }}</span>
+              }
+            </div>
+            <div class="stay-dates">
+              {{ stay.fromDate | date:'mediumDate' }} → {{ stay.toDate ? (stay.toDate | date:'mediumDate') : 'Present' }}
+            </div>
+          </div>
+        }
+      }
+    }
+
+    <!-- Advance History -->
+    @if (tenant.advances && tenant.advances.length > 0) {
+      <button class="section-toggle" (click)="toggleAdvances()">
+        Advance History ({{ tenant.advances.length }})
+        <svg [style.transform]="showAdvances ? 'rotate(180deg)' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      @if (showAdvances) {
+        @for (adv of tenant.advances; track adv.advanceId) {
+          <div class="card advance-card">
+            <div class="advance-top-row">
+              <span class="advance-amount">₹{{ adv.amount | number }}</span>
+              <div class="advance-right">
+                <span class="advance-status" [class.settled]="adv.isSettled">
+                  {{ adv.isSettled ? 'Settled' : 'Active' }}
+                </span>
+                @if (!adv.isSettled) {
+                  <button class="settle-btn" (click)="openSettle(adv)">Settle</button>
+                }
+              </div>
+            </div>
+            <div class="advance-meta">
+              Paid {{ adv.paidDate | date:'mediumDate' }}
+              @if (adv.deductedAmount) {
+                · Deducted ₹{{ adv.deductedAmount | number }}
+              }
+            </div>
+          </div>
+        }
+      }
+    }
+
+    <!-- Payment History -->
+    @if (payments.length > 0) {
+      <button class="section-toggle" (click)="togglePayments()">
+        Payment History ({{ payments.length }})
+        <svg [style.transform]="showPayments ? 'rotate(180deg)' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      @if (showPayments) {
+        @for (p of payments; track p.paymentId) {
+          <div class="card payment-card" (click)="openPayment(p)">
+            <div class="payment-top-row">
+              <span class="payment-type">{{ p.paymentType }}</span>
+              <span class="payment-amount">₹{{ p.amount | number }}</span>
+            </div>
+            <div class="payment-meta">
+              {{ p.paymentDate | date:'mediumDate' }} · {{ p.paymentMode }}
+              @if (p.paidFrom && p.paidUpto) {
+                · {{ p.paidFrom | date:'d MMM' }} – {{ p.paidUpto | date:'d MMM yy' }}
+              }
+            </div>
+          </div>
+        }
+      }
+    }
+  </div>
+
+  <!-- Settle Advance Bottom Sheet -->
+  @if (settlingAdvance) {
+    <div class="sheet-backdrop" (click)="closeSettle()"></div>
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <h3 class="sheet-title">Settle Advance</h3>
+
+      <div class="sheet-info-row">
+        <span class="sheet-info-label">Advance Amount</span>
+        <span class="sheet-info-value">₹{{ settlingAdvance.amount | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="sheet-field">
+        <label class="sheet-label">Deducted Amount</label>
+        <input type="number" class="sheet-input" [(ngModel)]="settleDeductedAmount" placeholder="0">
+      </div>
+
+      @if (settleDeductedAmount > 0 && refundAmount > 0) {
+        <div class="refund-hint">
+          <span class="refund-icon">↩</span>
+          Return <strong>₹{{ refundAmount | number:'1.2-2' }}</strong> to the tenant after settlement.
+        </div>
+      }
+
+      <div class="sheet-field">
+        <label class="sheet-label">Payment Mode</label>
+        <div class="mode-chips">
+          @for (m of paymentModes; track m.code) {
+            <button type="button" class="mode-chip" [class.selected]="settlePaymentModeCode === m.code"
+                    (click)="settlePaymentModeCode = m.code">
+              {{ m.description }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="sheet-actions">
+        <button class="sheet-cancel" (click)="closeSettle()">Cancel</button>
+        <button class="sheet-confirm" [disabled]="settleLoading" (click)="confirmSettle()">
+          {{ settleLoading ? 'Processing...' : 'Confirm' }}
+        </button>
+      </div>
+    </div>
+  }
+}

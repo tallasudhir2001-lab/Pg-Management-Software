@@ -1,0 +1,96 @@
+@if (loading) {
+  <div class="loading-state">
+    <div class="spinner"></div>
+  </div>
+} @else if (error) {
+  <div class="error-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2" width="48" height="48">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <p>{{ error }}</p>
+    <button class="retry-btn" (click)="loadData()">Retry</button>
+  </div>
+} @else {
+  <div class="mobile-dashboard">
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="card-icon" style="background: #E3F2FD; color: #1565C0">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+          </svg>
+        </div>
+        <div class="card-value">{{ summary?.activeTenants }}</div>
+        <div class="card-label">Active Tenants</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="card-icon" style="background: #E8F5E9; color: #2E7D32">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+            <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+          </svg>
+        </div>
+        <div class="card-value">{{ summary?.totalRooms }}</div>
+        <div class="card-label">Total Rooms</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="card-icon" style="background: #FFF8E1; color: #F57F17">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+            <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V7H1v10h22v-6c0-2.21-1.79-4-4-4z"/>
+          </svg>
+        </div>
+        <div class="card-value">{{ summary?.vacantBeds }}</div>
+        <div class="card-label">Vacant Beds</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="card-icon" style="background: #FFF3E0; color: #FF6F00">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+            <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+          </svg>
+        </div>
+        <div class="card-value revenue">₹{{ summary?.monthlyRevenue | number }}</div>
+        <div class="card-label">Monthly Revenue</div>
+      </div>
+    </div>
+
+    <!-- Occupancy Card -->
+    <div class="card occupancy-card">
+      <h3 class="card-title">Occupancy</h3>
+      <div class="progress-bar">
+        <div class="progress-fill"
+             [style.width.%]="occupancyPercent"
+             [style.background]="occupancyColor">
+        </div>
+      </div>
+      <p class="occupancy-text">
+        {{ summary?.occupiedBeds }} occupied · {{ summary?.vacantBeds }} vacant
+        out of {{ (summary?.occupiedBeds || 0) + (summary?.vacantBeds || 0) }} beds
+      </p>
+    </div>
+
+    <!-- Recent Payments -->
+    @if (recentPayments.length > 0) {
+      <div class="card">
+        <h3 class="card-title">Recent Payments</h3>
+        @for (payment of recentPayments; track $index) {
+          <div class="payment-item">
+            <div class="payment-avatar">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+              </svg>
+            </div>
+            <div class="payment-info">
+              <span class="payment-name">{{ payment.tenantName }}</span>
+              <span class="payment-meta">{{ payment.paymentDate | date:'mediumDate' }} · {{ payment.mode }}</span>
+            </div>
+            <div class="payment-amount">₹{{ payment.amount | number }}</div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

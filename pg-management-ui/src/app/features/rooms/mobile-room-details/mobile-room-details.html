@@ -1,0 +1,80 @@
+@if (loading) {
+  <div class="loading-state"><div class="spinner"></div></div>
+} @else if (error) {
+  <div class="error-state">
+    <p>{{ error }}</p>
+    <button class="retry-btn" (click)="loadRoom(room?.roomId || '')">Retry</button>
+  </div>
+} @else if (room) {
+  <div class="mobile-room-details">
+    <!-- Back Header -->
+    <button class="back-btn" (click)="goBack()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Back to Rooms
+    </button>
+
+    <!-- Room Info Card -->
+    <div class="card room-info-card">
+      <div class="room-header-row">
+        <h2 class="room-title">Room {{ room.roomNumber }}</h2>
+        <span class="status-pill" [style.background]="getStatusColor(room.status) + '22'" [style.color]="getStatusColor(room.status)">
+          {{ room.status }}
+        </span>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Capacity</span>
+          <span class="info-value">{{ room.capacity }} beds</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Occupied</span>
+          <span class="info-value">{{ room.occupied }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Vacant</span>
+          <span class="info-value" [style.color]="room.vacancies > 0 ? '#2E7D32' : '#C62828'">{{ room.vacancies }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Monthly Rent</span>
+          <span class="info-value rent">₹{{ room.rentAmount | number }}</span>
+        </div>
+      </div>
+
+      @if (room.isAc) {
+        <span class="ac-badge">AC Room</span>
+      }
+    </div>
+
+    <!-- Tenants Section -->
+    <div class="section-title">Tenants ({{ tenants.length }})</div>
+    @if (tenants.length === 0) {
+      <div class="empty-card">
+        <p>No tenants in this room</p>
+      </div>
+    } @else {
+      @for (tenant of tenants; track tenant.tenantId) {
+        <div class="card tenant-card" (click)="openTenant(tenant)">
+          <div class="tenant-row">
+            <div class="tenant-avatar">{{ tenant.name.charAt(0) }}</div>
+            <div class="tenant-info">
+              <span class="tenant-name">{{ tenant.name }}</span>
+              <span class="tenant-meta">
+                <svg viewBox="0 0 24 24" fill="#94a3b8" width="13" height="13">
+                  <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                </svg>
+                {{ tenant.contactNumber }}
+              </span>
+              <span class="tenant-meta">Checked in: {{ tenant.checkedInAt | date:'mediumDate' }}</span>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" width="20" height="20">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+        </div>
+      }
+    }
+  </div>
+}

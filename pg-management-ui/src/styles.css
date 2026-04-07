@@ -84,8 +84,8 @@ input {
   font-size: 14px;
 }
 
-/* Buttons */
-button {
+/* Buttons — scoped to auth pages */
+.page button {
   width: 100%;
   padding: 12px;
   border-radius: 6px;
@@ -96,7 +96,7 @@ button {
   color: white;
 }
 
-button:hover {
+.page button:hover {
   background: var(--primary-light);
 }
 
@@ -381,3 +381,4 @@ button:hover {
 @keyframes page-spin {
   to { transform: rotate(360deg); }
 }
+

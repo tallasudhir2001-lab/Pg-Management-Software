@@ -1,28 +1,27 @@
 import { Routes } from '@angular/router';
 import { Login } from './core/auth/login/login';
 import { PgSelect } from './core/auth/pg-select/pg-select';
-import { Dashboard } from './features/dashboard/dashboard/dashboard';
+import { DashboardPage } from './features/dashboard/dashboard-page';
 import { authGuard } from './core/guards/auth-guard';
 import { permissionGuard } from './core/guards/permission-guard';
 import { Layout } from './shared/layout/layout';
 import { AdminLayout } from './admin/admin-layout/admin-layout';
 import { adminGuard } from './admin/guards/admin-guard';
 import { RegisterPg } from './admin/components/register-pg/register-pg';
-import { RoomList } from './features/rooms/room-list/room-list';
-import { AddRoom } from './features/rooms/add-room/add-room';
-import { TenantList } from './features/tenant/tenant-list/tenant-list';
-import { AddTenant } from './features/tenant/add-tenant/add-tenant';
-import { RoomDetails } from './features/rooms/room-details/room-details';
-import { TenantDetails } from './features/tenant/tenant-details/tenant-details';
-import { AddPayment } from './features/payments/add-payment/add-payment';
-import { AddPaymentContainer } from './features/payments/add-payment-container/add-payment-container';
-import { PaymentsHistory } from './features/payments/payments-history/payments-history';
-import { PaymentsLanding } from './features/payments/payments-landing/payments-landing';
-import { Expenses } from './features/expenses/expenses/expenses';
-import { PaymentDetails } from './features/payments/payment-details/payment-details';
-import { BookingList } from './features/bookings/booking-list/booking-list';
-import { AddBooking } from './features/bookings/add-booking/add-booking';
-import { BookingDetails } from './features/bookings/booking-details/booking-details';
+import { RoomListPage } from './features/rooms/room-list-page';
+import { AddRoomPage } from './features/rooms/add-room-page';
+import { TenantListPage } from './features/tenant/tenant-list-page';
+import { AddTenantPage } from './features/tenant/add-tenant-page';
+import { RoomDetailsPage } from './features/rooms/room-details-page';
+import { TenantDetailsPage } from './features/tenant/tenant-details-page';
+import { AddPaymentTenantPage } from './features/payments/add-payment-tenant-page';
+import { AddPaymentPage } from './features/payments/add-payment-page';
+import { PaymentsLandingPage } from './features/payments/payments-landing-page';
+import { ExpensesPage } from './features/expenses/expenses-page';
+import { PaymentDetailsPage } from './features/payments/payment-details-page';
+import { BookingListPage } from './features/bookings/booking-list-page';
+import { AddBookingPage } from './features/bookings/add-booking-page';
+import { BookingDetailsPage } from './features/bookings/booking-details-page';
 import { RoleAccessComponent } from './admin/components/role-access/role-access';
 import { AdminPgList } from './admin/components/pg-list/pg-list';
 import { PgUserManagement } from './features/pg-users/pg-users';
@@ -50,31 +49,31 @@ export const routes: Routes = [
         component: Layout,
         canActivate: [authGuard],
         children: [
-            { path: 'dashboard', component: Dashboard },
-            { path: 'room-list', component: RoomList, canActivate: [permissionGuard], data: { requiredPermission: 'Room.GetRooms' } },
-            { path: 'add-room', component: AddRoom, canActivate: [permissionGuard], data: { requiredPermission: 'Room.CreateRoom' } },
-            { path: 'room/:id', component: RoomDetails, canActivate: [permissionGuard], data: { requiredPermission: 'Room.GetRoomById' } },
-            { path: 'tenant-list', component: TenantList, canActivate: [permissionGuard], data: { requiredPermission: 'Tenant.GetTenants' } },
-            { path: 'tenants/add', component: AddTenant, canActivate: [permissionGuard], data: { requiredPermission: 'Tenant.CreateTenant' } },
-            { path: 'tenants/:id', component: TenantDetails, canActivate: [permissionGuard], data: { mode: 'view', requiredPermission: 'Tenant.GetTenantById' } },
-            { path: 'tenants/:id/edit', component: TenantDetails, canActivate: [permissionGuard], data: { mode: 'edit', requiredPermission: 'Tenant.UpdateTenant' } },
+            { path: 'dashboard', component: DashboardPage },
+            { path: 'room-list', component: RoomListPage, canActivate: [permissionGuard], data: { requiredPermission: 'Room.GetRooms' } },
+            { path: 'add-room', component: AddRoomPage, canActivate: [permissionGuard], data: { requiredPermission: 'Room.CreateRoom' } },
+            { path: 'room/:id', component: RoomDetailsPage, canActivate: [permissionGuard], data: { requiredPermission: 'Room.GetRoomById' } },
+            { path: 'tenant-list', component: TenantListPage, canActivate: [permissionGuard], data: { requiredPermission: 'Tenant.GetTenants' } },
+            { path: 'tenants/add', component: AddTenantPage, canActivate: [permissionGuard], data: { requiredPermission: 'Tenant.CreateTenant' } },
+            { path: 'tenants/:id', component: TenantDetailsPage, canActivate: [permissionGuard], data: { mode: 'view', requiredPermission: 'Tenant.GetTenantById' } },
+            { path: 'tenants/:id/edit', component: TenantDetailsPage, canActivate: [permissionGuard], data: { mode: 'edit', requiredPermission: 'Tenant.UpdateTenant' } },
             {
                 path: 'payments',
                 children: [
                     { path: '', redirectTo: 'add', pathMatch: 'full' },
-                    { path: 'add', component: AddPaymentContainer, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.CreatePayment' } },
-                    { path: 'add/:tenantId', component: AddPayment, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.CreatePayment' } },
-                    { path: 'history', component: PaymentsLanding, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.GetPaymentHistory' } },
-                    { path: ':paymentId', component: PaymentDetails, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.GetPayment' } },
-                    { path: ':paymentId/edit', component: PaymentDetails, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.UpdatePayment' } }
+                    { path: 'add', component: AddPaymentPage, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.CreatePayment' } },
+                    { path: 'add/:tenantId', component: AddPaymentTenantPage, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.CreatePayment' } },
+                    { path: 'history', component: PaymentsLandingPage, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.GetPaymentHistory' } },
+                    { path: ':paymentId', component: PaymentDetailsPage, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.GetPayment' } },
+                    { path: ':paymentId/edit', component: PaymentDetailsPage, canActivate: [permissionGuard], data: { requiredPermission: 'Payment.UpdatePayment' } }
                 ]
             },
-            { path: 'bookings', component: BookingList, canActivate: [permissionGuard], data: { requiredPermission: 'Booking.GetBookings' } },
-            { path: 'bookings/add', component: AddBooking, canActivate: [permissionGuard], data: { requiredPermission: 'Booking.CreateBooking' } },
-            { path: 'bookings/:id', component: BookingDetails, canActivate: [permissionGuard], data: { mode: 'view', requiredPermission: 'Booking.GetById' } },
-            { path: 'bookings/:id/edit', component: BookingDetails, canActivate: [permissionGuard], data: { mode: 'edit', requiredPermission: 'Booking.UpdateBooking' } },
+            { path: 'bookings', component: BookingListPage, canActivate: [permissionGuard], data: { requiredPermission: 'Booking.GetBookings' } },
+            { path: 'bookings/add', component: AddBookingPage, canActivate: [permissionGuard], data: { requiredPermission: 'Booking.CreateBooking' } },
+            { path: 'bookings/:id', component: BookingDetailsPage, canActivate: [permissionGuard], data: { mode: 'view', requiredPermission: 'Booking.GetById' } },
+            { path: 'bookings/:id/edit', component: BookingDetailsPage, canActivate: [permissionGuard], data: { mode: 'edit', requiredPermission: 'Booking.UpdateBooking' } },
             { path: 'employees', component: EmployeesLanding, canActivate: [permissionGuard], data: { requiredPermission: 'Employee.GetEmployees' } },
-            { path: 'expenses', component: Expenses, canActivate: [permissionGuard], data: { requiredPermission: 'Expense.GetExpenses' } },
+            { path: 'expenses', component: ExpensesPage, canActivate: [permissionGuard], data: { requiredPermission: 'Expense.GetExpenses' } },
             { path: 'reports', component: ReportsLanding },
             { path: 'reports/rent-collection', component: RentCollectionReport },
             { path: 'reports/overdue-rent', component: OverdueRentReport },

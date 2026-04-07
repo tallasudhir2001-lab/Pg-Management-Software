@@ -1,0 +1,74 @@
+@if (loading) {
+  <div class="loading-state"><div class="spinner"></div></div>
+} @else if (error) {
+  <div class="error-state">
+    <p>{{ error }}</p>
+    <button class="retry-btn" (click)="loadPayment(payment?.paymentId || '')">Retry</button>
+  </div>
+} @else if (payment) {
+  <div class="mobile-payment-details">
+    <button class="back-btn" (click)="goBack()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Back to Payments
+    </button>
+
+    <!-- Amount Card -->
+    <div class="card amount-card">
+      <div class="amount-label">Amount Paid</div>
+      <div class="amount-value">₹{{ payment.amount | number }}</div>
+      <div class="amount-date">{{ payment.paymentDate | date:'fullDate' }}</div>
+    </div>
+
+    <!-- Details Card -->
+    <div class="card">
+      <h3 class="card-title">Payment Details</h3>
+      <div class="info-list">
+        <div class="info-row">
+          <span class="info-label">Frequency</span>
+          <span class="info-value">{{ getFreqLabel(payment.paymentFrequencyCode) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Payment Mode</span>
+          <span class="info-value">{{ getModeLabel(payment.paymentModeCode) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Paid From</span>
+          <span class="info-value">{{ payment.paidFrom | date:'mediumDate' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Paid Upto</span>
+          <span class="info-value">{{ payment.paidUpto | date:'mediumDate' }}</span>
+        </div>
+        @if (payment.notes) {
+          <div class="info-row">
+            <span class="info-label">Notes</span>
+            <span class="info-value">{{ payment.notes }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Period Covered -->
+    <div class="card period-card">
+      <div class="period-label">Period Covered</div>
+      <div class="period-range">
+        <span>{{ payment.paidFrom | date:'d MMM yyyy' }}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" width="20" height="20">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+        <span>{{ payment.paidUpto | date:'d MMM yyyy' }}</span>
+      </div>
+    </div>
+
+    <!-- View Tenant -->
+    <button class="view-tenant-btn" (click)="viewTenant()">
+      View Tenant
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </button>
+  </div>
+}

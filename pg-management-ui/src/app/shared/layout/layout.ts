@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, NavigationEnd } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -6,16 +6,19 @@ import { Auth } from '../../core/services/auth';
 import { PermissionService } from '../../core/services/permission.service';
 import { BranchViewService } from '../../core/services/branch-view.service';
 import { VersionService } from '../../core/services/version.service';
+import { ScreenService } from '../../core/services/screen.service';
+import { MobileNav } from '../mobile-nav/mobile-nav';
 import { jwtDecode } from 'jwt-decode';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterModule, CommonModule],
+  imports: [RouterOutlet, RouterLink, RouterModule, CommonModule, MobileNav],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })
 export class Layout implements OnInit {
+  screenService = inject(ScreenService);
   paymentsExpanded = false;
   userRole: string = '';
   appVersion: string = '';

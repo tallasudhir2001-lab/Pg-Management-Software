@@ -1,55 +1,75 @@
-<div class="app-shell">
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <h2 class="logo">PG Manager</h2>
+@if (screenService.isMobile()) {
+  <!-- MOBILE SHELL -->
+  <div class="mobile-shell">
+    <header class="mobile-header">
+      <h1 class="mobile-logo">PG Manager</h1>
+      <button class="mobile-logout-btn" (click)="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    </header>
+    <main class="mobile-content">
+      <router-outlet></router-outlet>
+    </main>
+    <app-mobile-nav />
+  </div>
+} @else {
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <h2 class="logo">PG Manager</h2>
 
-    <!-- Branch View Toggle -->
-    <div class="branch-toggle-wrapper" *ngIf="branchView.canToggle$ | async">
-      <label class="branch-toggle">
-        <span class="branch-toggle-label">Branch View</span>
-        <div class="toggle-switch" [class.active]="branchView.isActive$ | async" (click)="onBranchToggle()">
-          <div class="toggle-knob"></div>
-        </div>
-      </label>
-    </div>
-
-    <nav>
-      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
-      <a routerLink="/room-list" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Rooms</a>
-      <a routerLink="/tenant-list" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Tenants</a>
-      <a routerLink="/bookings" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Bookings</a>
-      <div class="nav-group">
-        <button class="nav-parent" (click)="togglePayments()">
-          Payments
-          <span class="arrow" [class.expanded]="paymentsExpanded">▼</span>
-        </button>
-
-        <div class="nav-children" [class.expanded]="paymentsExpanded">
-          <a routerLink="/payments/add" routerLinkActive="active">
-            Add Payment
-          </a>
-
-          <a routerLink="/payments/history" routerLinkActive="active">
-            Payment History
-          </a>
-        </div>
+      <!-- Branch View Toggle -->
+      <div class="branch-toggle-wrapper" *ngIf="branchView.canToggle$ | async">
+        <label class="branch-toggle">
+          <span class="branch-toggle-label">Branch View</span>
+          <div class="toggle-switch" [class.active]="branchView.isActive$ | async" (click)="onBranchToggle()">
+            <div class="toggle-knob"></div>
+          </div>
+        </label>
       </div>
-      <a routerLink="/expenses" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Expenses</a>
-      <a routerLink="/employees" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Employees / Salaries</a>
-      <a routerLink="/reports" routerLinkActive="active">Reports</a>
-      @if (showSettings) {
-        <a routerLink="/settings" routerLinkActive="active">Settings</a>
-      }
-    </nav>
 
-    <div class="sidebar-version" *ngIf="appVersion">
-      v{{ appVersion }}
-    </div>
-    <button class="logout-btn" (click)="logout()">Logout</button>
-  </aside>
+      <nav>
+        <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
+        <a routerLink="/room-list" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Rooms</a>
+        <a routerLink="/tenant-list" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Tenants</a>
+        <a routerLink="/bookings" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Bookings</a>
+        <div class="nav-group">
+          <button class="nav-parent" (click)="togglePayments()">
+            Payments
+            <span class="arrow" [class.expanded]="paymentsExpanded">▼</span>
+          </button>
 
-  <!-- MAIN CONTENT -->
-  <main class="content">
-    <router-outlet></router-outlet>
-  </main>
-</div>
+          <div class="nav-children" [class.expanded]="paymentsExpanded">
+            <a routerLink="/payments/add" routerLinkActive="active">
+              Add Payment
+            </a>
+
+            <a routerLink="/payments/history" routerLinkActive="active">
+              Payment History
+            </a>
+          </div>
+        </div>
+        <a routerLink="/expenses" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Expenses</a>
+        <a routerLink="/employees" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Employees / Salaries</a>
+        <a routerLink="/reports" routerLinkActive="active">Reports</a>
+        @if (showSettings) {
+          <a routerLink="/settings" routerLinkActive="active">Settings</a>
+        }
+      </nav>
+
+      <div class="sidebar-version" *ngIf="appVersion">
+        v{{ appVersion }}
+      </div>
+      <button class="logout-btn" (click)="logout()">Logout</button>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+}

@@ -1212,6 +1212,157 @@
     grid-template-columns: 1fr;
   }
 }
+@media (max-width: 768px) {
+  /* Page */
+  .td-page {
+    padding: 12px;
+    min-height: auto;
+  }
+
+  .back-nav {
+    margin-bottom: 8px;
+    font-size: 13px;
+    gap: 6px;
+  }
+  .back-icon { width: 16px; height: 16px; }
+
+  /* Grid — single column */
+  .td-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Info card */
+  .td-info-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .td-info-strip {
+    gap: 12px 20px;
+  }
+  .td-info-label { font-size: 10px; }
+  .td-info-value { font-size: 13px; }
+
+  /* Action buttons — wrap compact */
+  .td-header-actions {
+    gap: 6px;
+    width: 100%;
+  }
+  .td-btn-action {
+    padding: 7px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .td-strip-divider { margin: 12px 0; }
+
+  /* Details grid */
+  .td-details-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .td-detail-label { font-size: 10px; }
+  .td-detail-value { font-size: 13px; }
+
+  /* Edit mode */
+  .td-edit-grid { grid-template-columns: 1fr; gap: 12px; }
+  .td-edit-label { font-size: 12px; }
+  .td-input { padding: 10px 12px; font-size: 14px; }
+  .td-save-row { gap: 8px; margin-top: 16px; }
+  .td-btn-save, .td-btn-discard {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  /* Pending Rent card */
+  .pending-rent-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  .pending-header-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pending-amount-display { font-size: 1.5rem; }
+  .btn-add-payment-pill {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Pending breakdown table → stacked */
+  .pending-table { display: block; white-space: normal; }
+  .pending-table thead { display: none; }
+  .pending-table tbody { display: flex; flex-direction: column; gap: 8px; }
+  .pending-table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .pending-table td {
+    padding: 0;
+    font-size: 0.8rem;
+    text-align: left !important;
+  }
+  .pending-table tfoot tr {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+  }
+  .pending-table tfoot td { padding: 0; text-align: left !important; }
+
+  /* Stay history card */
+  .td-stay-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  .td-card-title { font-size: 15px; }
+  .td-stay-row {
+    padding: 10px 0;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .td-stay-room { font-size: 13px; }
+  .td-stay-dates { font-size: 12px; }
+
+  /* Payment history (embedded component) */
+  .td-right-col { gap: 12px; }
+
+  /* Add tenant card */
+  .form-page-container {
+    padding: 12px !important;
+    align-items: stretch;
+  }
+  .page-title { font-size: 20px; margin-bottom: 12px; }
+
+  .add-tenant-card {
+    padding: 16px;
+    border-radius: 12px;
+    max-width: 100%;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .section-bottom { grid-column: span 1; }
+  .financial-row { grid-template-columns: 1fr; gap: 0; }
+  .actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .actions button { width: 100%; }
+
+  /* Modals */
+  .modal-content,
+  .modal-card {
+    width: calc(100% - 24px) !important;
+    max-width: 100% !important;
+    margin: 12px;
+    padding: 16px;
+  }
+}
 
 /* ================= ADD TENANT REDESIGN ================= */
 

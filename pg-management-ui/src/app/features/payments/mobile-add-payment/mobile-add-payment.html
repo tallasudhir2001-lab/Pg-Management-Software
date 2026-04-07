@@ -1,0 +1,227 @@
+<div class="mobile-add-payment">
+  <button class="back-btn" (click)="goBack()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Back
+  </button>
+
+  <h2 class="page-title">Add Payment</h2>
+
+  @if (!selectedTenant) {
+    <!-- Tenant Search -->
+    <div class="search-card">
+      <p class="search-label">Select a tenant</p>
+      <div class="search-bar">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" width="18" height="18">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" class="search-input" placeholder="Search by name, room or phone..."
+               [(ngModel)]="searchText" (input)="onSearch()">
+      </div>
+
+      @if (searching) {
+        <div class="search-loading"><div class="spinner-sm"></div></div>
+      }
+
+      @if (searchResults.length > 0) {
+        <div class="search-results">
+          @for (t of searchResults; track t.tenantId) {
+            <div class="search-result-item" (click)="selectTenant(t)">
+              <div class="result-avatar">{{ t.name.charAt(0) }}</div>
+              <div class="result-info">
+                <span class="result-name">{{ t.name }}</span>
+                <span class="result-meta">
+                  @if (t.roomNumber) { Room {{ t.roomNumber }} · }
+                  {{ t.contactNumber }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <!-- Selected Tenant Badge -->
+    <div class="selected-tenant">
+      <div class="selected-info">
+        <span class="selected-name">{{ selectedTenant.name }}</span>
+        @if (selectedTenant.roomNumber) {
+          <span class="selected-meta">Room {{ selectedTenant.roomNumber }} · {{ selectedTenant.contactNumber }}</span>
+        }
+      </div>
+      <button class="change-btn" (click)="clearTenant()">Change</button>
+    </div>
+
+    @if (loadingContext) {
+      <div class="loading-card">
+        <div class="spinner-sm"></div>
+        <span>Loading payment details...</span>
+      </div>
+    }
+
+    @if (paymentContext; as ctx) {
+      <!-- Summary Card -->
+      <div class="summary-card">
+        <div class="summary-row">
+          <div class="summary-item">
+            <span class="summary-label">Tenant</span>
+            <span class="summary-value">{{ ctx.tenantName }}</span>
+          </div>
+          @if (ctx.roomNumber) {
+            <div class="summary-item">
+              <span class="summary-label">Room</span>
+              <span class="summary-value">{{ ctx.roomNumber }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="summary-row">
+          <div class="summary-item">
+            <span class="summary-label">Rent / Month</span>
+            <span class="summary-value">₹{{ ctx.rentPerMonth | number:'1.2-2' }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Stay Type</span>
+            <span class="stay-pill" [class.monthly]="ctx.stayType === 'MONTHLY'" [class.daily]="ctx.stayType === 'DAILY'">
+              {{ ctx.stayType === 'MONTHLY' ? 'Monthly' : 'Daily' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="pending-block">
+          <span class="pending-label">Total Pending</span>
+          <span class="pending-value" [class.zero]="ctx.pendingAmount === 0">₹{{ ctx.pendingAmount | number:'1.2-2' }}</span>
+        </div>
+
+        @if (ctx.pendingAmount > 0 && ctx.paidFrom) {
+          <div class="due-row">
+            <div class="due-item">
+              <span class="due-label">Due From</span>
+              <span class="due-value">{{ ctx.paidFrom | date:'dd MMM yyyy' }}</span>
+            </div>
+            <div class="due-item">
+              <span class="due-label">Allowed Till</span>
+              <span class="due-value till">{{ ctx.maxPaidUpto | date:'dd MMM yyyy' }}</span>
+            </div>
+          </div>
+
+          @if (paidUpto) {
+            <div class="coverage-box">
+              <span class="coverage-label">This Payment Covers</span>
+              <span class="coverage-dates">{{ ctx.paidFrom | date:'dd MMM' }} → {{ paidUpto | date:'dd MMM yyyy' }}</span>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Pending Stays -->
+      @if (ctx.pendingStays && ctx.pendingStays.length > 0) {
+        <div class="stays-card">
+          <div class="stays-title">Pending Stays</div>
+          @for (stay of ctx.pendingStays; track stay.roomId) {
+            <div class="stay-item"
+                 [class.next-payable]="stay.isNextPayable"
+                 [class.active-stay]="stay.isActiveStay">
+              <div class="stay-header">
+                <span class="stay-room">Room {{ stay.roomNumber }}</span>
+                <span class="stay-amount">
+                  ₹{{ stay.pendingAmount | number:'1.2-2' }}
+                  @if (stay.isActiveStay) {
+                    <span class="active-badge">ACTIVE</span>
+                  }
+                </span>
+              </div>
+              @if (stay.rentPerMonth > 0) {
+                <div class="stay-rent">₹{{ stay.rentPerMonth | number:'1.2-2' }} / month · {{ stay.stayType === 'MONTHLY' ? 'Monthly' : 'Daily' }}</div>
+              }
+              <div class="stay-dates">{{ stay.fromDate | date:'dd MMM yyyy' }} → {{ stay.toDate | date:'dd MMM yyyy' }}</div>
+              @if (stay.isNextPayable) {
+                <div class="next-badge">PAY THIS FIRST</div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- No Pending -->
+      @if (ctx.pendingAmount === 0) {
+        <div class="no-pending-card">
+          <div class="check-icon">✓</div>
+          <span>All rent payments are up to date!</span>
+        </div>
+      }
+
+      <!-- Payment Form -->
+      @if (ctx.pendingAmount > 0 && ctx.paidFrom) {
+        <div class="form-card">
+          <div class="form-group">
+            <label class="form-label">Payment Frequency <span class="required">*</span></label>
+            <select class="form-input" [(ngModel)]="frequency" (ngModelChange)="onFrequencyChange()">
+              @for (f of frequencies; track f.key) {
+                <option [value]="f.key">{{ f.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Paid Upto <span class="required">*</span></label>
+            <input type="date" class="form-input" [(ngModel)]="paidUpto"
+                   [min]="ctx.paidFrom" [max]="ctx.maxPaidUpto"
+                   (ngModelChange)="onPaidUptoChange()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Amount (₹) <span class="required">*</span></label>
+            <div class="amount-wrapper">
+              <input type="number" class="form-input amount-input" [(ngModel)]="amount" placeholder="0.00">
+              @if (calculatingRent) {
+                <span class="calc-indicator">Calculating...</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Payment Mode <span class="required">*</span></label>
+            <div class="mode-chips">
+              @for (m of paymentModes; track m.code) {
+                <button type="button" class="mode-chip" [class.selected]="paymentModeCode === m.code"
+                        (click)="paymentModeCode = m.code">
+                  @switch (m.code) {
+                    @case ('UPI') {
+                      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    }
+                    @case ('CASH') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+                    }
+                    @case ('BANK_TRANSFER') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
+                    }
+                  }
+                  {{ m.description }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Notes <span class="optional">(optional)</span></label>
+            <textarea class="form-input" [(ngModel)]="notes" placeholder="Payment remarks..." rows="2"></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-cancel" (click)="goBack()">Cancel</button>
+            <button class="btn-confirm" [disabled]="!isFormValid || saving" (click)="save()">
+              @if (saving) {
+                <div class="spinner-xs"></div> Processing...
+              } @else {
+                Confirm Payment
+              }
+            </button>
+          </div>
+        </div>
+      }
+    }
+  }
+</div>

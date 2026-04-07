@@ -1,0 +1,249 @@
+.mobile-add-booking {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: #f5f5f5;
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.form-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: #222;
+}
+
+.back-btn {
+  width: 36px !important;
+  height: 36px;
+  border: none;
+  background: none;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.back-btn:active {
+  background: #f0f0f0;
+}
+
+.form-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 32px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0;
+}
+
+.req {
+  color: #e53935;
+}
+
+input.form-input,
+textarea.form-input {
+  -webkit-appearance: none;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #333;
+  background: #fff;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: #1565C0;
+}
+
+.form-input:disabled {
+  background: #f5f5f5;
+  color: #888;
+}
+
+select.form-input {
+  font-size: 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+select.form-input option {
+  font-size: 13px;
+}
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+.hint {
+  font-size: 12px;
+  color: #888;
+}
+
+.hint.success {
+  color: #2e7d32;
+}
+
+.hint.error {
+  color: #e53935;
+}
+
+/* Toggle */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #ccc;
+  border-radius: 24px;
+  transition: 0.3s;
+}
+
+.slider::before {
+  content: '';
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.switch input:checked + .slider {
+  background: #1565C0;
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(20px);
+}
+
+/* Mode Chips */
+.mode-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mode-chip {
+  padding: 8px 16px !important;
+  border: 1.5px solid #ddd;
+  border-radius: 20px;
+  background: #fff;
+  color: #555;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  width: auto !important;
+  transition: all 0.2s;
+}
+
+.mode-chip.selected {
+  background: #1565C0;
+  color: #fff;
+  border-color: #1565C0;
+}
+
+/* Actions */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 12px !important;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  color: #555;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  width: auto !important;
+}
+
+.btn-save {
+  flex: 2;
+  padding: 12px !important;
+  border: none;
+  border-radius: 8px;
+  background: #1565C0;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  width: auto !important;
+}
+
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-cancel:active {
+  background: #f5f5f5;
+}
+
+.btn-save:active:not(:disabled) {
+  background: #0d47a1;
+}

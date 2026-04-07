@@ -1,0 +1,93 @@
+<div class="mobile-tenants">
+  <!-- Search Bar -->
+  <div class="search-bar">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" width="18" height="18">
+      <circle cx="11" cy="11" r="8"/>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input type="text"
+           class="search-input"
+           placeholder="Search tenants..."
+           [(ngModel)]="searchText"
+           (input)="onSearch()">
+    @if (searchText) {
+      <button class="clear-btn" (click)="clearSearch()">✕</button>
+    }
+  </div>
+
+  <!-- Filter Chips -->
+  <div class="filter-chips">
+    <button class="chip" [class.active]="activeFilter === 'all'" (click)="setFilter('all')">All</button>
+    <button class="chip" [class.active]="activeFilter === 'ACTIVE'" (click)="setFilter('ACTIVE')">Active</button>
+    <button class="chip" [class.active]="activeFilter === 'MOVED OUT'" (click)="setFilter('MOVED OUT')">Moved Out</button>
+    <button class="chip" [class.active]="activeFilter === 'RENT_PENDING'" (click)="setFilter('RENT_PENDING')">Rent Pending</button>
+  </div>
+
+  @if (loading) {
+    <div class="loading-state"><div class="spinner"></div></div>
+  } @else if (error) {
+    <div class="error-state">
+      <p>{{ error }}</p>
+      <button class="retry-btn" (click)="loadTenants()">Retry</button>
+    </div>
+  } @else if (tenants.length === 0) {
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="#cbd5e1" width="64" height="64">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+      </svg>
+      <p>No tenants found</p>
+    </div>
+  } @else {
+    <p class="count-label">{{ totalCount }} tenant{{ totalCount !== 1 ? 's' : '' }}</p>
+    <div class="tenant-list">
+      @for (tenant of tenants; track tenant.tenantId) {
+        <div class="tenant-card" (click)="openTenant(tenant)">
+          <div class="tenant-avatar"
+               [style.background]="getStatusColor(tenant.status) + '22'"
+               [style.color]="getStatusColor(tenant.status)">
+            {{ getInitial(tenant.name) }}
+          </div>
+          <div class="tenant-info">
+            <div class="tenant-top-row">
+              <span class="tenant-name">{{ tenant.name }}</span>
+              <span class="status-badge"
+                    [style.background]="getStatusColor(tenant.status) + '22'"
+                    [style.color]="getStatusColor(tenant.status)">
+                {{ tenant.status }}
+              </span>
+            </div>
+            <div class="tenant-details-row">
+              @if (tenant.roomNumber) {
+                <span class="detail-item">
+                  <svg viewBox="0 0 24 24" fill="#94a3b8" width="14" height="14">
+                    <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+                  </svg>
+                  Room {{ tenant.roomNumber }}
+                </span>
+              }
+              <span class="detail-item">
+                <svg viewBox="0 0 24 24" fill="#94a3b8" width="14" height="14">
+                  <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                </svg>
+                {{ tenant.contactNumber }}
+              </span>
+            </div>
+            @if (tenant.daysOverdue && tenant.daysOverdue > 0) {
+              <div class="overdue-warning">⚠ Rent overdue by {{ tenant.daysOverdue }} days</div>
+            }
+          </div>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" width="20" height="20">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- FAB -->
+  <button class="fab" (click)="addTenant()">
+    <svg viewBox="0 0 24 24" fill="#fff" width="24" height="24">
+      <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+    </svg>
+  </button>
+</div>

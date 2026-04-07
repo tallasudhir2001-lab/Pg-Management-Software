@@ -1,0 +1,164 @@
+@if (loading) {
+  <div class="loading-state"><div class="spinner"></div></div>
+} @else if (error) {
+  <div class="error-state">
+    <p>{{ error }}</p>
+    <button class="retry-btn" (click)="loadBooking(booking?.bookingId || '')">Retry</button>
+  </div>
+} @else if (booking) {
+  <div class="mobile-booking-details">
+    <button class="back-btn" (click)="goBack()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Back to Bookings
+    </button>
+
+    <!-- Info Card -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="tenant-name">{{ booking.tenantName }}</h2>
+        <span class="status-pill" [ngClass]="getStatusClass(booking.status)">{{ booking.status }}</span>
+      </div>
+
+      <div class="info-list">
+        <div class="info-row">
+          <span class="info-label">Contact</span>
+          <span class="info-value">{{ booking.tenantContact }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Room</span>
+          <span class="info-value">Room {{ booking.roomNumber }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Check-in Date</span>
+          <span class="info-value">{{ booking.scheduledCheckInDate | date:'d MMM yyyy' }}</span>
+        </div>
+        @if (booking.advanceAmount > 0) {
+          <div class="info-row">
+            <span class="info-label">Advance</span>
+            <span class="info-value advance">₹{{ booking.advanceAmount | number }}</span>
+          </div>
+        }
+        <div class="info-row">
+          <span class="info-label">Booked On</span>
+          <span class="info-value">{{ booking.createdAt | date:'d MMM yyyy' }}</span>
+        </div>
+        @if (booking.notes) {
+          <div class="info-row">
+            <span class="info-label">Notes</span>
+            <span class="info-value">{{ booking.notes }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    @if (booking.status === 'Active') {
+      <div class="action-group">
+        <button class="action-btn checkin" (click)="openCheckIn()" [disabled]="checkingIn">
+          {{ checkingIn ? 'Checking In...' : 'Check In' }}
+        </button>
+        <div class="action-row">
+          <button class="action-btn terminate" (click)="requestAction('terminate')" [disabled]="terminating">
+            {{ terminating ? 'Terminating...' : 'Terminate' }}
+          </button>
+          <button class="action-btn cancel" (click)="requestAction('cancel')" [disabled]="cancelling">
+            {{ cancelling ? 'Cancelling...' : 'Cancel' }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Check-In Bottom Sheet -->
+  @if (showCheckIn) {
+    <div class="sheet-backdrop" (click)="closeCheckIn()"></div>
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <h3 class="sheet-title">Check In Tenant</h3>
+
+      <div class="sheet-field">
+        <label class="sheet-label">Room</label>
+        <select class="sheet-input" [(ngModel)]="checkInRoomId">
+          @for (room of checkInRooms; track room.roomId) {
+            <option [value]="room.roomId">
+              Room {{ room.roomNumber }} ({{ room.vacancies }} beds){{ booking && room.roomId === booking.roomId ? ' — Booked' : '' }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="sheet-field">
+        <label class="sheet-label">Check-in Date</label>
+        <input type="date" class="sheet-input" [(ngModel)]="checkInDate">
+      </div>
+
+      <div class="sheet-actions">
+        <button class="sheet-cancel" (click)="closeCheckIn()">Cancel</button>
+        <button class="sheet-confirm" [disabled]="!checkInDate || !checkInRoomId || checkingIn" (click)="confirmCheckIn()">
+          {{ checkingIn ? 'Checking In...' : 'Confirm' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Advance Confirm Sheet -->
+  @if (showAdvanceConfirm && booking) {
+    <div class="sheet-backdrop" (click)="showAdvanceConfirm = false"></div>
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <h3 class="sheet-title">Unsettled Advance</h3>
+      <p class="sheet-body-text">
+        This booking has an unsettled advance of <strong>₹{{ booking.advanceAmount | number }}</strong>.
+        Settle it before proceeding?
+      </p>
+      <div class="sheet-actions">
+        <button class="sheet-cancel" (click)="skipAndProceed()">Skip & {{ pendingAction === 'cancel' ? 'Cancel' : 'Terminate' }}</button>
+        <button class="sheet-confirm" (click)="openSettleBeforeAction()">Settle Advance</button>
+      </div>
+    </div>
+  }
+
+  <!-- Settle Advance Sheet -->
+  @if (showSettle && settlingAdvance) {
+    <div class="sheet-backdrop" (click)="closeSettle()"></div>
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <h3 class="sheet-title">Settle Advance</h3>
+
+      <div class="sheet-info-row">
+        <span class="sheet-info-label">Advance Amount</span>
+        <span class="sheet-info-value">₹{{ settlingAdvance.amount | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="sheet-field">
+        <label class="sheet-label">Deducted Amount</label>
+        <input type="number" class="sheet-input" [(ngModel)]="settleDeductedAmount" placeholder="0">
+      </div>
+
+      @if (settleDeductedAmount > 0 && refundAmount > 0) {
+        <div class="refund-hint">
+          <span>↩</span> Return <strong>₹{{ refundAmount | number:'1.2-2' }}</strong> to the tenant.
+        </div>
+      }
+
+      <div class="sheet-field">
+        <label class="sheet-label">Payment Mode</label>
+        <div class="mode-chips">
+          @for (m of paymentModes; track m.code) {
+            <button type="button" class="mode-chip" [class.selected]="settlePaymentModeCode === m.code"
+                    (click)="settlePaymentModeCode = m.code">{{ m.description }}</button>
+          }
+        </div>
+      </div>
+
+      <div class="sheet-actions">
+        <button class="sheet-cancel" (click)="closeSettle()">Cancel</button>
+        <button class="sheet-confirm" [disabled]="settleLoading" (click)="confirmSettle()">
+          {{ settleLoading ? 'Processing...' : 'Confirm' }}
+        </button>
+      </div>
+    </div>
+  }
+}

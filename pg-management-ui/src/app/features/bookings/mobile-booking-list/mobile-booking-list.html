@@ -1,0 +1,61 @@
+@if (loading) {
+  <div class="loading-state"><div class="spinner"></div></div>
+} @else if (error) {
+  <div class="error-state">
+    <p>{{ error }}</p>
+    <button class="retry-btn" (click)="load()">Retry</button>
+  </div>
+} @else {
+  <div class="mobile-booking-list">
+    <h2 class="page-title">Bookings</h2>
+
+    <!-- Filter Chips -->
+    <div class="filter-chips">
+      @for (f of filters; track f) {
+        <button class="chip" [class.active]="activeFilter === f" (click)="setFilter(f)">{{ f }}</button>
+      }
+    </div>
+
+    @if (bookings.length === 0) {
+      <div class="empty-state">
+        <p>No bookings found</p>
+      </div>
+    }
+
+    @for (b of bookings; track b.bookingId) {
+      <div class="booking-card" (click)="openBooking(b)">
+        <div class="card-top">
+          <span class="card-name">{{ b.tenantName }}</span>
+          <span class="card-status" [ngClass]="getStatusClass(b.status)">{{ b.status }}</span>
+        </div>
+        <div class="card-meta">
+          <span class="meta-item">
+            <span class="meta-label">Room</span>
+            <span class="meta-value">{{ b.roomNumber }}</span>
+          </span>
+          <span class="meta-item">
+            <span class="meta-label">Check-in</span>
+            <span class="meta-value">{{ b.scheduledCheckInDate | date:'d MMM yyyy' }}</span>
+          </span>
+          @if (b.advanceAmount > 0) {
+            <span class="meta-item">
+              <span class="meta-label">Advance</span>
+              <span class="meta-value advance">₹{{ b.advanceAmount | number }}</span>
+            </span>
+          }
+        </div>
+        @if (b.notes) {
+          <div class="card-notes">{{ b.notes }}</div>
+        }
+      </div>
+    }
+
+    <!-- FAB -->
+    <button class="fab" (click)="addBooking()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" width="24" height="24">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    </button>
+  </div>
+}

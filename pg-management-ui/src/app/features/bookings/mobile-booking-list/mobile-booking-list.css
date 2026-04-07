@@ -1,0 +1,63 @@
+.mobile-booking-list { padding: 16px; padding-bottom: 100px; }
+
+.loading-state { display: flex; justify-content: center; align-items: center; min-height: 60vh; }
+.spinner { width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: #1565C0; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-state { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 12px; color: #64748b; }
+.retry-btn { padding: 8px 24px; background: #1565C0; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; width: auto; }
+
+.page-title { font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 12px 0; }
+
+/* Filter Chips */
+.filter-chips { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.filter-chips::-webkit-scrollbar { display: none; }
+
+.chip {
+  padding: 6px 16px; border-radius: 20px;
+  border: 1px solid #d1d5db; background: #fff;
+  font-size: 13px; font-weight: 500; color: #64748b;
+  white-space: nowrap; cursor: pointer; width: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+.chip.active { background: #1565C0; color: #fff; border-color: #1565C0; }
+
+.empty-state { text-align: center; padding: 40px 0; color: #94a3b8; font-size: 14px; }
+
+/* Booking Card */
+.booking-card {
+  background: #fff; border-radius: 12px; padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 10px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.booking-card:active { background: #f8fafc; }
+
+.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.card-name { font-size: 15px; font-weight: 600; color: #1e293b; }
+
+.card-status {
+  padding: 2px 10px; border-radius: 4px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+}
+.status-active { background: #E8F5E9; color: #2E7D32; }
+.status-cancelled { background: #FFEBEE; color: #C62828; }
+.status-terminated { background: #FFF3E0; color: #E65100; }
+
+.card-meta { display: flex; gap: 16px; flex-wrap: wrap; }
+.meta-item { display: flex; flex-direction: column; }
+.meta-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; }
+.meta-value { font-size: 13px; font-weight: 600; color: #1e293b; }
+.meta-value.advance { color: #1565C0; }
+
+.card-notes { font-size: 12px; color: #94a3b8; margin-top: 6px; }
+
+/* FAB */
+.fab {
+  position: fixed; bottom: 84px; right: 20px;
+  width: 56px; height: 56px; border-radius: 16px;
+  background: #1565C0; border: none;
+  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.4);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 50;
+  -webkit-tap-highlight-color: transparent;
+}
+.fab:active { transform: scale(0.95); }
