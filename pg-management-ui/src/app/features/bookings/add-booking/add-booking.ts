@@ -60,6 +60,7 @@ export class AddBooking implements OnInit {
     this.form = this.fb.group({
       aadharNumber: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
       name: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
       contactNumber: ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
       roomId: ['', Validators.required],
       scheduledCheckInDate: [null, Validators.required],
@@ -101,6 +102,7 @@ export class AddBooking implements OnInit {
           // Auto-populate tenant fields
           this.form.patchValue({
             name: res.name,
+            email: res.email,
             contactNumber: res.contactNumber,
           });
 
@@ -116,7 +118,7 @@ export class AddBooking implements OnInit {
         } else {
           this.existingTenant = null;
           this.hasActiveBooking = false;
-          this.form.patchValue({ name: '', contactNumber: '' });
+          this.form.patchValue({ name: '', email: '', contactNumber: '' });
         }
       });
   }
@@ -138,6 +140,11 @@ export class AddBooking implements OnInit {
 
     if (!formValue.name?.trim()) {
       this.toastService.showError('Tenant name is required.');
+      return;
+    }
+
+    if (!formValue.email?.trim()) {
+      this.toastService.showError('Email is required.');
       return;
     }
 
@@ -175,6 +182,7 @@ export class AddBooking implements OnInit {
     const payload = {
       aadharNumber: formValue.aadharNumber,
       name: formValue.name,
+      email: formValue.email,
       contactNumber: contactNumber,
       roomId: formValue.roomId,
       scheduledCheckInDate: formValue.scheduledCheckInDate,

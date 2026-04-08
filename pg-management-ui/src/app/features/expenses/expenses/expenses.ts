@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, Subject, combineLatest, map, startWith, switchMap, tap } from 'rxjs';
 import { PagedResults } from '../../../shared/models/page-results.model';
 import { ToastService } from '../../../shared/toast/toast-service';
+import { ConfirmDialogService } from '../../../shared/confirm-dialog/confirm-dialog.service';
 import { ExpenseListItemDto, ExpensesService, ExpenseSummaryDto,CategoryFilterItem } from '../services/expenses-service';
 import { TimeHelper } from '../../../shared/utils/time.helper';
 import { ExpenseDrawer } from '../expense-drawer/expense-drawer';
@@ -63,7 +64,8 @@ export class Expenses implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private expenseService: ExpensesService, // You'll need to create this service
-    private toastService: ToastService
+    private toastService: ToastService,
+    private confirmDialogService: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -346,10 +348,11 @@ export class Expenses implements OnInit {
     this.router.navigate(['/expenses', expenseId, 'edit']);
   }
 
-  private confirmDeleteExpense(expense: ExpenseListItemDto): void {
-    const confirmed = confirm(
-      `Are you sure you want to delete this expense: "${expense.description}"?`
-    );
+  private async confirmDeleteExpense(expense: ExpenseListItemDto): Promise<void> {
+    const confirmed = await this.confirmDialogService.confirm({
+      title: 'Delete Expense',
+      message: `Are you sure you want to delete this expense: "${expense.description}"?`
+    });
 
     if (!confirmed) return;
     this.deleteExpense(expense.id);

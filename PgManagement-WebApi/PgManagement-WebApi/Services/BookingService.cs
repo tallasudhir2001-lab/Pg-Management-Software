@@ -245,6 +245,7 @@ namespace PgManagement_WebApi.Services
                         PgId = pgId,
                         BranchId = branchId,
                         Name = dto.Name,
+                        Email = dto.Email,
                         ContactNumber = dto.ContactNumber,
                         AadharNumber = dto.AadharNumber,
                         Notes = dto.Notes,

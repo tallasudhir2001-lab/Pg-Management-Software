@@ -19,6 +19,8 @@
 }
 
 .tab-btn {
+  flex: 1;
+  text-align: center;
   position: relative;
   background: none;
   border: none;

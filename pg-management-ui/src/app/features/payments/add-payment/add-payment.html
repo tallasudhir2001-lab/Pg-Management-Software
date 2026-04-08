@@ -76,9 +76,6 @@
                   <span class="room-number">Room {{ stay.roomNumber }}</span>
                   <span class="stay-amount">
                     ₹{{ stay.pendingAmount | number:'1.2-2' }}
-                    @if (stay.isActiveStay) {
-                      <span class="active-badge">ACTIVE</span>
-                    }
                   </span>
                 </div>
 

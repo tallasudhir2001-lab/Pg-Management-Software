@@ -62,7 +62,7 @@ export class MobileAddPayment implements OnInit, OnDestroy {
       debounceTime(300),
       distinctUntilChanged(),
       switchMap(text => {
-        if (text.length < 2) { this.searchResults = []; return of(null); }
+        if (text.length < 3) { this.searchResults = []; return of(null); }
         this.searching = true;
         return this.tenantService.getTenants({ page: 1, pageSize: 8, search: text, status: 'ACTIVE' });
       })

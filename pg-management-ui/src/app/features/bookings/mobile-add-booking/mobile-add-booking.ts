@@ -35,6 +35,7 @@ export class MobileAddBooking implements OnInit {
   // Form
   aadharNumber = '';
   name = '';
+  email = '';
   contactNumber = '';
   roomId = '';
   scheduledCheckInDate = '';
@@ -82,6 +83,7 @@ export class MobileAddBooking implements OnInit {
       if (res) {
         this.existingTenant = res;
         this.name = res.name;
+        this.email = res.email;
         this.contactNumber = res.contactNumber;
         this.bookingService.checkActiveBooking(res.tenantId).subscribe({
           next: (r: { hasActiveBooking: boolean }) => {
@@ -94,6 +96,7 @@ export class MobileAddBooking implements OnInit {
         this.existingTenant = null;
         this.hasActiveBooking = false;
         this.name = '';
+        this.email = '';
         this.contactNumber = '';
       }
       this.cdr.detectChanges();
@@ -118,6 +121,9 @@ export class MobileAddBooking implements OnInit {
     if (!this.name?.trim()) {
       this.toastService.showError('Tenant name is required'); return;
     }
+    if (!this.email?.trim()) {
+      this.toastService.showError('Email is required'); return;
+    }
     if (!this.contactNumber?.trim() || !/^[6-9]\d{9}$/.test(this.contactNumber)) {
       this.toastService.showError('Valid 10-digit mobile required'); return;
     }
@@ -140,6 +146,7 @@ export class MobileAddBooking implements OnInit {
     this.bookingService.createBooking({
       aadharNumber: this.aadharNumber,
       name: this.name,
+      email: this.email,
       contactNumber: this.contactNumber,
       roomId: this.roomId,
       scheduledCheckInDate: this.scheduledCheckInDate,

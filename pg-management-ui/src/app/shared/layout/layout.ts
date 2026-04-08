@@ -8,12 +8,13 @@ import { BranchViewService } from '../../core/services/branch-view.service';
 import { VersionService } from '../../core/services/version.service';
 import { ScreenService } from '../../core/services/screen.service';
 import { MobileNav } from '../mobile-nav/mobile-nav';
+import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 import { jwtDecode } from 'jwt-decode';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterModule, CommonModule, MobileNav],
+  imports: [RouterOutlet, RouterLink, RouterModule, CommonModule, MobileNav, ConfirmDialog],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })

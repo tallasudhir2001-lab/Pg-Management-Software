@@ -21,7 +21,7 @@ export class AddPaymentContainer {
   constructor(private tenantService: Tenantservice) {}
 
   onSearchChange() {
-    if (this.search.trim().length < 2) {
+    if (this.search.trim().length < 3) {
       this.tenants = [];
       return;
     }

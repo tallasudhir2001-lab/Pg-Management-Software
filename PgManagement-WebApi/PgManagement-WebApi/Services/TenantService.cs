@@ -782,7 +782,7 @@ namespace PgManagement_WebApi.Services
         {
             return await context.Tenants
                 .Where(t => t.PgId == pgId && t.AadharNumber == aadhar && !t.isDeleted)
-                .Select(t => new { tenantId = t.TenantId, name = t.Name, contactNumber = t.ContactNumber })
+                .Select(t => new { tenantId = t.TenantId, name = t.Name, contactNumber = t.ContactNumber, email = t.Email })
                 .FirstOrDefaultAsync();
         }
 

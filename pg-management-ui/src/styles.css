@@ -100,6 +100,15 @@ input {
   background: var(--primary-light);
 }
 
+@media (max-width: 767px) {
+  .page button {
+    background: #1565C0;
+  }
+  .page button:hover {
+    background: #0d47a1;
+  }
+}
+
 /* Error */
 .error {
   color: #dc2626;

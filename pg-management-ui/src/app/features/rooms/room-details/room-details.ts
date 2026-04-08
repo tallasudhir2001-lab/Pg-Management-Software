@@ -6,6 +6,7 @@ import { Observable, tap } from 'rxjs';
 import { Roomservice } from '../services/roomservice';
 import { Room } from '../models/room.model';
 import { ToastService } from '../../../shared/toast/toast-service';
+import { ConfirmDialogService } from '../../../shared/confirm-dialog/confirm-dialog.service';
 import { RoomTenant } from '../models/room.tenant.model';
 import { BookingService } from '../../bookings/booking-service';
 import { BookingListItem } from '../../bookings/models/booking.model';
@@ -58,7 +59,8 @@ export class RoomDetails implements OnInit {
     private bookingService: BookingService,
     private advanceService: AdvanceService,
     private cdr: ChangeDetectorRef,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private confirmDialogService: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -101,8 +103,12 @@ export class RoomDetails implements OnInit {
     });
   }
 
-  delete(): void {
-    if (!confirm('Are you sure you want to delete this room?')) return;
+  async delete(): Promise<void> {
+    const confirmed = await this.confirmDialogService.confirm({
+      title: 'Delete Room',
+      message: 'Are you sure you want to delete this room?'
+    });
+    if (!confirmed) return;
     this.roomService.deleteRoom(this.model.roomId).subscribe({
       next: () => this.router.navigate(['/room-list']),
       error: (err: { error: string }) => {

@@ -34,6 +34,12 @@
           </div>
 
           <div class="form-group">
+            <label>Email</label>
+            <input type="email" class="form-input" placeholder="Enter email" formControlName="email"
+              [readOnly]="existingTenant !== null" />
+          </div>
+
+          <div class="form-group">
             <label>Mobile Number</label>
             <input type="text" class="form-input" placeholder="Enter mobile number" formControlName="contactNumber" />
           </div>

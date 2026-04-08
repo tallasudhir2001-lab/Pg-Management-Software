@@ -8,6 +8,7 @@ import { PagedResults } from '../../../shared/models/page-results.model';
 import { distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
 import { Roomservice } from '../../rooms/services/roomservice';
 import { ToastService } from '../../../shared/toast/toast-service';
+import { ConfirmDialogService } from '../../../shared/confirm-dialog/confirm-dialog.service';
 import { HasAccessDirective } from '../../../shared/directives/has-access.directive';
 
 @Component({
@@ -58,7 +59,8 @@ export class TenantList implements OnInit{
     private router: Router,
     private tenantService: Tenantservice,
     private roomService :Roomservice,
-    private toastService : ToastService
+    private toastService : ToastService,
+    private confirmDialogService: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -131,7 +133,9 @@ export class TenantList implements OnInit{
 
   // 🔍 Search
   onSearchChange(value: string): void {
-    this.updateUrl({ search: value?value:null, page: 1 });
+    const trimmed = value?.trim();
+    if (trimmed && trimmed.length < 3) return;
+    this.updateUrl({ search: trimmed || null, page: 1 });
   }
 
   onPageSizeChange(newSize: number): void {
@@ -326,10 +330,11 @@ private viewTenant(tenantId: string): void {
 private editTenant(tenantId: string): void {
   this.router.navigate(['/tenants', tenantId, 'edit']);
 }
-private confirmDeleteTenant(tenant: TenantListDto): void {
-  const confirmed = confirm(
-    `Are you sure you want to delete tenant "${tenant.name}"?`
-  );
+private async confirmDeleteTenant(tenant: TenantListDto): Promise<void> {
+  const confirmed = await this.confirmDialogService.confirm({
+    title: 'Delete Tenant',
+    message: `Are you sure you want to delete tenant "${tenant.name}"?`
+  });
 
   if (!confirmed) return;
 

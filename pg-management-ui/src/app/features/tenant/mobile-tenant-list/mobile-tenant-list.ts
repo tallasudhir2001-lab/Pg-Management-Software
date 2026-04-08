@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Tenantservice } from '../services/tenantservice';
 import { TenantListDto } from '../models/tenant-list-dto';
-import { Subject, debounceTime, distinctUntilChanged, Subscription } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, filter, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-mobile-tenant-list',
@@ -31,7 +31,8 @@ export class MobileTenantList implements OnInit, OnDestroy {
   ngOnInit() {
     this.searchSub = this.searchSubject.pipe(
       debounceTime(400),
-      distinctUntilChanged()
+      distinctUntilChanged(),
+      filter(text => !text.trim() || text.trim().length >= 3)
     ).subscribe(() => this.loadTenants());
 
     this.loadTenants();

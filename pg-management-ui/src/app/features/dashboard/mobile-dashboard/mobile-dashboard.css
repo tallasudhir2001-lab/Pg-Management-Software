@@ -1,5 +1,7 @@
 .mobile-dashboard {
   padding: 16px;
+  background: #f1f5f9;
+  min-height: 100vh;
 }
 
 .loading-state {
@@ -43,140 +45,320 @@
   cursor: pointer;
 }
 
-/* Summary Grid */
+/* ── Summary Grid ────────────────────── */
 .summary-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .summary-card {
   background: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.card-value.revenue {
+  font-size: 17px;
+}
+
+.card-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ── Today's Activity ────────────────── */
+.today-card {
+  background: linear-gradient(135deg, #1a237e, #283593);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+  color: #fff;
+}
+
+.today-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.85;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.today-row {
+  display: flex;
+}
+
+.today-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.today-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.today-value.green { color: #81C784; }
+.today-value.red { color: #ef9a9a; }
+.today-value.orange { color: #FFB74D; }
+
+.today-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Quick Action Strip ──────────────── */
+.qa-strip {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.qa-strip::-webkit-scrollbar { display: none; }
+
+.qa-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.qa-chip svg { color: #1565C0; flex-shrink: 0; }
+.qa-chip:active { background: #f1f5f9; transform: scale(0.97); }
+
+/* ── Metrics Row ─────────────────────── */
+.metrics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.metric-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.metric-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.metric-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.metric-pct {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.metric-bar {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.metric-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.metric-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* ── Cards + Section Titles ──────────── */
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-bottom: 14px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 14px 0;
+  display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.card-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+/* ── Rent Breakdown ──────────────────── */
+.breakdown-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.breakdown-item {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 10px;
 }
 
-.card-icon svg {
-  width: 24px;
-  height: 24px;
+.breakdown-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.card-value {
-  font-size: 24px;
+.green-bg { background: #2E7D32; }
+.red-bg { background: #C62828; }
+.orange-bg { background: #E65100; }
+.amber-bg { background: #F57F17; }
+
+.breakdown-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.breakdown-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.breakdown-value {
+  font-size: 16px;
   font-weight: 700;
   color: #1e293b;
 }
 
-.card-value.revenue {
-  font-size: 18px;
-}
-
-.card-label {
-  font-size: 12px;
-  color: #64748b;
-  font-weight: 500;
-}
-
-/* Cards */
-.card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-bottom: 16px;
-}
-
-.card-title {
-  font-size: 16px;
+.breakdown-count {
+  font-size: 11px;
+  color: #94a3b8;
   font-weight: 600;
-  color: #1e293b;
-  margin: 0 0 12px 0;
+  background: #f1f5f9;
+  padding: 3px 8px;
+  border-radius: 6px;
 }
 
-/* Occupancy */
-.progress-bar {
-  height: 8px;
-  background: #e5e7eb;
-  border-radius: 4px;
-  overflow: hidden;
+/* ── Alerts ───────────────────────────── */
+.alerts-card {
+  border-left: 3px solid #C62828;
 }
 
-.progress-fill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.5s ease;
+.alert-badge {
+  background: #C62828;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: auto;
 }
 
-.occupancy-text {
-  font-size: 13px;
-  color: #64748b;
-  margin: 8px 0 0 0;
-}
-
-/* Recent Payments */
-.payment-item {
+.alert-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 10px 0;
   border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
 }
 
-.payment-item:last-child {
-  border-bottom: none;
-}
+.alert-item:last-child { border-bottom: none; padding-bottom: 0; }
+.alert-item:first-of-type { padding-top: 0; }
 
-.payment-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #E8F5E9;
-  color: #2E7D32;
+.alert-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: #fff;
 }
 
-.payment-info {
+.alert-text {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.3;
 }
 
-.payment-name {
-  font-size: 14px;
-  font-weight: 600;
+.alert-text strong {
   color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.payment-meta {
-  font-size: 12px;
-  color: #94a3b8;
-}
-
-.payment-amount {
-  font-size: 15px;
-  font-weight: 700;
-  color: #2E7D32;
+.alert-arrow {
+  color: #cbd5e1;
   flex-shrink: 0;
 }

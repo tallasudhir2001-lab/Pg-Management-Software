@@ -18,6 +18,7 @@ import {
 } from 'rxjs';
 import { Tenantservice } from '../../tenant/services/tenantservice';
 import { ToastService } from '../../../shared/toast/toast-service';
+import { ConfirmDialogService } from '../../../shared/confirm-dialog/confirm-dialog.service';
 import { UserService } from '../../../shared/services/user-service';
 import { ReceiptDrawer } from '../receipt-drawer/receipt-drawer';
 
@@ -92,7 +93,8 @@ export class PaymentsHistory implements OnInit {
     private tenantService: Tenantservice,
     private toastService: ToastService,
     private userService: UserService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private confirmDialogService: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -171,7 +173,9 @@ export class PaymentsHistory implements OnInit {
   // ─── Search ────────────────────────────────────────────────────────────────
 
   onSearchChange(value: string): void {
-    this.updateUrl({ search: value || null, page: 1 });
+    const trimmed = value?.trim();
+    if (trimmed && trimmed.length < 3) return;
+    this.updateUrl({ search: trimmed || null, page: 1 });
   }
 
   // ─── Pagination ────────────────────────────────────────────────────────────
@@ -372,8 +376,12 @@ export class PaymentsHistory implements OnInit {
     }
   }
 
-  private confirmDeletePayment(payment: PaymentHistoryDto): void {
-    if (!confirm(`Are you sure you want to delete payment for "${payment.tenantName}"?`)) return;
+  private async confirmDeletePayment(payment: PaymentHistoryDto): Promise<void> {
+    const confirmed = await this.confirmDialogService.confirm({
+      title: 'Delete Payment',
+      message: `Are you sure you want to delete payment for "${payment.tenantName}"?`
+    });
+    if (!confirmed) return;
     this.paymentService.deletePayment(payment.paymentId).subscribe({
       next: () => { this.toastService.showSuccess('Payment Deleted Successfully.'); this.refresh$.next(); },
       error: (err: { error: any }) => {

@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subject, combineLatest, map, startWith, switchMap, tap } from 'rxjs';
 import { PagedResults } from '../../../shared/models/page-results.model';
 import { ToastService } from '../../../shared/toast/toast-service';
+import { ConfirmDialogService } from '../../../shared/confirm-dialog/confirm-dialog.service';
 import { EmployeeService } from '../services/employee-service';
 import { EmployeeListItem, EmployeeDetails, EmployeeRole, CreateEmployeeDto, UpdateEmployeeDto } from '../models/employee.model';
 import { HasAccessDirective } from '../../../shared/directives/has-access.directive';
@@ -60,7 +61,8 @@ export class EmployeeList implements OnInit {
     private router: Router,
     private employeeService: EmployeeService,
     private toastService: ToastService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private confirmDialogService: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -115,8 +117,10 @@ export class EmployeeList implements OnInit {
   onSearchChange(value: string): void {
     this.searchText = value;
     clearTimeout(this.searchTimeout);
+    const trimmed = value?.trim();
+    if (trimmed && trimmed.length < 3) return;
     this.searchTimeout = setTimeout(() => {
-      this.navigateWithParams({ page: 1, search: value || null });
+      this.navigateWithParams({ page: 1, search: trimmed || null });
     }, 400);
   }
 
@@ -274,8 +278,12 @@ export class EmployeeList implements OnInit {
     });
   }
 
-  onDeleteEmployee(emp: EmployeeListItem): void {
-    if (!confirm(`Are you sure you want to delete ${emp.name}?`)) return;
+  async onDeleteEmployee(emp: EmployeeListItem): Promise<void> {
+    const confirmed = await this.confirmDialogService.confirm({
+      title: 'Delete Employee',
+      message: `Are you sure you want to delete ${emp.name}?`
+    });
+    if (!confirmed) return;
 
     this.employeeService.deleteEmployee(emp.employeeId).subscribe({
       next: () => {

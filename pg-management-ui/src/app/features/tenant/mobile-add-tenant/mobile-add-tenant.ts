@@ -1,8 +1,8 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Observable, map, of } from 'rxjs';
+import { Observable, Subscription, map, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { Roomservice } from '../../rooms/services/roomservice';
 import { Tenantservice } from '../services/tenantservice';
@@ -17,7 +17,7 @@ import { Room } from '../../rooms/models/room.model';
   templateUrl: './mobile-add-tenant.html',
   styleUrl: './mobile-add-tenant.css'
 })
-export class MobileAddTenant implements OnInit {
+export class MobileAddTenant implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private roomService = inject(Roomservice);
@@ -28,9 +28,11 @@ export class MobileAddTenant implements OnInit {
 
   form!: FormGroup;
   rooms$!: Observable<Room[]>;
+  rooms: Room[] = [];
   paymentModes$!: Observable<any[]>;
   existingTenant: any = null;
   checkingAadhar = false;
+  private subs: Subscription[] = [];
 
   ngOnInit() {
     this.form = this.fb.group({
@@ -53,7 +55,10 @@ export class MobileAddTenant implements OnInit {
       notes: ['']
     });
 
-    this.rooms$ = this.roomService.getRooms({ page: 1, pageSize: 100 }).pipe(map(r => r.items));
+    this.rooms$ = this.roomService.getRooms({ page: 1, pageSize: 100 }).pipe(
+      map(r => r.items),
+      map(rooms => { this.rooms = rooms; return rooms; })
+    );
     this.paymentModes$ = this.paymentService.getPaymentModes();
 
     this.form.get('aadharNumber')?.valueChanges.pipe(
@@ -69,6 +74,67 @@ export class MobileAddTenant implements OnInit {
       this.existingTenant = res || null;
       this.cdr.detectChanges();
     });
+
+    // Auto-populate initial payment fields
+    this.subs.push(
+      this.form.get('roomId')!.valueChanges.subscribe(() => this.autoPopulatePayment()),
+      this.form.get('fromDate')!.valueChanges.subscribe(() => this.autoPopulatePayment()),
+      this.form.get('stayType')!.valueChanges.subscribe(() => this.autoPopulatePayment()),
+      this.form.get('hasPayment')!.valueChanges.subscribe(checked => { if (checked) this.autoPopulatePayment(); }),
+      this.form.get('initialPaidUpto')!.valueChanges.subscribe(() => this.autoPopulateDailyRent())
+    );
+  }
+
+  ngOnDestroy() {
+    this.subs.forEach(s => s.unsubscribe());
+  }
+
+  private autoPopulatePayment(): void {
+    const v = this.form.value;
+    if (!v.roomId || !v.fromDate) return;
+
+    const room = this.rooms.find(r => r.roomId === v.roomId);
+    if (!room) return;
+
+    const fromDate = new Date(v.fromDate);
+
+    // Paid From = checked-in date
+    this.form.patchValue({ initialPaidFrom: v.fromDate }, { emitEvent: false });
+
+    if (v.stayType === 'MONTHLY') {
+      const paidUpto = new Date(fromDate);
+      paidUpto.setMonth(paidUpto.getMonth() + 1);
+      paidUpto.setDate(paidUpto.getDate() - 1);
+      const uptoStr = paidUpto.toISOString().split('T')[0];
+
+      this.form.patchValue({
+        initialPaidUpto: uptoStr,
+        initialPaymentAmount: room.rentAmount
+      }, { emitEvent: false });
+    } else if (v.stayType === 'DAILY') {
+      this.form.patchValue({ initialPaidUpto: null, initialPaymentAmount: null }, { emitEvent: false });
+    }
+    this.cdr.detectChanges();
+  }
+
+  private autoPopulateDailyRent(): void {
+    const v = this.form.value;
+    if (v.stayType !== 'DAILY' || !v.roomId || !v.fromDate || !v.initialPaidUpto) return;
+
+    const room = this.rooms.find(r => r.roomId === v.roomId);
+    if (!room) return;
+
+    const from = new Date(v.fromDate);
+    const upto = new Date(v.initialPaidUpto);
+    const days = Math.round((upto.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    if (days <= 0) return;
+
+    const daysInMonth = new Date(from.getFullYear(), from.getMonth() + 1, 0).getDate();
+    const dailyRate = room.rentAmount / daysInMonth;
+    const amount = Math.round(dailyRate * days);
+
+    this.form.patchValue({ initialPaymentAmount: amount }, { emitEvent: false });
+    this.cdr.detectChanges();
   }
 
   save() {
@@ -110,7 +176,7 @@ export class MobileAddTenant implements OnInit {
       next: (res: any) => {
         if (v.hasPayment && res?.tenantId) {
           this.paymentService.createPayment({
-            tenantId: res.tenantId, PaymentFrequencyCode: 'MONTHLY',
+            tenantId: res.tenantId, PaymentFrequencyCode: v.stayType === 'DAILY' ? 'DAILY' : 'MONTHLY',
             paidFrom: v.initialPaidFrom, paidUpto: v.initialPaidUpto,
             amount: v.initialPaymentAmount, paymentModeCode: v.initialPaymentModeCode
           }).subscribe({

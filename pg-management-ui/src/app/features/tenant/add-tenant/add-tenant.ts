@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { map, Observable, Subscription } from 'rxjs';
 import { Room } from '../../rooms/models/room.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Roomservice } from '../../rooms/services/roomservice';
@@ -19,7 +19,7 @@ import { PaymentService } from '../../payments/services/payment-service';
   templateUrl: './add-tenant.html',
   styleUrl: '../styles/tenant-form.css',
 })
-export class AddTenant implements OnInit {
+export class AddTenant implements OnInit, OnDestroy {
   form!: FormGroup;
 
   constructor(
@@ -32,10 +32,12 @@ export class AddTenant implements OnInit {
   ) {}
 
   rooms$!: Observable<Room[]>;
+  rooms: Room[] = [];
   paymentModes$!: Observable<any[]>;
   error = '';
   existingTenant: any = null;
   checkingAadhar = false;
+  private subs: Subscription[] = [];
 
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -78,10 +80,74 @@ export class AddTenant implements OnInit {
         this.checkingAadhar = false;
         this.existingTenant = res || null;
       });
+
+    // Auto-populate initial payment fields
+    this.subs.push(
+      this.form.get('roomId')!.valueChanges.subscribe(() => this.autoPopulatePayment()),
+      this.form.get('fromDate')!.valueChanges.subscribe(() => this.autoPopulatePayment()),
+      this.form.get('stayType')!.valueChanges.subscribe(() => this.autoPopulatePayment()),
+      this.form.get('hasPayment')!.valueChanges.subscribe(checked => { if (checked) this.autoPopulatePayment(); }),
+      this.form.get('initialPaidUpto')!.valueChanges.subscribe(() => this.autoPopulateDailyRent())
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subs.forEach(s => s.unsubscribe());
+  }
+
+  private autoPopulatePayment(): void {
+    const v = this.form.value;
+    if (!v.roomId || !v.fromDate) return;
+
+    const room = this.rooms.find(r => r.roomId === v.roomId);
+    if (!room) return;
+
+    const fromDate = new Date(v.fromDate);
+
+    // Paid From = checked-in date
+    this.form.patchValue({ initialPaidFrom: v.fromDate }, { emitEvent: false });
+
+    if (v.stayType === 'MONTHLY') {
+      // Paid Upto = fromDate + 1 month - 1 day
+      const paidUpto = new Date(fromDate);
+      paidUpto.setMonth(paidUpto.getMonth() + 1);
+      paidUpto.setDate(paidUpto.getDate() - 1);
+      const uptoStr = paidUpto.toISOString().split('T')[0];
+
+      this.form.patchValue({
+        initialPaidUpto: uptoStr,
+        initialPaymentAmount: room.rentAmount
+      }, { emitEvent: false });
+    } else if (v.stayType === 'DAILY') {
+      // Clear amount — it will be calculated when user picks paidUpto
+      this.form.patchValue({ initialPaidUpto: null, initialPaymentAmount: null }, { emitEvent: false });
+    }
+  }
+
+  private autoPopulateDailyRent(): void {
+    const v = this.form.value;
+    if (v.stayType !== 'DAILY' || !v.roomId || !v.fromDate || !v.initialPaidUpto) return;
+
+    const room = this.rooms.find(r => r.roomId === v.roomId);
+    if (!room) return;
+
+    const from = new Date(v.fromDate);
+    const upto = new Date(v.initialPaidUpto);
+    const days = Math.round((upto.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    if (days <= 0) return;
+
+    const daysInMonth = new Date(from.getFullYear(), from.getMonth() + 1, 0).getDate();
+    const dailyRate = room.rentAmount / daysInMonth;
+    const amount = Math.round(dailyRate * days);
+
+    this.form.patchValue({ initialPaymentAmount: amount }, { emitEvent: false });
   }
 
   private loadAvailableRooms(): void {
-    this.rooms$ = this.roomService.getRooms({ page: 1, pageSize: 100 }).pipe(map(res => res.items));
+    this.rooms$ = this.roomService.getRooms({ page: 1, pageSize: 100 }).pipe(
+      map(res => res.items),
+      map(rooms => { this.rooms = rooms; return rooms; })
+    );
   }
 
   save(): void {
@@ -134,7 +200,7 @@ export class AddTenant implements OnInit {
         if (v.hasPayment && res?.tenantId) {
           this.paymentService.createPayment({
             tenantId: res.tenantId,
-            PaymentFrequencyCode: 'MONTHLY',
+            PaymentFrequencyCode: v.stayType === 'DAILY' ? 'DAILY' : 'MONTHLY',
             paidFrom: v.initialPaidFrom,
             paidUpto: v.initialPaidUpto,
             amount: v.initialPaymentAmount,

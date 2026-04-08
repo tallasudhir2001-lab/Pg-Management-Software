@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subject, combineLatest, map, startWith, switchMap, tap, of, catchError } from 'rxjs';
 import { PagedResults } from '../../../shared/models/page-results.model';
 import { ToastService } from '../../../shared/toast/toast-service';
+import { ConfirmDialogService } from '../../../shared/confirm-dialog/confirm-dialog.service';
 import { EmployeeService } from '../services/employee-service';
 import { SalaryPaymentListItem, CreateSalaryPaymentDto, UpdateSalaryPaymentDto, EmployeeListItem } from '../models/employee.model';
 import { HasAccessDirective } from '../../../shared/directives/has-access.directive';
@@ -72,7 +73,8 @@ export class SalaryPayments implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private employeeService: EmployeeService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private confirmDialogService: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -317,8 +319,12 @@ export class SalaryPayments implements OnInit {
     });
   }
 
-  onDeletePayment(payment: SalaryPaymentListItem): void {
-    if (!confirm(`Delete salary payment for ${payment.employeeName} (${payment.forMonth})?`)) return;
+  async onDeletePayment(payment: SalaryPaymentListItem): Promise<void> {
+    const confirmed = await this.confirmDialogService.confirm({
+      title: 'Delete Salary Payment',
+      message: `Delete salary payment for ${payment.employeeName} (${payment.forMonth})?`
+    });
+    if (!confirmed) return;
 
     this.employeeService.deleteSalaryPayment(payment.salaryPaymentId).subscribe({
       next: () => {

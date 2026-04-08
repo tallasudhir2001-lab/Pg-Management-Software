@@ -130,8 +130,10 @@ export class RoomList {
 
   // Search handler
   onSearchChange(value: string): void {
+    const trimmed = value?.trim();
+    if (trimmed && trimmed.length < 3) return;
     this.updateUrl({
-      search: value ? value : null,
+      search: trimmed || null,
       page: 1
     });
   }

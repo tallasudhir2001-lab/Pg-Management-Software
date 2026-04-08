@@ -30,6 +30,13 @@
              [(ngModel)]="name" [disabled]="!!existingTenant">
     </div>
 
+    <!-- Email -->
+    <div class="form-section">
+      <label class="form-label">Email <span class="req">*</span></label>
+      <input class="form-input" type="email" placeholder="Enter email"
+             [(ngModel)]="email" [disabled]="!!existingTenant">
+    </div>
+
     <!-- Contact -->
     <div class="form-section">
       <label class="form-label">Contact Number <span class="req">*</span></label>

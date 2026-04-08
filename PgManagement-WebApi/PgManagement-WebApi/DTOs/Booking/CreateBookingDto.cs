@@ -13,6 +13,10 @@ namespace PgManagement_WebApi.DTOs.Booking
         public string Name { get; set; }
 
         [Required]
+        [EmailAddress(ErrorMessage = "Enter a valid email address")]
+        public string Email { get; set; }
+
+        [Required]
         [RegularExpression(@"^[6-9]\d{9}$", ErrorMessage = "Enter a valid 10-digit Indian mobile number")]
         public string ContactNumber { get; set; }
 
