@@ -34,6 +34,13 @@ import { TenantListReport } from './features/reports/tenant-list-report/tenant-l
 import { AdvanceBalanceReport } from './features/reports/advance-balance/advance-balance';
 import { ExpenseReport } from './features/reports/expense-report/expense-report';
 import { ProfitLossReport } from './features/reports/profit-loss/profit-loss';
+import { TenantTurnoverReport } from './features/reports/tenant-turnover/tenant-turnover';
+import { RoomRevenueReport } from './features/reports/room-revenue/room-revenue';
+import { SalaryReport } from './features/reports/salary-report/salary-report';
+import { CashFlowReport } from './features/reports/cash-flow/cash-flow';
+import { TenantAgingReport } from './features/reports/tenant-aging/tenant-aging';
+import { RoomChangeHistoryReport } from './features/reports/room-change-history/room-change-history';
+import { BookingConversionReport } from './features/reports/booking-conversion/booking-conversion';
 import { Settings } from './features/settings/settings/settings';
 import { ConfigurationsLanding } from './features/configurations/configurations-landing/configurations-landing';
 import { ReportSubscriptions } from './features/settings/report-subscriptions/report-subscriptions';
@@ -83,6 +90,13 @@ export const routes: Routes = [
             { path: 'reports/advance-balance', component: AdvanceBalanceReport },
             { path: 'reports/expenses', component: ExpenseReport },
             { path: 'reports/profit-loss', component: ProfitLossReport },
+            { path: 'reports/tenant-turnover', component: TenantTurnoverReport },
+            { path: 'reports/room-revenue', component: RoomRevenueReport },
+            { path: 'reports/salary', component: SalaryReport },
+            { path: 'reports/cash-flow', component: CashFlowReport },
+            { path: 'reports/tenant-aging', component: TenantAgingReport },
+            { path: 'reports/room-change-history', component: RoomChangeHistoryReport },
+            { path: 'reports/booking-conversion', component: BookingConversionReport },
             { path: 'settings', component: ConfigurationsLanding },
             { path: 'settings/manage-users', component: PgUserManagement, canActivate: [permissionGuard], data: { requiredPermission: 'PgUser.GetUsers' } },
             { path: 'settings/notifications', component: Settings, canActivate: [permissionGuard], data: { requiredPermission: 'Settings.GetNotificationSettings' } },

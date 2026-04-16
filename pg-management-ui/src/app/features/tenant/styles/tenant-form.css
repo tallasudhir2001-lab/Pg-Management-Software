@@ -414,6 +414,35 @@
   border-top: 1px solid #f1f5f9;
 }
 
+.last-payment-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 0;
+  margin-bottom: -8px;
+}
+
+.last-payment-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.last-payment-info {
+  font-size: 14px;
+  font-weight: 700;
+  color: #065f46;
+}
+
+.last-payment-meta {
+  font-size: 12px;
+  font-weight: 400;
+  color: #6b7280;
+}
+
 .breakdown-label {
   font-size: 11px;
   font-weight: 600;

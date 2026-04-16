@@ -1,0 +1,80 @@
+<div class="report-page">
+  <div class="back-nav" (click)="goBack()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="back-icon">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+    </svg>
+    <span>Reports</span>
+  </div>
+  <h2 class="page-title">Cash Flow Report</h2>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Month</label>
+      <input type="date" [(ngModel)]="fromDate" />
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary" (click)="loadData()" [disabled]="isLoading">
+        {{ isLoading ? 'Loading...' : 'Preview' }}
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="data !== null">
+    <div class="cf-actions">
+      <button class="btn-secondary" (click)="showSendModal = true">📤 Send</button>
+      <button class="btn-primary" (click)="downloadPdf()" [disabled]="isDownloading">
+        {{ isDownloading ? 'Generating...' : '⬇ Download PDF' }}
+      </button>
+    </div>
+
+    <div class="cf-layout">
+      <div class="cf-section inflow-section">
+        <div class="cf-section-header">Inflows</div>
+        <table class="report-table">
+          <tbody>
+            <tr *ngFor="let line of data.inflows">
+              <td>{{ line.label }}</td>
+              <td class="text-right amt-green">₹{{ line.amount | number:'1.0-0' }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="text-right">Total Inflows</td>
+              <td class="text-right total-inflow">₹{{ data.totalInflows | number:'1.0-0' }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="cf-section outflow-section">
+        <div class="cf-section-header">Outflows</div>
+        <table class="report-table">
+          <tbody>
+            <tr *ngFor="let line of data.outflows">
+              <td>{{ line.label }}</td>
+              <td class="text-right amt-red">₹{{ line.amount | number:'1.0-0' }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="text-right">Total Outflows</td>
+              <td class="text-right total-outflow">₹{{ data.totalOutflows | number:'1.0-0' }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="net-card" [class.positive]="isPositive" [class.negative]="!isPositive">
+      <span class="net-label">Net Cash Flow</span>
+      <span class="net-amount">{{ isPositive ? '+' : '-' }}₹{{ absNet | number:'1.0-0' }}</span>
+    </div>
+  </ng-container>
+</div>
+
+<app-send-report-modal
+  *ngIf="showSendModal"
+  [reportType]="'cash-flow'"
+  [filters]="getFilters()"
+  (closed)="showSendModal = false"
+></app-send-report-modal>

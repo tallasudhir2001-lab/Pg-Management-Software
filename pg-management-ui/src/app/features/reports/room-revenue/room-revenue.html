@@ -1,0 +1,72 @@
+<div class="report-page">
+  <div class="back-nav" (click)="goBack()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="back-icon">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+    </svg>
+    <span>Reports</span>
+  </div>
+  <h2 class="page-title">Room Revenue Report</h2>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Month</label>
+      <input type="date" [(ngModel)]="fromDate" />
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary" (click)="loadData()" [disabled]="isLoading">
+        {{ isLoading ? 'Loading...' : 'Preview' }}
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="data !== null">
+    <div class="report-actions">
+      <button class="btn-secondary" (click)="showSendModal = true">📤 Send</button>
+      <button class="btn-primary" (click)="downloadPdf()" [disabled]="isDownloading">
+        {{ isDownloading ? 'Generating...' : '⬇ Download PDF' }}
+      </button>
+    </div>
+
+    <div class="report-card">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Room</th>
+            <th class="text-right">Capacity</th>
+            <th class="text-right">Occupied Days</th>
+            <th class="text-right">Vacant Days</th>
+            <th class="text-right">Rent Collected</th>
+            <th class="text-right">Expense</th>
+            <th class="text-right">Net Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of data.rows">
+            <td>{{ row.roomNumber }}</td>
+            <td class="text-right">{{ row.capacity }}</td>
+            <td class="text-right">{{ row.occupiedDays }}</td>
+            <td class="text-right">{{ row.vacantDays }}</td>
+            <td class="text-right amt-green">₹{{ row.rentCollected | number:'1.0-0' }}</td>
+            <td class="text-right amt-red">₹{{ row.expenseAllocated | number:'1.0-0' }}</td>
+            <td class="text-right amt-bold">₹{{ row.netRevenue | number:'1.0-0' }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" class="text-right">Totals</td>
+            <td class="text-right amt-green">₹{{ data.totalRentCollected | number:'1.0-0' }}</td>
+            <td class="text-right amt-red">₹{{ data.totalExpenses | number:'1.0-0' }}</td>
+            <td class="text-right amt-bold">₹{{ data.totalNetRevenue | number:'1.0-0' }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </ng-container>
+</div>
+
+<app-send-report-modal
+  *ngIf="showSendModal"
+  [reportType]="'room-revenue'"
+  [filters]="getFilters()"
+  (closed)="showSendModal = false"
+></app-send-report-modal>

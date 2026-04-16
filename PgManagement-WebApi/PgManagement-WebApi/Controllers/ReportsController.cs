@@ -181,6 +181,142 @@ namespace PgManagement_WebApi.Controllers
             return Ok(await _reportService.GetPaymentHistoryDataAsync(PgId, from, to, types, modes, tenantId));
         }
 
+        // ────────────── NEW REPORTS ──────────────
+
+        [AccessPoint("Report", "Tenant Turnover Report")]
+        [HttpGet("tenant-turnover")]
+        public async Task<IActionResult> TenantTurnover([FromQuery] DateTime? fromDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var d = fromDate ?? DateTime.Today;
+            var pdf = await _reportService.GenerateTenantTurnoverReportAsync(PgId, d.Month, d.Year);
+            return File(pdf, "application/pdf", $"TenantTurnover_{d.Year}_{d.Month:D2}.pdf");
+        }
+
+        [HttpGet("tenant-turnover/data")]
+        public async Task<IActionResult> TenantTurnoverData([FromQuery] DateTime? fromDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var d = fromDate ?? DateTime.Today;
+            return Ok(await _reportService.GetTenantTurnoverDataAsync(PgId, d.Month, d.Year));
+        }
+
+        [AccessPoint("Report", "Room Revenue Report")]
+        [HttpGet("room-revenue")]
+        public async Task<IActionResult> RoomRevenue([FromQuery] DateTime? fromDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var d = fromDate ?? DateTime.Today;
+            var pdf = await _reportService.GenerateRoomRevenueReportAsync(PgId, d.Month, d.Year);
+            return File(pdf, "application/pdf", $"RoomRevenue_{d.Year}_{d.Month:D2}.pdf");
+        }
+
+        [HttpGet("room-revenue/data")]
+        public async Task<IActionResult> RoomRevenueData([FromQuery] DateTime? fromDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var d = fromDate ?? DateTime.Today;
+            return Ok(await _reportService.GetRoomRevenueDataAsync(PgId, d.Month, d.Year));
+        }
+
+        [AccessPoint("Report", "Salary Report")]
+        [HttpGet("salary")]
+        public async Task<IActionResult> Salary([FromQuery] DateTime? fromDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var d = fromDate ?? DateTime.Today;
+            var pdf = await _reportService.GenerateSalaryReportAsync(PgId, d.Month, d.Year);
+            return File(pdf, "application/pdf", $"Salary_{d.Year}_{d.Month:D2}.pdf");
+        }
+
+        [HttpGet("salary/data")]
+        public async Task<IActionResult> SalaryData([FromQuery] DateTime? fromDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var d = fromDate ?? DateTime.Today;
+            return Ok(await _reportService.GetSalaryReportDataAsync(PgId, d.Month, d.Year));
+        }
+
+        [AccessPoint("Report", "Cash Flow Report")]
+        [HttpGet("cash-flow")]
+        public async Task<IActionResult> CashFlow([FromQuery] DateTime? fromDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var d = fromDate ?? DateTime.Today;
+            var pdf = await _reportService.GenerateCashFlowReportAsync(PgId, d.Month, d.Year);
+            return File(pdf, "application/pdf", $"CashFlow_{d.Year}_{d.Month:D2}.pdf");
+        }
+
+        [HttpGet("cash-flow/data")]
+        public async Task<IActionResult> CashFlowData([FromQuery] DateTime? fromDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var d = fromDate ?? DateTime.Today;
+            return Ok(await _reportService.GetCashFlowDataAsync(PgId, d.Month, d.Year));
+        }
+
+        [AccessPoint("Report", "Tenant Aging Report")]
+        [HttpGet("tenant-aging")]
+        public async Task<IActionResult> TenantAging([FromQuery] DateTime? asOfDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var d = asOfDate ?? DateTime.Today;
+            var pdf = await _reportService.GenerateTenantAgingReportAsync(PgId, d);
+            return File(pdf, "application/pdf", $"TenantAging_{d:yyyyMMdd}.pdf");
+        }
+
+        [HttpGet("tenant-aging/data")]
+        public async Task<IActionResult> TenantAgingData([FromQuery] DateTime? asOfDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var d = asOfDate ?? DateTime.Today;
+            return Ok(await _reportService.GetTenantAgingDataAsync(PgId, d));
+        }
+
+        [AccessPoint("Report", "Room Change History Report")]
+        [HttpGet("room-change-history")]
+        public async Task<IActionResult> RoomChangeHistory(
+            [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var from = fromDate ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            var to = toDate ?? DateTime.Today;
+            var pdf = await _reportService.GenerateRoomChangeHistoryReportAsync(PgId, from, to);
+            return File(pdf, "application/pdf", $"RoomChangeHistory_{from:yyyyMMdd}_{to:yyyyMMdd}.pdf");
+        }
+
+        [HttpGet("room-change-history/data")]
+        public async Task<IActionResult> RoomChangeHistoryData(
+            [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var from = fromDate ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            var to = toDate ?? DateTime.Today;
+            return Ok(await _reportService.GetRoomChangeHistoryDataAsync(PgId, from, to));
+        }
+
+        [AccessPoint("Report", "Booking Conversion Report")]
+        [HttpGet("booking-conversion")]
+        public async Task<IActionResult> BookingConversion(
+            [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var from = fromDate ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            var to = toDate ?? DateTime.Today;
+            var pdf = await _reportService.GenerateBookingConversionReportAsync(PgId, from, to);
+            return File(pdf, "application/pdf", $"BookingConversion_{from:yyyyMMdd}_{to:yyyyMMdd}.pdf");
+        }
+
+        [HttpGet("booking-conversion/data")]
+        public async Task<IActionResult> BookingConversionData(
+            [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
+        {
+            if (string.IsNullOrEmpty(PgId)) return Unauthorized();
+            var from = fromDate ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            var to = toDate ?? DateTime.Today;
+            return Ok(await _reportService.GetBookingConversionDataAsync(PgId, from, to));
+        }
+
         [HttpPost("send")]
         public async Task<IActionResult> SendReport([FromBody] SendReportDto dto)
         {
@@ -236,14 +372,21 @@ namespace PgManagement_WebApi.Controllers
 
             return reportType switch
             {
-                "rent-collection"  => await _reportService.GenerateRentCollectionReportAsync(PgId, fromDate.Month, fromDate.Year, null, status),
-                "overdue-rent"     => await _reportService.GenerateOverdueRentReportAsync(PgId, asOfDate, null),
-                "payment-history"  => await _reportService.GeneratePaymentHistoryReportAsync(PgId, fromDate, DateTime.Today, types, modes, tenantId),
-                "occupancy"        => await _reportService.GenerateOccupancyReportAsync(PgId, asOfDate),
-                "tenant-list"      => await _reportService.GenerateTenantListReportAsync(PgId, status ?? "ACTIVE", null),
-                "advance-balance"  => await _reportService.GenerateAdvanceBalanceReportAsync(PgId),
-                "expenses"         => await _reportService.GenerateExpenseReportAsync(PgId, fromDate.Month, fromDate.Year, category),
-                "profit-loss"      => await _reportService.GenerateProfitLossReportAsync(PgId, fromDate.Month, fromDate.Year),
+                "rent-collection"      => await _reportService.GenerateRentCollectionReportAsync(PgId, fromDate.Month, fromDate.Year, null, status),
+                "overdue-rent"         => await _reportService.GenerateOverdueRentReportAsync(PgId, asOfDate, null),
+                "payment-history"      => await _reportService.GeneratePaymentHistoryReportAsync(PgId, fromDate, DateTime.Today, types, modes, tenantId),
+                "occupancy"            => await _reportService.GenerateOccupancyReportAsync(PgId, asOfDate),
+                "tenant-list"          => await _reportService.GenerateTenantListReportAsync(PgId, status ?? "ACTIVE", null),
+                "advance-balance"      => await _reportService.GenerateAdvanceBalanceReportAsync(PgId),
+                "expenses"             => await _reportService.GenerateExpenseReportAsync(PgId, fromDate.Month, fromDate.Year, category),
+                "profit-loss"          => await _reportService.GenerateProfitLossReportAsync(PgId, fromDate.Month, fromDate.Year),
+                "tenant-turnover"      => await _reportService.GenerateTenantTurnoverReportAsync(PgId, fromDate.Month, fromDate.Year),
+                "room-revenue"         => await _reportService.GenerateRoomRevenueReportAsync(PgId, fromDate.Month, fromDate.Year),
+                "salary"               => await _reportService.GenerateSalaryReportAsync(PgId, fromDate.Month, fromDate.Year),
+                "cash-flow"            => await _reportService.GenerateCashFlowReportAsync(PgId, fromDate.Month, fromDate.Year),
+                "tenant-aging"         => await _reportService.GenerateTenantAgingReportAsync(PgId, asOfDate),
+                "room-change-history"  => await _reportService.GenerateRoomChangeHistoryReportAsync(PgId, fromDate, DateTime.Today),
+                "booking-conversion"   => await _reportService.GenerateBookingConversionReportAsync(PgId, fromDate, DateTime.Today),
                 _ => throw new ArgumentException("Unknown report type")
             };
         }

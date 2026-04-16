@@ -1,0 +1,40 @@
+@import '../styles/report-page.css';
+
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.bucket-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 640px) {
+  .bucket-bar { grid-template-columns: repeat(2, 1fr); }
+}
+
+.bucket-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.bucket-count {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+.bucket-amount {
+  font-size: 20px;
+  font-weight: 800;
+  color: #111827;
+  margin-top: 4px;
+}

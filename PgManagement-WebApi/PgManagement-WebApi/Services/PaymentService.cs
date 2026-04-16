@@ -77,6 +77,26 @@ namespace PgManagement_WebApi.Services
                     payableStay = stay;
                     payableFrom = unpaidRanges.First().From;
                     payableUpto = stay.ToDate?.Date ?? dto.PaidUpto;
+
+                    // Extend payableUpto across consecutive stays (room changes)
+                    if (stay.ToDate.HasValue)
+                    {
+                        var idx = stays.IndexOf(stay);
+                        var lastStay = stay;
+                        for (int i = idx + 1; i < stays.Count; i++)
+                        {
+                            var next = stays[i];
+                            if (lastStay.ToDate.HasValue &&
+                                next.FromDate.Date == lastStay.ToDate.Value.Date.AddDays(1))
+                            {
+                                lastStay = next;
+                                payableUpto = next.ToDate?.Date ?? dto.PaidUpto;
+                                if (!next.ToDate.HasValue) break;
+                            }
+                            else break;
+                        }
+                    }
+
                     break;
                 }
             }
@@ -110,23 +130,55 @@ namespace PgManagement_WebApi.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            // Audit: check for amount mismatch on MONTHLY stays
-            if (string.Equals(payableStay.StayType, "MONTHLY", StringComparison.OrdinalIgnoreCase))
+            // Audit: check for amount mismatch — calculate expected rent across all overlapping stays
             {
-                var rentHistories = await _context.RoomRentHistories
-                    .Where(r => r.RoomId == payableStay.RoomId
-                        && r.EffectiveFrom <= dto.PaidUpto
-                        && (r.EffectiveTo == null || r.EffectiveTo >= payableFrom))
-                    .OrderBy(r => r.EffectiveFrom)
-                    .ToListAsync();
+                var overlappingStays = stays
+                    .Where(s => s.FromDate.Date <= dto.PaidUpto
+                        && (s.ToDate?.Date ?? dto.PaidUpto) >= payableFrom)
+                    .OrderBy(s => s.FromDate)
+                    .ToList();
 
-                var expectedSlices = RentHelper.GetRentSlices(
-                    payableFrom, dto.PaidUpto, rentHistories, "MONTHLY",
-                    stayFromDate: payableStay.FromDate.Date, isActiveStay: payableStay.ToDate == null);
-                var expectedAmount = expectedSlices.Sum(s => s.Amount);
+                decimal expectedAmount = 0;
+
+                foreach (var s in overlappingStays)
+                {
+                    var sliceFrom = payableFrom > s.FromDate.Date ? payableFrom : s.FromDate.Date;
+                    var sliceTo = s.ToDate.HasValue && s.ToDate.Value.Date < dto.PaidUpto
+                        ? s.ToDate.Value.Date : dto.PaidUpto;
+
+                    // Cycle anchor: trace back through all consecutive stays (including non-overlapping)
+                    var allIdx = stays.IndexOf(s);
+                    var cycleAnchor = s.FromDate.Date;
+                    for (int i = allIdx - 1; i >= 0; i--)
+                    {
+                        var prev = stays[i];
+                        if (prev.ToDate.HasValue &&
+                            stays[i + 1].FromDate.Date <= prev.ToDate.Value.Date.AddDays(1))
+                        {
+                            cycleAnchor = prev.FromDate.Date;
+                        }
+                        else break;
+                    }
+
+                    var rentHistories = await _context.RoomRentHistories
+                        .Where(r => r.RoomId == s.RoomId
+                            && r.EffectiveFrom <= sliceTo
+                            && (r.EffectiveTo == null || r.EffectiveTo >= sliceFrom))
+                        .OrderBy(r => r.EffectiveFrom)
+                        .ToListAsync();
+
+                    var slices = RentHelper.GetRentSlices(
+                        sliceFrom, sliceTo, rentHistories, s.StayType ?? "MONTHLY",
+                        stayFromDate: cycleAnchor, isActiveStay: s.ToDate == null);
+                    expectedAmount += slices.Sum(x => x.Amount);
+                }
+
+                expectedAmount = Decimal.Round(expectedAmount, 2, MidpointRounding.AwayFromZero);
 
                 if (dto.Amount != expectedAmount)
                 {
+                    var roomNumbers = string.Join(" → ",
+                        overlappingStays.Select(s => s.Room?.RoomNumber ?? s.RoomId));
                     _context.AuditEvents.Add(new AuditEvent
                     {
                         Id = Guid.NewGuid().ToString(),
@@ -135,7 +187,7 @@ namespace PgManagement_WebApi.Services
                         EventType = "PAYMENT_AMOUNT_MISMATCH",
                         EntityType = "Payment",
                         EntityId = payment.PaymentId,
-                        Description = $"Payment created with ₹{dto.Amount} instead of expected ₹{expectedAmount} for period {payableFrom:dd MMM yyyy}–{dto.PaidUpto:dd MMM yyyy} (Room: {payableStay.Room?.RoomNumber})",
+                        Description = $"Payment created with ₹{dto.Amount} instead of expected ₹{expectedAmount} for period {payableFrom:dd MMM yyyy}–{dto.PaidUpto:dd MMM yyyy} (Room: {roomNumbers})",
                         OldValue = JsonSerializer.Serialize(new { ExpectedAmount = expectedAmount }),
                         NewValue = JsonSerializer.Serialize(new { ActualAmount = dto.Amount }),
                         PerformedByUserId = userId,
@@ -242,6 +294,19 @@ namespace PgManagement_WebApi.Services
                     payments.Select(p => (p.PaidFrom.Date, p.PaidUpto.Date)));
                 if (!unpaidRanges.Any()) continue;
 
+                // For consecutive stays (room changes), use chain's first stay as cycle anchor
+                var idx = stays.IndexOf(stay);
+                var cycleAnchor = stay.FromDate.Date;
+                for (int i = idx - 1; i >= 0; i--)
+                {
+                    if (stays[i].ToDate.HasValue &&
+                        stays[i].ToDate.Value.Date.AddDays(1) == stays[i + 1].FromDate.Date)
+                    {
+                        cycleAnchor = stays[i].FromDate.Date;
+                    }
+                    else break;
+                }
+
                 var rentHistories = await _context.RoomRentHistories
                     .Where(r => r.RoomId == stay.RoomId && r.EffectiveFrom <= stayTo
                         && (r.EffectiveTo == null || r.EffectiveTo >= stayFrom))
@@ -252,7 +317,7 @@ namespace PgManagement_WebApi.Services
                 {
                     var rentSlices = RentHelper.GetRentSlices(
                         range.From.Date, range.To.Date, rentHistories, stay.StayType,
-                        stayFromDate: stay.FromDate.Date, isActiveStay: stay.ToDate == null);
+                        stayFromDate: cycleAnchor, isActiveStay: stay.ToDate == null);
 
                     foreach (var slice in rentSlices)
                     {
@@ -267,11 +332,23 @@ namespace PgManagement_WebApi.Services
                 }
             }
 
+            var lastRentPayment = payments
+                .OrderByDescending(p => p.PaymentDate)
+                .FirstOrDefault();
+
             return new PendingRentResponseDto
             {
                 TenantId = tenantId, AsOfDate = asOf,
                 TotalPendingAmount = Decimal.Round(totalPending, 2, MidpointRounding.AwayFromZero),
-                Breakdown = breakdown
+                Breakdown = breakdown,
+                LastPayment = lastRentPayment != null ? new LastPaymentDto
+                {
+                    PaymentDate = lastRentPayment.PaymentDate,
+                    PaidFrom = lastRentPayment.PaidFrom,
+                    PaidUpto = lastRentPayment.PaidUpto,
+                    Amount = lastRentPayment.Amount,
+                    PaymentMode = lastRentPayment.PaymentModeCode ?? ""
+                } : null
             };
         }
 
@@ -283,38 +360,55 @@ namespace PgManagement_WebApi.Services
             if (paidFrom > paidUpto)
                 return (false, "paidFrom must be <= paidUpto", 400);
 
-            var stay = await _context.TenantRooms
+            var overlappingStays = await _context.TenantRooms
                 .Where(tr => tr.TenantId == tenantId && tr.PgId == pgId
-                    && tr.FromDate <= paidFrom
+                    && tr.FromDate <= paidUpto
                     && (tr.ToDate == null || tr.ToDate >= paidFrom))
-                .OrderByDescending(tr => tr.FromDate)
-                .FirstOrDefaultAsync();
-
-            if (stay == null)
-            {
-                stay = await _context.TenantRooms
-                    .Where(tr => tr.TenantId == tenantId && tr.PgId == pgId
-                        && tr.FromDate <= paidUpto
-                        && (tr.ToDate == null || tr.ToDate >= paidFrom))
-                    .OrderByDescending(tr => tr.FromDate)
-                    .FirstOrDefaultAsync();
-            }
-
-            if (stay == null)
-                return (false, "No stay found for the given period", 404);
-
-            var rentHistories = await _context.RoomRentHistories
-                .Where(r => r.RoomId == stay.RoomId
-                    && r.EffectiveFrom <= paidUpto
-                    && (r.EffectiveTo == null || r.EffectiveTo >= paidFrom))
-                .OrderBy(r => r.EffectiveFrom)
+                .OrderBy(tr => tr.FromDate)
                 .ToListAsync();
 
-            var slices = RentHelper.GetRentSlices(paidFrom, paidUpto, rentHistories, stay.StayType,
-                stayFromDate: stay.FromDate.Date, isActiveStay: false);
-            var amount = slices.Sum(s => s.Amount);
+            if (!overlappingStays.Any())
+            {
+                var fallbackStay = await _context.TenantRooms
+                    .Where(tr => tr.TenantId == tenantId && tr.PgId == pgId
+                        && tr.FromDate <= paidUpto)
+                    .OrderByDescending(tr => tr.FromDate)
+                    .FirstOrDefaultAsync();
 
-            return (true, new { amount = Decimal.Round(amount, 2), stayType = stay.StayType }, 200);
+                if (fallbackStay == null)
+                    return (false, "No stay found for the given period", 404);
+
+                overlappingStays = new List<TenantRoom> { fallbackStay };
+            }
+
+            decimal totalAmount = 0;
+            string stayType = overlappingStays.Last().StayType ?? "MONTHLY";
+
+            foreach (var stay in overlappingStays)
+            {
+                var sliceFrom = paidFrom > stay.FromDate.Date ? paidFrom : stay.FromDate.Date;
+                var sliceTo = stay.ToDate.HasValue && stay.ToDate.Value.Date < paidUpto
+                    ? stay.ToDate.Value.Date : paidUpto;
+
+                var rentHistories = await _context.RoomRentHistories
+                    .Where(r => r.RoomId == stay.RoomId
+                        && r.EffectiveFrom <= sliceTo
+                        && (r.EffectiveTo == null || r.EffectiveTo >= sliceFrom))
+                    .OrderBy(r => r.EffectiveFrom)
+                    .ToListAsync();
+
+                // Use paidFrom as cycle anchor — keeps billing aligned to the payment start
+                var slices = RentHelper.GetRentSlices(sliceFrom, sliceTo, rentHistories,
+                    stay.StayType ?? "MONTHLY",
+                    stayFromDate: paidFrom, isActiveStay: false);
+                totalAmount += slices.Sum(s => s.Amount);
+            }
+
+            return (true, new
+            {
+                amount = Decimal.Round(totalAmount, 2, MidpointRounding.AwayFromZero),
+                stayType
+            }, 200);
         }
 
         public async Task<(bool success, object result, int statusCode)> GetPaymentContextAsync(
@@ -350,18 +444,28 @@ namespace PgManagement_WebApi.Services
                 var stayFrom = stay.FromDate.Date;
                 DateTime stayTo;
 
+                // For consecutive stays (room changes), use chain's first stay as cycle anchor
+                var idx = stays.IndexOf(stay);
+                var cycleAnchor = stay.FromDate.Date;
+                for (int i = idx - 1; i >= 0; i--)
+                {
+                    if (stays[i].ToDate.HasValue &&
+                        stays[i].ToDate.Value.Date.AddDays(1) == stays[i + 1].FromDate.Date)
+                    {
+                        cycleAnchor = stays[i].FromDate.Date;
+                    }
+                    else break;
+                }
+
                 if (stay.ToDate.HasValue)
                 {
                     stayTo = Min(stay.ToDate.Value, today);
                 }
-                else if ((stay.StayType ?? "MONTHLY") == "MONTHLY")
-                {
-                    var cycleDay = stay.FromDate.Day;
-                    stayTo = RentHelper.GetCycleEnd(today, cycleDay);
-                }
                 else
                 {
-                    stayTo = today;
+                    // Active stay: extend to end of current billing cycle
+                    var cycleDay = cycleAnchor.Day;
+                    stayTo = RentHelper.GetCycleEnd(today, cycleDay);
                 }
 
                 if (stayFrom > stayTo) continue;
@@ -380,7 +484,7 @@ namespace PgManagement_WebApi.Services
                 foreach (var range in unpaidRanges)
                 {
                     var slices = RentHelper.GetRentSlices(range.From, range.To, rentHistories, stay.StayType,
-                        stayFromDate: stay.FromDate.Date, isActiveStay: stay.ToDate == null);
+                        stayFromDate: cycleAnchor, isActiveStay: stay.ToDate == null);
                     stayPending += slices.Sum(s => s.Amount);
                 }
 
@@ -437,19 +541,81 @@ namespace PgManagement_WebApi.Services
             var firstPayableStay = pendingStays.First();
             firstPayableStay.IsNextPayable = true;
 
+            // Extend MaxPaidUpto across consecutive stays (room/type changes)
+            // and track the last stay in the chain for response context
+            DateTime maxPaidUpto = firstPayableStay.ToDate;
+            TenantRoom? lastStayInChain = null;
+            var firstStayIdx = stays.FindIndex(s =>
+                s.RoomId == firstPayableStay.RoomId && s.FromDate.Date == firstPayableStay.StayStartDate);
+            if (firstStayIdx >= 0)
+            {
+                lastStayInChain = stays[firstStayIdx];
+                for (int i = firstStayIdx + 1; i < stays.Count; i++)
+                {
+                    var next = stays[i];
+                    if (lastStayInChain.ToDate.HasValue &&
+                        next.FromDate.Date == lastStayInChain.ToDate.Value.Date.AddDays(1))
+                    {
+                        lastStayInChain = next;
+                        if (next.ToDate.HasValue)
+                        {
+                            maxPaidUpto = Min(next.ToDate.Value, today);
+                        }
+                        else
+                        {
+                            // Active stay — trace back through all consecutive stays for cycle anchor
+                            var cycleAnchorDate = next.FromDate.Date;
+                            for (int j = i - 1; j >= 0; j--)
+                            {
+                                if (stays[j].ToDate.HasValue &&
+                                    stays[j].ToDate.Value.Date.AddDays(1) == stays[j + 1].FromDate.Date)
+                                {
+                                    cycleAnchorDate = stays[j].FromDate.Date;
+                                }
+                                else break;
+                            }
+                            maxPaidUpto = RentHelper.GetCycleEnd(today, cycleAnchorDate.Day);
+                            break;
+                        }
+                    }
+                    else break;
+                }
+            }
+
+            // Use the latest stay in the consecutive chain for context (type, rent, room)
+            var responseStay = lastStayInChain ?? (firstStayIdx >= 0 ? stays[firstStayIdx] : stays.Last());
+            var responseStayType = responseStay.StayType ?? "MONTHLY";
+            var responseRoomNumber = responseStay.Room?.RoomNumber ?? firstPayableStay.RoomNumber;
+            decimal responseRentPerMonth = firstPayableStay.RentPerMonth;
+
+            if (responseStay.RoomId != (firstStayIdx >= 0 ? stays[firstStayIdx].RoomId : null))
+            {
+                var latestRent = await _context.RoomRentHistories
+                    .Where(r => r.RoomId == responseStay.RoomId
+                        && r.EffectiveFrom <= today
+                        && (r.EffectiveTo == null || r.EffectiveTo >= today))
+                    .OrderByDescending(r => r.EffectiveFrom)
+                    .FirstOrDefaultAsync();
+                responseRentPerMonth = latestRent?.RentAmount ?? firstPayableStay.RentPerMonth;
+            }
+
+            // Use the first unpaid date as the cycle anchor for payment form suggestions
+            // This keeps billing aligned to the actual payment start, not historical stay chain
+            var responseStayStartDate = firstPayableStay.FromDate;
+
             return (true, new PaymentContextDto
             {
                 TenantId = tenant.TenantId, TenantName = tenant.Name,
                 PendingAmount = pendingStays.Sum(s => s.PendingAmount),
                 PendingStays = pendingStays,
                 PaidFrom = firstPayableStay.FromDate,
-                MaxPaidUpto = firstPayableStay.ToDate,
+                MaxPaidUpto = maxPaidUpto,
                 HasActiveStay = pendingStays.Any(s => s.IsActiveStay),
                 AsOfDate = today,
-                RoomNumber = firstPayableStay.RoomNumber,
-                RentPerMonth = firstPayableStay.RentPerMonth,
-                StayType = firstPayableStay.StayType,
-                StayStartDate = firstPayableStay.StayStartDate
+                RoomNumber = responseRoomNumber,
+                RentPerMonth = responseRentPerMonth,
+                StayType = responseStayType,
+                StayStartDate = responseStayStartDate
             }, 200);
         }
 
@@ -716,17 +882,33 @@ namespace PgManagement_WebApi.Services
                     PerformedByUserId = userId, PerformedAt = DateTime.UtcNow
                 });
 
-                // Also audit if the new amount mismatches expected rent for MONTHLY stays
-                var stay = await _context.TenantRooms
+                // Also audit if the new amount mismatches expected rent
+                var allStays = await _context.TenantRooms
                     .Include(tr => tr.Room)
-                    .Where(tr => tr.TenantId == payment.TenantId && tr.PgId == pgId
-                        && tr.FromDate <= payment.PaidFrom
+                    .Where(tr => tr.TenantId == payment.TenantId && tr.PgId == pgId)
+                    .OrderBy(tr => tr.FromDate)
+                    .ToListAsync();
+
+                var stay = allStays
+                    .Where(tr => tr.FromDate <= payment.PaidFrom
                         && (tr.ToDate == null || tr.ToDate >= payment.PaidFrom))
                     .OrderByDescending(tr => tr.FromDate)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefault();
 
-                if (stay != null && string.Equals(stay.StayType, "MONTHLY", StringComparison.OrdinalIgnoreCase))
+                if (stay != null)
                 {
+                    var stayIdx = allStays.IndexOf(stay);
+                    var cycleAnchor = stay.FromDate.Date;
+                    for (int k = stayIdx - 1; k >= 0; k--)
+                    {
+                        if (allStays[k].ToDate.HasValue &&
+                            allStays[k].ToDate.Value.Date.AddDays(1) == allStays[k + 1].FromDate.Date)
+                        {
+                            cycleAnchor = allStays[k].FromDate.Date;
+                        }
+                        else break;
+                    }
+
                     var rentHistories = await _context.RoomRentHistories
                         .Where(r => r.RoomId == stay.RoomId
                             && r.EffectiveFrom <= payment.PaidUpto
@@ -735,8 +917,8 @@ namespace PgManagement_WebApi.Services
                         .ToListAsync();
 
                     var expectedSlices = RentHelper.GetRentSlices(
-                        payment.PaidFrom, payment.PaidUpto, rentHistories, "MONTHLY",
-                        stayFromDate: stay.FromDate.Date, isActiveStay: stay.ToDate == null);
+                        payment.PaidFrom, payment.PaidUpto, rentHistories, stay.StayType ?? "MONTHLY",
+                        stayFromDate: cycleAnchor, isActiveStay: stay.ToDate == null);
                     var expectedAmount = expectedSlices.Sum(s => s.Amount);
 
                     if (dto.Amount != expectedAmount)

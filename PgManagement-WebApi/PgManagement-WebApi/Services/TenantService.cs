@@ -314,6 +314,8 @@ namespace PgManagement_WebApi.Services
             string pgId,
             DateTime effectiveDate)
         {
+            var normalised = newStayType?.ToUpper() == "DAILY" ? "DAILY" : "MONTHLY";
+
             var activeAssignment = await context.TenantRooms
                 .FirstOrDefaultAsync(tr =>
                     tr.TenantId == tenantId &&
@@ -323,44 +325,12 @@ namespace PgManagement_WebApi.Services
             if (activeAssignment == null)
                 return (false, "Tenant does not have an active stay.", 400);
 
-            if (activeAssignment.StayType == newStayType)
-                return (false, $"Tenant is already on {newStayType} stay.", 400);
+            if (activeAssignment.StayType == normalised)
+                return (false, $"Tenant is already on {normalised} stay.", 400);
 
-            var changeDate = effectiveDate.Date;
-            var previousDay = changeDate.AddDays(-1);
+            // Just update the stay type in-place — no need to close/reopen the stay
+            activeAssignment.StayType = normalised;
 
-            if (changeDate < activeAssignment.FromDate.Date)
-                return (false, "Effective date cannot be before current stay start date.", 400);
-
-            using var tx = await context.Database.BeginTransactionAsync();
-
-            // Close current stay
-            activeAssignment.ToDate = previousDay;
-
-            // Close active rent history
-            var activeRent = await context.TenantRentHistories
-                .FirstOrDefaultAsync(trh =>
-                    trh.TenantId == tenantId &&
-                    trh.ToDate == null);
-
-            if (activeRent != null)
-            {
-                activeRent.ToDate = previousDay;
-            }
-
-            // Create new stay in the same room with new stay type
-            var (ok, error, status) = await CreateStayInternal(
-                tenantId,
-                activeAssignment.RoomId,
-                changeDate,
-                pgId,
-                newStayType
-            );
-
-            if (!ok)
-                return (false, error, status);
-
-            // Update tenant metadata
             var tenant = await context.Tenants
                 .FirstOrDefaultAsync(t =>
                     t.TenantId == tenantId &&
@@ -373,7 +343,6 @@ namespace PgManagement_WebApi.Services
             }
 
             await context.SaveChangesAsync();
-            await tx.CommitAsync();
 
             return (true, null, 204);
         }

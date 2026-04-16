@@ -18,11 +18,10 @@ namespace PgManagement_WebApi.Helpers
 
         /// <summary>
         /// Stay-type-aware rent calculation.
-        /// MONTHLY: Billing cycles anchored on stayFromDate.Day.
-        ///          E.g. stay starts March 29 → cycles are 29 Mar–28 Apr, 29 Apr–28 May, etc.
-        ///          Full cycles charge full RentAmount; partial cycles are prorated.
-        ///          When isActiveStay is true, the current cycle is charged in full.
-        /// DAILY:   per-day calculation (original logic).
+        /// Both MONTHLY and DAILY use billing cycles anchored on stayFromDate.Day.
+        /// E.g. stay starts March 29 → cycles are 29 Mar–28 Apr, 29 Apr–28 May, etc.
+        /// Full cycles charge full RentAmount; partial cycles are prorated.
+        /// For active MONTHLY stays, the current cycle is extended to its end.
         /// </summary>
         public static List<RentSlice> GetRentSlices(
             DateTime from,
@@ -46,89 +45,47 @@ namespace PgManagement_WebApi.Helpers
             if (!applicableRents.Any())
                 return result;
 
-            if (isMonthly)
+            int cycleDay = stayFromDate.Day;
+
+            // For active MONTHLY stays, extend 'to' to the end of the current billing cycle
+            if (isMonthly && isActiveStay)
             {
-                int cycleDay = stayFromDate.Day;
-
-                // For active stays, extend 'to' to the end of the current billing cycle
-                if (isActiveStay)
-                {
-                    var cycleEnd = GetCycleEnd(to, cycleDay);
-                    if (cycleEnd > to) to = cycleEnd;
-                }
-
-                var cursor = from;
-                while (cursor <= to)
-                {
-                    var cycleStart = GetCycleStart(cursor, cycleDay);
-                    var nextCycleStart = GetNextCycleStart(cycleStart, cycleDay);
-                    var cycleEnd = nextCycleStart.AddDays(-1);
-
-                    var periodStart = cursor;
-                    var periodEnd = cycleEnd > to ? to : cycleEnd;
-
-                    int totalDaysInCycle = (cycleEnd - cycleStart).Days + 1;
-                    int daysInPeriod = (periodEnd - periodStart).Days + 1;
-                    bool isFullCycle = (periodStart == cycleStart && periodEnd == cycleEnd);
-
-                    // Use rent effective at cycle start
-                    decimal rent = GetEffectiveRent(periodStart, applicableRents);
-
-                    decimal rentPerDay = Decimal.Round(
-                        rent / totalDaysInCycle, 2, MidpointRounding.AwayFromZero);
-                    decimal amount = isFullCycle
-                        ? rent
-                        : Decimal.Round(rentPerDay * daysInPeriod, 2, MidpointRounding.AwayFromZero);
-
-                    result.Add(new RentSlice
-                    {
-                        From = periodStart,
-                        To = periodEnd,
-                        RentPerDay = rentPerDay,
-                        Amount = amount
-                    });
-
-                    cursor = periodEnd.AddDays(1);
-                }
+                var cycleEnd = GetCycleEnd(to, cycleDay);
+                if (cycleEnd > to) to = cycleEnd;
             }
-            else
+
+            var cursor = from;
+            while (cursor <= to)
             {
-                // DAILY: per-day calculation using calendar months for rate
-                foreach (var rent in applicableRents)
+                var cycleStart = GetCycleStart(cursor, cycleDay);
+                var nextCycleStart = GetNextCycleStart(cycleStart, cycleDay);
+                var cycleEnd = nextCycleStart.AddDays(-1);
+
+                var periodStart = cursor;
+                var periodEnd = cycleEnd > to ? to : cycleEnd;
+
+                int totalDaysInCycle = (cycleEnd - cycleStart).Days + 1;
+                int daysInPeriod = (periodEnd - periodStart).Days + 1;
+                bool isFullCycle = (periodStart == cycleStart && periodEnd == cycleEnd);
+
+                // Use rent effective at period start
+                decimal rent = GetEffectiveRent(periodStart, applicableRents);
+
+                decimal rentPerDay = Decimal.Round(
+                    rent / totalDaysInCycle, 2, MidpointRounding.AwayFromZero);
+                decimal amount = isFullCycle
+                    ? rent
+                    : Decimal.Round(rentPerDay * daysInPeriod, 2, MidpointRounding.AwayFromZero);
+
+                result.Add(new RentSlice
                 {
-                    var sliceFrom = Max(from, rent.EffectiveFrom);
-                    var sliceTo = Min(to, rent.EffectiveTo ?? to);
+                    From = periodStart,
+                    To = periodEnd,
+                    RentPerDay = rentPerDay,
+                    Amount = amount
+                });
 
-                    if (sliceFrom > sliceTo) continue;
-
-                    var cursor = sliceFrom;
-                    while (cursor <= sliceTo)
-                    {
-                        var monthStart = new DateTime(cursor.Year, cursor.Month, 1);
-                        var monthEnd = monthStart.AddMonths(1).AddDays(-1);
-
-                        var periodStart = cursor;
-                        var periodEnd = Min(monthEnd, sliceTo);
-
-                        var daysInMonth = DateTime.DaysInMonth(periodStart.Year, periodStart.Month);
-                        var days = (periodEnd - periodStart).Days + 1;
-
-                        var rentPerDay = Decimal.Round(
-                            rent.RentAmount / daysInMonth, 2, MidpointRounding.AwayFromZero);
-                        var amount = Decimal.Round(
-                            rentPerDay * days, 2, MidpointRounding.AwayFromZero);
-
-                        result.Add(new RentSlice
-                        {
-                            From = periodStart,
-                            To = periodEnd,
-                            RentPerDay = rentPerDay,
-                            Amount = amount
-                        });
-
-                        cursor = periodEnd.AddDays(1);
-                    }
-                }
+                cursor = periodEnd.AddDays(1);
             }
 
             return result;

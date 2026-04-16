@@ -61,7 +61,6 @@ export class TenantDetails implements OnInit{
   //change stay type
   isChangeStayTypeOpen = false;
   newStayType: string = 'DAILY';
-  changeStayTypeDate: string = new Date().toISOString().split('T')[0];
   isChangingStayType = false;
 
   //move out
@@ -265,7 +264,6 @@ confirmChangeRoom(): void {
     const activeStay = this.stays.find(s => !s.toDate);
     const currentType = activeStay?.stayType || 'MONTHLY';
     this.newStayType = currentType === 'MONTHLY' ? 'DAILY' : 'MONTHLY';
-    this.changeStayTypeDate = new Date().toISOString().split('T')[0];
     this.isChangeStayTypeOpen = true;
   }
 
@@ -274,14 +272,12 @@ confirmChangeRoom(): void {
   }
 
   confirmChangeStayType(): void {
-    if (!this.changeStayTypeDate) return;
-
     this.isChangingStayType = true;
 
     this.tenantService
       .changeStayType(this.tenantId, {
         newStayType: this.newStayType,
-        effectiveDate: this.changeStayTypeDate
+        effectiveDate: new Date().toISOString().split('T')[0]
       })
       .subscribe({
         next: () => {

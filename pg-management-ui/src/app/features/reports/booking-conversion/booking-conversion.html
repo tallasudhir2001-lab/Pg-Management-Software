@@ -1,0 +1,69 @@
+<div class="report-page">
+  <div class="back-nav" (click)="goBack()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="back-icon">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+    </svg>
+    <span>Reports</span>
+  </div>
+  <h2 class="page-title">Booking Conversion Report</h2>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>From Date</label>
+      <input type="date" [(ngModel)]="fromDate" />
+    </div>
+    <div class="filter-group">
+      <label>To Date</label>
+      <input type="date" [(ngModel)]="toDate" />
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary" (click)="loadData()" [disabled]="isLoading">
+        {{ isLoading ? 'Loading...' : 'Preview' }}
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="data !== null">
+    <div class="report-actions">
+      <button class="btn-secondary" (click)="showSendModal = true">📤 Send</button>
+      <button class="btn-primary" (click)="downloadPdf()" [disabled]="isDownloading">
+        {{ isDownloading ? 'Generating...' : '⬇ Download PDF' }}
+      </button>
+    </div>
+
+    <div class="summary-cards">
+      <div class="stat-card">
+        <div class="stat-label">Total Bookings</div>
+        <div class="stat-value">{{ data.totalBookings }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Checked In</div>
+        <div class="stat-value green">{{ data.checkedIn }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cancelled</div>
+        <div class="stat-value red">{{ data.cancelled }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Expired</div>
+        <div class="stat-value amber">{{ data.expired }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Still Active</div>
+        <div class="stat-value blue">{{ data.stillActive }}</div>
+      </div>
+    </div>
+
+    <div class="conversion-card" [class.high]="data.conversionRatePercent >= 70" [class.low]="data.conversionRatePercent < 70">
+      <span class="conv-label">Conversion Rate</span>
+      <span class="conv-value">{{ data.conversionRatePercent | number:'1.1-1' }}%</span>
+    </div>
+  </ng-container>
+</div>
+
+<app-send-report-modal
+  *ngIf="showSendModal"
+  [reportType]="'booking-conversion'"
+  [filters]="getFilters()"
+  (closed)="showSendModal = false"
+></app-send-report-modal>

@@ -47,6 +47,24 @@ export class ReportsLanding {
       description: 'Revenue vs expenses summary for any period.',
       icon: '📈',
       route: '/reports/profit-loss'
+    },
+    {
+      title: 'Cash Flow',
+      description: 'Monthly inflows vs outflows with net cash position.',
+      icon: '💵',
+      route: '/reports/cash-flow'
+    },
+    {
+      title: 'Room Revenue',
+      description: 'Per-room revenue, expenses and net profit breakdown.',
+      icon: '🏢',
+      route: '/reports/room-revenue'
+    },
+    {
+      title: 'Salary Report',
+      description: 'Employee salary payments for a given month.',
+      icon: '💼',
+      route: '/reports/salary'
     }
   ];
 
@@ -68,6 +86,30 @@ export class ReportsLanding {
       description: 'Categorised breakdown of all expenses in a date range.',
       icon: '📋',
       route: '/reports/expenses'
+    },
+    {
+      title: 'Tenant Turnover',
+      description: 'Monthly move-ins, move-outs, average stay and churn rate.',
+      icon: '🔄',
+      route: '/reports/tenant-turnover'
+    },
+    {
+      title: 'Tenant Aging',
+      description: 'Overdue rent buckets and pending amounts per tenant.',
+      icon: '⏰',
+      route: '/reports/tenant-aging'
+    },
+    {
+      title: 'Room Change History',
+      description: 'Log of all room transfers with old and new rent details.',
+      icon: '🔀',
+      route: '/reports/room-change-history'
+    },
+    {
+      title: 'Booking Conversion',
+      description: 'Booking outcomes — check-ins, cancellations and conversion rate.',
+      icon: '📊',
+      route: '/reports/booking-conversion'
     }
   ];
 }

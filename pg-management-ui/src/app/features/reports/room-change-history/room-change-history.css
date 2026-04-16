@@ -1,0 +1,19 @@
+@import '../styles/report-page.css';
+
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.total-badge {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}

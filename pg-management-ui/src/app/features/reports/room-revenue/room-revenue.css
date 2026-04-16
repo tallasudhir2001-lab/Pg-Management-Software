@@ -1,0 +1,8 @@
+@import '../styles/report-page.css';
+
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 16px;
+}

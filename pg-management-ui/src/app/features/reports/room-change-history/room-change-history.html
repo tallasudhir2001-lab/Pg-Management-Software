@@ -1,0 +1,74 @@
+<div class="report-page">
+  <div class="back-nav" (click)="goBack()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="back-icon">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+    </svg>
+    <span>Reports</span>
+  </div>
+  <h2 class="page-title">Room Change History</h2>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>From Date</label>
+      <input type="date" [(ngModel)]="fromDate" />
+    </div>
+    <div class="filter-group">
+      <label>To Date</label>
+      <input type="date" [(ngModel)]="toDate" />
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary" (click)="loadData()" [disabled]="isLoading">
+        {{ isLoading ? 'Loading...' : 'Preview' }}
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="data !== null">
+    <div class="report-actions">
+      <button class="btn-secondary" (click)="showSendModal = true">📤 Send</button>
+      <button class="btn-primary" (click)="downloadPdf()" [disabled]="isDownloading">
+        {{ isDownloading ? 'Generating...' : '⬇ Download PDF' }}
+      </button>
+    </div>
+
+    <div class="total-badge" *ngIf="data.totalChanges > 0">
+      {{ data.totalChanges }} room change{{ data.totalChanges > 1 ? 's' : '' }} recorded
+    </div>
+
+    <div class="report-card" *ngIf="data.rows.length > 0">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Tenant</th>
+            <th>Date</th>
+            <th>From Room</th>
+            <th>To Room</th>
+            <th class="text-right">Old Rent</th>
+            <th class="text-right">New Rent</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of data.rows">
+            <td>{{ row.tenantName }}</td>
+            <td>{{ row.changeDate | date:'dd MMM yyyy' }}</td>
+            <td>{{ row.oldRoom }}</td>
+            <td>{{ row.newRoom }}</td>
+            <td class="text-right">₹{{ row.oldRent | number:'1.0-0' }}</td>
+            <td class="text-right">₹{{ row.newRent | number:'1.0-0' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="data.rows.length === 0">
+      No room changes recorded in this period.
+    </div>
+  </ng-container>
+</div>
+
+<app-send-report-modal
+  *ngIf="showSendModal"
+  [reportType]="'room-change-history'"
+  [filters]="getFilters()"
+  (closed)="showSendModal = false"
+></app-send-report-modal>

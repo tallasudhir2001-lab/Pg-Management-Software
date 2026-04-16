@@ -1,0 +1,84 @@
+<div class="report-page">
+  <div class="back-nav" (click)="goBack()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="back-icon">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+    </svg>
+    <span>Reports</span>
+  </div>
+  <h2 class="page-title">Salary Report</h2>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Month</label>
+      <input type="date" [(ngModel)]="fromDate" />
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary" (click)="loadData()" [disabled]="isLoading">
+        {{ isLoading ? 'Loading...' : 'Preview' }}
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="data !== null">
+    <div class="report-actions">
+      <button class="btn-secondary" (click)="showSendModal = true">📤 Send</button>
+      <button class="btn-primary" (click)="downloadPdf()" [disabled]="isDownloading">
+        {{ isDownloading ? 'Generating...' : '⬇ Download PDF' }}
+      </button>
+    </div>
+
+    <div class="summary-cards">
+      <div class="stat-card">
+        <div class="stat-label">Employees Paid</div>
+        <div class="stat-value">{{ data.employeeCount }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Salary Paid</div>
+        <div class="stat-value red">₹{{ data.totalPaid | number:'1.0-0' }}</div>
+      </div>
+    </div>
+
+    <div class="report-card" *ngIf="data.rows.length > 0">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Role</th>
+            <th>Payment Date</th>
+            <th>For Month</th>
+            <th class="text-right">Amount</th>
+            <th>Mode</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of data.rows">
+            <td>{{ row.employeeName }}</td>
+            <td>{{ row.role }}</td>
+            <td>{{ row.paymentDate | date:'dd MMM yyyy' }}</td>
+            <td>{{ row.forMonth }}</td>
+            <td class="text-right amt-red">₹{{ row.amount | number:'1.0-0' }}</td>
+            <td><span class="badge badge-gray">{{ row.paymentMode }}</span></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" class="text-right">Total</td>
+            <td class="text-right amt-bold">₹{{ data.totalPaid | number:'1.0-0' }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="data.rows.length === 0">
+      No salary payments recorded for this month.
+    </div>
+  </ng-container>
+</div>
+
+<app-send-report-modal
+  *ngIf="showSendModal"
+  [reportType]="'salary'"
+  [filters]="getFilters()"
+  (closed)="showSendModal = false"
+></app-send-report-modal>

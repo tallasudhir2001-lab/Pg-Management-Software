@@ -1,0 +1,80 @@
+<div class="report-page">
+  <div class="back-nav" (click)="goBack()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="back-icon">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+    </svg>
+    <span>Reports</span>
+  </div>
+  <h2 class="page-title">Tenant Aging Report</h2>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>As Of Date</label>
+      <input type="date" [(ngModel)]="asOfDate" />
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary" (click)="loadData()" [disabled]="isLoading">
+        {{ isLoading ? 'Loading...' : 'Preview' }}
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="data !== null">
+    <div class="report-actions">
+      <button class="btn-secondary" (click)="showSendModal = true">📤 Send</button>
+      <button class="btn-primary" (click)="downloadPdf()" [disabled]="isDownloading">
+        {{ isDownloading ? 'Generating...' : '⬇ Download PDF' }}
+      </button>
+    </div>
+
+    <div class="bucket-bar" *ngIf="data.buckets.length > 0">
+      <div class="bucket-card" *ngFor="let b of data.buckets">
+        <span class="badge" [ngClass]="bucketClass(b.bucket)">{{ b.bucket }}</span>
+        <div class="bucket-count">{{ b.count }} tenants</div>
+        <div class="bucket-amount">₹{{ b.totalAmount | number:'1.0-0' }}</div>
+      </div>
+    </div>
+
+    <div class="report-card" *ngIf="data.details.length > 0">
+      <div class="report-card-header">
+        <h3 class="report-card-title">Tenant Details</h3>
+        <span class="amt-bold">Total: ₹{{ data.grandTotal | number:'1.0-0' }}</span>
+      </div>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Tenant</th>
+            <th>Room</th>
+            <th class="text-right">Pending</th>
+            <th class="text-right">Days Overdue</th>
+            <th>Bucket</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of data.details" [ngClass]="{
+            'row-paid': row.daysOverdue <= 7,
+            'row-partial': row.daysOverdue > 7 && row.daysOverdue <= 15,
+            'row-overdue': row.daysOverdue > 15
+          }">
+            <td>{{ row.tenantName }}</td>
+            <td>{{ row.roomNumber }}</td>
+            <td class="text-right amt-red">₹{{ row.pendingAmount | number:'1.0-0' }}</td>
+            <td class="text-right">{{ row.daysOverdue }}</td>
+            <td><span class="badge" [ngClass]="bucketClass(row.bucket)">{{ row.bucket }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="data.details.length === 0">
+      No overdue tenants as of this date.
+    </div>
+  </ng-container>
+</div>
+
+<app-send-report-modal
+  *ngIf="showSendModal"
+  [reportType]="'tenant-aging'"
+  [filters]="getFilters()"
+  (closed)="showSendModal = false"
+></app-send-report-modal>

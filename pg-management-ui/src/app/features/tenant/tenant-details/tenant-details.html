@@ -226,6 +226,20 @@
             </ng-container>
           </div>
 
+          @if (pending.lastPayment) {
+            <div class="last-payment-row">
+              <span class="last-payment-label">Last Payment</span>
+              <span class="last-payment-info">
+                ₹{{ pending.lastPayment.amount | number:'1.0-0' }}
+                <span class="last-payment-meta">
+                  on {{ pending.lastPayment.paymentDate | date:'dd MMM yyyy' }}
+                  · {{ pending.lastPayment.paidFrom | date:'dd MMM' }} → {{ pending.lastPayment.paidUpto | date:'dd MMM yyyy' }}
+                  · {{ pending.lastPayment.paymentMode }}
+                </span>
+              </span>
+            </div>
+          }
+
           <hr class="pending-divider" />
 
           @if (pending.breakdown.length > 0) {
@@ -383,12 +397,8 @@
       </div>
       <div class="modal-body">
         <p style="margin-bottom: 12px; color: #64748b; font-size: 0.9rem;">
-          This will end the current stay and create a new stay in the same room with the selected stay type.
+          Switch the billing mode for this tenant's current stay.
         </p>
-        <div class="form-group" style="margin-top: 12px;">
-          <label>Effective Date</label>
-          <input type="date" class="form-input" [(ngModel)]="changeStayTypeDate" />
-        </div>
         <div class="form-group" style="margin-top: 12px;">
           <label>New Stay Type</label>
           <select class="form-input" [(ngModel)]="newStayType">
